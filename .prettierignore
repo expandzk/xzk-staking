@@ -1,0 +1,3 @@
+**/src/typechain/**/*
+**/packages/contracts/lib/**/*
+**/build/**/* 

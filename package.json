@@ -1,0 +1,20 @@
+{
+  "name": "@mystikonetwork/staking-rewards",
+  "description": "mystiko staking rewards",
+  "version": "0.0.1",
+  "private": true,
+  "repository": "https://github.com/mystikonetwork/mystiko-staking-rewards",
+  "author": "Mystiko Network",
+  "license": "MIT",
+  "workspaces": [
+    "packages/contracts",
+    "packages/abi"
+  ],
+  "scripts": {
+    "build": "yarn workspaces run build",
+    "clean": "yarn workspaces run clean",
+    "test": "yarn workspaces run test",
+    "format": "yarn workspaces run format",
+    "lint": "yarn workspaces run lint"
+  }
+}
