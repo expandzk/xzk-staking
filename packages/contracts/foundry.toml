@@ -1,0 +1,13 @@
+[profile.default]
+src = 'contracts'
+out = 'foundry/out'
+libs = ["lib"]
+test = 'test'
+cache = true
+cache_path  = 'foundry/cache'
+match_path = '**/test/forge/**/*.t.sol'
+solc = "0.8.26"
+gas_cap = "0.6 ether"
+via_ir = true
+optimizer = true
+optimizer_runs = 200
