@@ -6,7 +6,7 @@ library RewardsLibrary {
     int256 private constant BASE = -10;
     int256 private constant MIN = 2;
     // Decay rate (in basis points, 0.0000003 = 300000000000/10^18)
-    int256 private constant DECAY_RATE_SCALED = 300000000000;
+    int256 private constant DECAY_RATE_SCALED = 300 * 1e9;
 
     function calcTotalRewardAtBlock(int256 blocksPassed, int256 totalFactor)
         internal
@@ -24,8 +24,6 @@ library RewardsLibrary {
     // exp(x) = 1 + x + x^2/2! + x^3/3! + ... + x^n/n!
     // where x is in fixed-point with 18 decimals
     function exp(int256 x) internal pure returns (int256) {
-        require(x < 100 * int256(SCALE) && x > -100 * int256(SCALE), "x out of bounds");
-
         int256 sum = SCALE; // start with 1.0
         int256 term = SCALE; // current term = 1.0
         for (int256 i = 1; i < 10; i++) {

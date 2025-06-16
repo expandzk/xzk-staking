@@ -14,7 +14,7 @@ abstract contract MystikoClaim is AccessControl {
 
     mapping(address => Claim) public claims;
 
-    constructor() AccessControl() {
+    constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
