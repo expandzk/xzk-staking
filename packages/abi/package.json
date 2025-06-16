@@ -1,6 +1,6 @@
 {
   "name": "@mystikonetwork/staking-rewards-abi",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/mystikonetwork/mystiko-staking-rewards",
@@ -21,7 +21,7 @@
     "lint": "yarn prettier:check",
     "prettier:check": "prettier --check \"./**/*.{js,ts}\" --config .prettierrc",
     "format": "prettier --write \"./**/*.{js,ts}\" --config .prettierrc",
-    "generate": "rm -rf src/typechain/staking-rewards && typechain --target ethers-v5 --out-dir src/typechain/staking-rewards '../contracts/artifacts/{contracts,lib/openzeppelin-contracts/contracts/token,lib/openzeppelin-contracts/contracts/access}/!(build-info)/**/+([a-zA-Z0-9_]).json' && yarn prettier:fix",
+    "generate": "rm -rf src/typechain/staking-rewards && typechain --target ethers-v5 --out-dir src/typechain/staking-rewards '../contracts/artifacts/{contracts,lib/openzeppelin-contracts/contracts/token,lib/openzeppelin-contracts/contracts/access}/!(build-info)/**/+([a-zA-Z0-9_]).json'",
     "build": "rm -rf build && yarn build:contracts && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p ./tsconfig.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
@@ -30,7 +30,7 @@
     "test": ""
   },
   "devDependencies": {
-    "@mystikonetwork/staking-rewards-contracts": "^0.0.1",
+    "@mystikonetwork/staking-rewards-contracts": "1.0.0",
     "@tsconfig/recommended": "^1.0.1",
     "@typechain/ethers-v5": "^11.1.2",
     "prettier": "3.2.4",

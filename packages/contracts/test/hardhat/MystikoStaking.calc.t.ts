@@ -36,7 +36,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 360D',
       'sVXZK-360D',
-      4,
+      20,
       startBlock,
     );
     await staking360.waitForDeployment();
@@ -45,7 +45,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 180D',
       'sVXZK-180D',
-      3,
+      15,
       startBlock,
     );
     await staking180.waitForDeployment();
@@ -54,7 +54,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 90D',
       'sVXZK-90D',
-      2,
+      10,
       startBlock,
     );
     await staking90.waitForDeployment();
@@ -63,7 +63,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token Flexible',
       'sVXZK-FLEX',
-      1,
+      5,
       startBlock,
     );
     await stakingFlexible.waitForDeployment();
