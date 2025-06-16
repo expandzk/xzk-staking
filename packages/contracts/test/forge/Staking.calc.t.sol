@@ -22,8 +22,14 @@ contract StakingCalcTest is Test {
         vm.startPrank(owner);
         mockToken = new MockToken();
 
-        stakingFlexible =
-            new MystikoStaking(mockToken, "Mystiko Staking Vote Token Flexible", "sVXZK-FLEX", 1, block.number + 10000);
+        stakingFlexible = new MystikoStaking(
+            mockToken,
+            "Mystiko Staking Vote Token Flexible",
+            "sVXZK-FLEX",
+            0,
+            1,
+            block.number + 10000
+        );
         vm.stopPrank();
     }
 
@@ -76,7 +82,7 @@ contract StakingCalcTest is Test {
         stakingFlexible.stake(amount);
 
         // Move to start block to begin rewards
-        uint256 startBlock = stakingFlexible.startBlock();
+        uint256 startBlock = stakingFlexible.START_BLOCK();
         vm.roll(startBlock + 1);
 
         // Test staking calculation after rewards start
@@ -126,7 +132,7 @@ contract StakingCalcTest is Test {
         stakingFlexible.stake(amount);
 
         // Move to reward block
-        uint256 rewardBlock = stakingFlexible.startBlock() + 1000;
+        uint256 rewardBlock = stakingFlexible.START_BLOCK() + 1000;
         vm.roll(rewardBlock);
 
         // Test conversion consistency

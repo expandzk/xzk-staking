@@ -36,6 +36,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 360D',
       'sVXZK-360D',
+      360,
       20,
       startBlock,
     );
@@ -45,6 +46,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 180D',
       'sVXZK-180D',
+      180,
       15,
       startBlock,
     );
@@ -54,6 +56,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 90D',
       'sVXZK-90D',
+      90,
       10,
       startBlock,
     );
@@ -63,6 +66,7 @@ describe('MystikoStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token Flexible',
       'sVXZK-FLEX',
+      0,
       5,
       startBlock,
     );
@@ -83,8 +87,8 @@ describe('MystikoStaking', function () {
       this.timeout(1200000); // Increase timeout to 1200 seconds
 
       const blockNumber = Number(await ethers.provider.getBlockNumber());
-      const startBlock = Number(await staking360.startBlock());
-      const totalBlocks = Number(await staking360.totalBlocks());
+      const startBlock = Number(await staking360.START_BLOCK());
+      const totalBlocks = Number(await staking360.TOTAL_BLOCKS());
       const endBlock = startBlock + totalBlocks;
 
       // Create array to store data

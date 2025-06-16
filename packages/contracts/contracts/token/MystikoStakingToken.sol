@@ -6,13 +6,14 @@ import {ERC20Votes} from "lib/openzeppelin-contracts/contracts/token/ERC20/exten
 import {EIP712} from "lib/openzeppelin-contracts/contracts/utils/cryptography/EIP712.sol";
 
 abstract contract MystikoStakingToken is ERC20, ERC20Votes {
-    IERC20 public immutable underlyingToken;
+    IERC20 public immutable UNDERLYING_TOKEN;
 
-    constructor(IERC20 _mystikoToken, string memory _stakingTokenName, string memory _stakingTokenSymbol)
-        ERC20(_stakingTokenName, _stakingTokenSymbol)
-        EIP712(_stakingTokenName, "1")
-    {
-        underlyingToken = _mystikoToken;
+    constructor(
+        IERC20 _mystikoToken,
+        string memory _stakingTokenName,
+        string memory _stakingTokenSymbol
+    ) ERC20(_stakingTokenName, _stakingTokenSymbol) EIP712(_stakingTokenName, "1") {
+        UNDERLYING_TOKEN = _mystikoToken;
     }
 
     function clock() public view override returns (uint48) {
