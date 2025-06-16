@@ -8,7 +8,9 @@ import {ERC20Wrapper} from "lib/openzeppelin-contracts/contracts/token/ERC20/ext
 import {Nonces} from "lib/openzeppelin-contracts/contracts/utils/Nonces.sol";
 
 contract MockVoteToken is ERC20, ERC20Permit, ERC20Votes, ERC20Wrapper {
-    constructor(IERC20 _xzk) ERC20("Mock Vote Token", "vXZK") ERC20Permit("Mock Vote Token") ERC20Wrapper(_xzk) {}
+    constructor(
+        IERC20 _xzk
+    ) ERC20("Mock Vote Token", "vXZK") ERC20Permit("Mock Vote Token") ERC20Wrapper(_xzk) {}
 
     function clock() public view override returns (uint48) {
         return uint48(block.timestamp);

@@ -8,11 +8,10 @@ library RewardsLibrary {
     // Decay rate (in basis points, 0.0000003 = 300000000000/10^18)
     int256 private constant DECAY_RATE_SCALED = 300 * 1e9;
 
-    function calcTotalRewardAtBlock(int256 blocksPassed, int256 totalFactor)
-        internal
-        pure
-        returns (uint256 totalRelease)
-    {
+    function calcTotalRewardAtBlock(
+        int256 blocksPassed,
+        int256 totalFactor
+    ) internal pure returns (uint256 totalRelease) {
         int256 x = -DECAY_RATE_SCALED * blocksPassed;
         int256 decayFactor = exp(x) - SCALE;
         int256 totalExp = BASE * decayFactor + MIN * blocksPassed * DECAY_RATE_SCALED;

@@ -9,27 +9,27 @@ import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/Reentr
 
 contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
     // Total reward amount (50 million tokens)
-    uint256 public constant allRewardAmount = (50_000_000 * 1e18);
+    uint256 public constant ALL_REWARD_AMOUNT = (50_000_000 * 1e18);
 
     // Total duration in blocks (7,776,000 blocks at 12s block time ≈ 3 years)
-    uint256 public constant totalBlocks = 7_776_000;
+    uint256 public constant TOTAL_BLOCKS = 7_776_000;
 
     // Total reward amount factor (1.094396414 = 1094396414000000000/10^18)
-    int256 public constant expFactor = 1_094_396_414 * 1e9;
+    int256 public constant EXP_FACTOR = 1_094_396_414 * 1e9;
 
-    uint256 public constant startDelayBlocks = 7200; // 1 days / 12s block time
+    uint256 public constant START_DELAY_BLOCKS = 7200; // 1 days / 12s block time
 
     // Total factor for the staking token
-    uint256 public constant totalShare = 100;
+    uint256 public constant TOTAL_SHARE = 100;
 
     // Total factor for the staking token of total share
-    uint256 public immutable totalFactor;
+    uint256 public immutable TOTAL_FACTOR;
 
     // Total reward amount of current staking period
-    uint256 public immutable totalRewardAmount;
+    uint256 public immutable TOTAL_REWARD_AMOUNT;
 
     // Start block for calculating rewards
-    uint256 public immutable startBlock;
+    uint256 public immutable START_BLOCK;
 
     uint256 public totalStaked;
 
@@ -43,13 +43,17 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         IERC20 _mystikoToken,
         string memory _stakingTokenName,
         string memory _stakingTokenSymbol,
+        uint256 _stakingPeriod,
         uint256 _totalFactor,
         uint256 _startBlock
-    ) MystikoStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol) MystikoClaim() {
-        require(_startBlock > block.number + startDelayBlocks, "Start block must one day after deployment");
-        startBlock = _startBlock;
-        totalFactor = _totalFactor;
-        totalRewardAmount = (allRewardAmount * totalFactor) / totalShare;
+    )
+        MystikoStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol)
+        MystikoClaim(_stakingPeriod)
+    {
+        require(_startBlock > block.number + START_DELAY_BLOCKS, "Start block must one day after deployment");
+        START_BLOCK = _startBlock;
+        TOTAL_FACTOR = _totalFactor;
+        TOTAL_REWARD_AMOUNT = (ALL_REWARD_AMOUNT * TOTAL_FACTOR) / TOTAL_SHARE;
         totalStaked = 0;
         totalUnstaked = 0;
     }
@@ -59,8 +63,10 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_amount > 0, "MystikoStaking: Invalid amount");
         uint256 stakingAmount = swapToStakingToken(_amount);
-        SafeERC20.safeTransferFrom(underlyingToken, account, address(this), _amount);
+        SafeERC20.safeTransferFrom(UNDERLYING_TOKEN, account, address(this), _amount);
         _mint(account, stakingAmount);
+        bool recordSuccess = _stakeRecord(account, block.number);
+        require(recordSuccess, "MystikoStaking: Stake record failed");
         totalStaked += _amount;
         emit Staked(account, _amount, stakingAmount);
         return true;
@@ -71,6 +77,8 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_stakingAmount > 0, "MystikoStaking: Invalid staking amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
+        bool canUnstake = _canUnstake(account);
+        require(canUnstake, "MystikoStaking: Staking period not ended");
         uint256 amount = swapToUnderlyingToken(_stakingAmount);
         _burn(account, _stakingAmount);
         bool success = _unstakeRecord(account, amount);
@@ -84,8 +92,15 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         uint256 amount = _consumeClaim(account);
-        SafeERC20.safeTransfer(underlyingToken, account, amount);
+        SafeERC20.safeTransfer(UNDERLYING_TOKEN, account, amount);
         emit Claimed(account, amount);
+        return true;
+    }
+
+    function claimTo(address _to, uint256 _amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+        require(_amount > 0, "MystikoStaking: Invalid amount");
+        SafeERC20.safeTransfer(UNDERLYING_TOKEN, _to, _amount);
+        emit Claimed(_to, _amount);
         return true;
     }
 
@@ -112,14 +127,14 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
     }
 
     function currentTotalReward() public view returns (uint256) {
-        int256 blocksPassed = int256(block.number) - int256(startBlock);
+        int256 blocksPassed = int256(block.number) - int256(START_BLOCK);
         if (blocksPassed <= 0) {
             return 0;
         }
-        if (blocksPassed >= int256(totalBlocks)) {
-            return totalRewardAmount;
+        if (blocksPassed >= int256(TOTAL_BLOCKS)) {
+            return TOTAL_REWARD_AMOUNT;
         }
-        uint256 reward = RewardsLibrary.calcTotalRewardAtBlock(blocksPassed, expFactor);
-        return (reward * totalFactor) / totalShare;
+        uint256 reward = RewardsLibrary.calcTotalRewardAtBlock(blocksPassed, EXP_FACTOR);
+        return (reward * TOTAL_FACTOR) / TOTAL_SHARE;
     }
 }

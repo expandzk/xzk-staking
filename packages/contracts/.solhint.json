@@ -1,14 +1,23 @@
 {
-  "extends": ["solhint:recommended"],
+  "extends": [
+    "solhint:recommended"
+  ],
   "rules": {
     "prettier/prettier": [
       "error",
       {
+        "tabWidth": 4,
         "printWidth": 110
       }
     ],
-    "quotes": ["error", "double"],
-    "compiler-version": ["error", "^0.8.0"],
+    "quotes": [
+      "error",
+      "double"
+    ],
+    "compiler-version": [
+      "error",
+      "^0.8.0"
+    ],
     "func-visibility": [
       "warn",
       {
@@ -17,5 +26,7 @@
     ],
     "func-name-mixedcase": "off"
   },
-  "plugins": ["prettier"]
+  "plugins": [
+    "prettier"
+  ]
 }
