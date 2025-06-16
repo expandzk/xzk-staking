@@ -3,8 +3,9 @@ pragma solidity 0.8.26;
 
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 
-abstract contract MystikoClaim is AccessControl {
-    uint256 public immutable CLAIM_DELAY_BLOCKS;
+abstract contract MystikoStakingRecord is AccessControl {
+    uint256 public constant CLAIM_DELAY_BLOCKS = 7200;
+    uint256 public immutable STAKING_PERIOD;
 
     struct Claim {
         uint256 amount;
@@ -16,7 +17,7 @@ abstract contract MystikoClaim is AccessControl {
     mapping(address => Claim) public claimRecords;
 
     constructor(uint256 _stakingPeriod) {
-        CLAIM_DELAY_BLOCKS = _stakingPeriod;
+        STAKING_PERIOD = _stakingPeriod;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -28,7 +29,7 @@ abstract contract MystikoClaim is AccessControl {
     function _canUnstake(address _account) internal view returns (bool) {
         uint256 stakedBlock = stakingRecords[_account];
         require(stakedBlock > 0, "MystikoClaim: Staking record not found");
-        return block.number > stakedBlock + CLAIM_DELAY_BLOCKS;
+        require(block.number > stakedBlock + STAKING_PERIOD, "MystikoClaim: Staking period not ended");
         return true;
     }
 
