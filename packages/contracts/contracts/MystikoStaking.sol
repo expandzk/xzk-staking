@@ -2,12 +2,12 @@
 pragma solidity 0.8.26;
 
 import {SafeERC20, IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
-import {MystikoClaim} from "./MystikoClaim.sol";
-import {RewardsLibrary} from "./libs/Reward.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
+import {RewardsLibrary} from "./libs/Reward.sol";
+import {MystikoStakingRecord} from "./MystikoStakingRecord.sol";
 
-contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
+contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, ReentrancyGuard {
     // Total reward amount (50 million tokens)
     uint256 public constant ALL_REWARD_AMOUNT = (50_000_000 * 1e18);
 
@@ -48,7 +48,7 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         uint256 _startBlock
     )
         MystikoStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol)
-        MystikoClaim(_stakingPeriod)
+        MystikoStakingRecord(_stakingPeriod)
     {
         require(_startBlock > block.number + START_DELAY_BLOCKS, "Start block must one day after deployment");
         START_BLOCK = _startBlock;
@@ -65,8 +65,7 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         uint256 stakingAmount = swapToStakingToken(_amount);
         SafeERC20.safeTransferFrom(UNDERLYING_TOKEN, account, address(this), _amount);
         _mint(account, stakingAmount);
-        bool recordSuccess = _stakeRecord(account, block.number);
-        require(recordSuccess, "MystikoStaking: Stake record failed");
+        require(_stakeRecord(account, block.number), "MystikoStaking: Stake record failed");
         totalStaked += _amount;
         emit Staked(account, _amount, stakingAmount);
         return true;
@@ -77,12 +76,10 @@ contract MystikoStaking is MystikoClaim, MystikoStakingToken, ReentrancyGuard {
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_stakingAmount > 0, "MystikoStaking: Invalid staking amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
-        bool canUnstake = _canUnstake(account);
-        require(canUnstake, "MystikoStaking: Staking period not ended");
+        require(_canUnstake(account), "MystikoStaking: Staking period not ended");
         uint256 amount = swapToUnderlyingToken(_stakingAmount);
         _burn(account, _stakingAmount);
-        bool success = _unstakeRecord(account, amount);
-        require(success, "MystikoStaking: Unstake record failed");
+        require(_unstakeRecord(account, amount), "MystikoStaking: Unstake record failed");
         totalUnstaked += amount;
         emit Unstaked(account, _stakingAmount, amount);
         return true;
