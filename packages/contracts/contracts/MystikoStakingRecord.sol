@@ -45,9 +45,9 @@ abstract contract MystikoStakingRecord is AccessControl {
         uint256 _stakingAmount,
         uint256[] calldata _nonces
     ) internal returns (bool) {
-        require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
         uint256 totalRemaining = 0;
-        for (uint256 i = 0; i < _nonces.length; i++) {
+        uint256 length = _nonces.length;
+        for (uint256 i = 0; i < length; i++) {
             StakingRecord storage record = stakingRecords[_account][_nonces[i]];
             require(record.stakedBlock > 0, "MystikoClaim: Staking record not found");
             require(
