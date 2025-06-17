@@ -84,6 +84,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
         require(_stakingAmount > 0, "MystikoStaking: Invalid amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
         if (STAKING_PERIOD > 0) {
+            require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
             require(
                 _unstakeRecord(account, _stakingAmount, _nonces),
                 "MystikoStaking: Unstake record failed"
@@ -93,7 +94,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
         }
         uint256 amount = swapToUnderlyingToken(_stakingAmount);
         _burn(account, _stakingAmount);
-        _claimRecord(account, amount);
+        require(_claimRecord(account, amount), "MystikoStaking: Claim record failed");
         totalUnstaked += amount;
         emit Unstaked(account, _stakingAmount, amount);
         return true;
