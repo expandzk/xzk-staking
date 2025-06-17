@@ -23,12 +23,7 @@ contract StakingCalcTest is Test {
         mockToken = new MockToken();
 
         stakingFlexible = new MystikoStaking(
-            mockToken,
-            "Mystiko Staking Vote Token Flexible",
-            "sVXZK-FLEX",
-            0,
-            1,
-            block.number + 10000
+            mockToken, "Mystiko Staking Vote Token Flexible", "sVXZK-FLEX", 0, 1, block.number + 10000
         );
         vm.stopPrank();
     }

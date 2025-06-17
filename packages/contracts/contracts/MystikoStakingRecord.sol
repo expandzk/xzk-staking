@@ -7,48 +7,87 @@ abstract contract MystikoStakingRecord is AccessControl {
     uint256 public constant CLAIM_DELAY_BLOCKS = 7200;
     uint256 public immutable STAKING_PERIOD;
 
-    struct Claim {
+    struct StakingRecord {
+        uint256 stakedBlock;
+        uint256 amount;
+        uint256 remaining;
+    }
+
+    struct ClaimRecord {
         uint256 amount;
         uint256 unstakeBlock;
         bool claimPaused;
     }
 
-    mapping(address => uint256) public stakingRecords;
-    mapping(address => Claim) public claimRecords;
+    mapping(address => uint256) public stakingNonces;
+    mapping(address => mapping(uint256 => StakingRecord)) public stakingRecords;
+    mapping(address => ClaimRecord) public claimRecords;
 
     constructor(uint256 _stakingPeriod) {
         STAKING_PERIOD = _stakingPeriod;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function _stakeRecord(address _account, uint256 _block) internal returns (bool) {
-        stakingRecords[_account] = _block;
+    function _stakeRecord(address _account, uint256 _stakingAmount) internal returns (bool) {
+        require(_stakingAmount > 0, "MystikoClaim: Invalid staking token amount");
+        uint256 nonce = stakingNonces[_account];
+        stakingRecords[_account][nonce] = StakingRecord({
+            stakedBlock: block.number,
+            amount: _stakingAmount,
+            remaining: _stakingAmount
+        });
+        stakingNonces[_account] = nonce + 1;
         return true;
     }
 
-    function _canUnstake(address _account) internal view returns (bool) {
-        uint256 stakedBlock = stakingRecords[_account];
-        require(stakedBlock > 0, "MystikoClaim: Staking record not found");
-        require(block.number > stakedBlock + STAKING_PERIOD, "MystikoClaim: Staking period not ended");
+    function _unstakeRecord(
+        address _account,
+        uint256 _stakingAmount,
+        uint256[] calldata _nonces
+    ) internal returns (bool) {
+        require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
+        uint256 totalRemaining = 0;
+        for (uint256 i = 0; i < _nonces.length; i++) {
+            StakingRecord storage record = stakingRecords[_account][_nonces[i]];
+            require(record.stakedBlock > 0, "MystikoClaim: Staking record not found");
+            require(
+                block.number > record.stakedBlock + STAKING_PERIOD,
+                "MystikoClaim: Staking period not ended"
+            );
+            require(record.amount > 0, "MystikoClaim: Staking record not found");
+            require(record.remaining > 0, "MystikoClaim: Staking record not found");
+            totalRemaining += record.remaining;
+            if (totalRemaining < _stakingAmount) {
+                record.remaining = 0;
+            } else if (totalRemaining == _stakingAmount) {
+                record.remaining = 0;
+                break;
+            } else {
+                record.remaining = totalRemaining - _stakingAmount;
+                break;
+            }
+        }
+        require(totalRemaining >= _stakingAmount, "MystikoClaim: Invalid remaining amount");
         return true;
     }
 
-    function _unstakeRecord(address _account, uint256 _amount) internal returns (bool) {
-        Claim storage claim = claimRecords[_account];
-        claim.amount += _amount;
-        claim.unstakeBlock = block.number;
+    function _claimRecord(address _account, uint256 _amount) internal returns (bool) {
+        ClaimRecord storage record = claimRecords[_account];
+        record.amount += _amount;
+        record.unstakeBlock = block.number;
+        record.claimPaused = false;
         return true;
     }
 
     function _consumeClaim(address _account) internal returns (uint256) {
-        Claim storage claim = claimRecords[_account];
-        require(!claim.claimPaused, "MystikoClaim: Claim paused");
+        ClaimRecord storage record = claimRecords[_account];
+        require(!record.claimPaused, "MystikoClaim: Claim paused");
         require(
-            block.number > claim.unstakeBlock + CLAIM_DELAY_BLOCKS,
+            block.number > record.unstakeBlock + CLAIM_DELAY_BLOCKS,
             "MystikoClaim: Claim delay not reached"
         );
-        require(claim.amount > 0, "MystikoClaim: No claimable amount");
-        uint256 amount = claim.amount;
+        require(record.amount > 0, "MystikoClaim: No claimable amount");
+        uint256 amount = record.amount;
         delete claimRecords[_account];
         return amount;
     }
