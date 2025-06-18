@@ -17,9 +17,6 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
     // Total duration in blocks (7,776,000 blocks at 12s block time ≈ 3 years)
     uint256 public constant TOTAL_BLOCKS = 7_776_000;
 
-    // Total reward amount factor (1.094396414 = 1094396414000000000/10^18)
-    int256 public constant EXP_FACTOR = 1_094_396_414 * 1e9;
-
     uint256 public constant START_DELAY_BLOCKS = 7200; // 1 days / 12s block time
 
     // Total factor for the staking token of total share
@@ -75,20 +72,14 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
         return true;
     }
 
-    function unstake(
-        uint256 _stakingAmount,
-        uint256[] calldata _nonces
-    ) external nonReentrant returns (bool) {
+    function unstake(uint256 _stakingAmount, uint256[] calldata _nonces) external nonReentrant returns (bool) {
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_stakingAmount > 0, "MystikoStaking: Invalid amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
         if (STAKING_PERIOD > 0) {
             require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
-            require(
-                _unstakeRecord(account, _stakingAmount, _nonces),
-                "MystikoStaking: Unstake record failed"
-            );
+            require(_unstakeRecord(account, _stakingAmount, _nonces), "MystikoStaking: Unstake record failed");
         } else {
             require(_nonces.length == 0, "MystikoStaking: Invalid parameter");
         }
@@ -139,14 +130,16 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
     }
 
     function currentTotalReward() public view returns (uint256) {
-        int256 blocksPassed = int256(block.number) - int256(START_BLOCK);
-        if (blocksPassed <= 0) {
+        if (block.number <= START_BLOCK) {
             return 0;
         }
-        if (blocksPassed >= int256(TOTAL_BLOCKS)) {
+
+        uint256 blocksPassed = block.number - START_BLOCK;
+        if (blocksPassed >= TOTAL_BLOCKS) {
             return TOTAL_REWARD;
         }
-        uint256 reward = RewardsLibrary.calcTotalRewardAtBlock(blocksPassed, EXP_FACTOR);
+
+        uint256 reward = RewardsLibrary.calcTotalRewardAtBlock(blocksPassed);
         return (reward * TOTAL_FACTOR) / ALL_SHARES;
     }
 }
