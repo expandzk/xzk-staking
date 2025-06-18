@@ -13,12 +13,13 @@ describe('MystikoStaking', function () {
   let owner: HardhatEthersSigner;
   let addr1: HardhatEthersSigner;
   let addr2: HardhatEthersSigner;
+  let dao: HardhatEthersSigner;
 
   const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
 
   beforeEach(async function () {
     // Get signers
-    [owner, addr1, addr2] = await ethers.getSigners();
+    [owner, addr1, addr2, dao] = await ethers.getSigners();
 
     // Deploy contract
     mockToken = await ethers.deployContract('MockToken');
@@ -33,6 +34,7 @@ describe('MystikoStaking', function () {
     const MystikoStaking = await ethers.getContractFactory('MystikoStaking');
 
     staking360 = await MystikoStaking.deploy(
+      dao.address,
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 360D',
       'sVXZK-360D',
@@ -43,6 +45,7 @@ describe('MystikoStaking', function () {
     await staking360.waitForDeployment();
 
     staking180 = await MystikoStaking.deploy(
+      dao.address,
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 180D',
       'sVXZK-180D',
@@ -53,6 +56,7 @@ describe('MystikoStaking', function () {
     await staking180.waitForDeployment();
 
     staking90 = await MystikoStaking.deploy(
+      dao.address,
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 90D',
       'sVXZK-90D',
@@ -63,6 +67,7 @@ describe('MystikoStaking', function () {
     await staking90.waitForDeployment();
 
     stakingFlexible = await MystikoStaking.deploy(
+      dao.address,
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token Flexible',
       'sVXZK-FLEX',

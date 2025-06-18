@@ -9,7 +9,7 @@ library RewardsLibrary {
     function calcTotalRewardAtBlock(uint256 blocksPassed) internal pure returns (uint256 totalRelease) {
         require(blocksPassed < 1e9, "Reward: Invalid blocks passed");
         uint256 x = LAMBDA_DECAY * blocksPassed;
-        uint256 expNeg = exp(x);
+        uint256 expNeg = expTaylor(x);
         uint256 scaledExpVal = (SCALE * SCALE) / expNeg;
         uint256 raw = SCALE - scaledExpVal;
         uint256 total = raw * TOTAL_FACTOR;
@@ -19,7 +19,7 @@ library RewardsLibrary {
     // Taylor series approximation of e^x with fixed point arithmetic
     // exp(x) = 1 + x + x^2/2! + x^3/3! + ... + x^n/n!
     // where x is in fixed-point with 18 decimals
-    function exp(uint256 x) internal pure returns (uint256) {
+    function expTaylor(uint256 x) internal pure returns (uint256) {
         uint256 sum = SCALE; // start with 1.0
         uint256 term = SCALE; // current term = 1.0
         for (uint256 i = 1; i < 20; i++) {

@@ -23,6 +23,9 @@ abstract contract MystikoStakingRecord is AccessControl {
     mapping(address => mapping(uint256 => StakingRecord)) public stakingRecords;
     mapping(address => ClaimRecord) public claimRecords;
 
+    event AccountPaused(address indexed account);
+    event AccountUnpaused(address indexed account);
+
     constructor(uint256 _stakingPeriod) {
         STAKING_PERIOD = _stakingPeriod;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -84,9 +87,11 @@ abstract contract MystikoStakingRecord is AccessControl {
 
     function pause(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         claimRecords[_account].claimPaused = true;
+        emit AccountPaused(_account);
     }
 
     function unpause(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         claimRecords[_account].claimPaused = false;
+        emit AccountUnpaused(_account);
     }
 }
