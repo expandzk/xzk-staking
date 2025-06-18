@@ -13,17 +13,25 @@ contract StakingCalcTest is Test {
     address public owner;
     address public user1;
     address public user2;
+    address public dao;
 
     function setUp() public {
         owner = makeAddr("owner");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
+        dao = makeAddr("dao");
 
         vm.startPrank(owner);
         mockToken = new MockToken();
 
         stakingFlexible = new MystikoStaking(
-            mockToken, "Mystiko Staking Vote Token Flexible", "sVXZK-FLEX", 0, 1, block.number + 10000
+            dao,
+            mockToken,
+            "Mystiko Staking Vote Token Flexible",
+            "sVXZK-FLEX",
+            0,
+            1,
+            block.number + 10000
         );
         vm.stopPrank();
     }

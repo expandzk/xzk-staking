@@ -3,11 +3,17 @@ pragma solidity 0.8.26;
 
 import {SafeERC20, IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import {MystikoDAOAccessControl} from "lib/mystiko-governance/packages/contracts/contracts/MystikoDAOAccessControl.sol";
 import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
 import {RewardsLibrary} from "./libs/Reward.sol";
 import {MystikoStakingRecord} from "./MystikoStakingRecord.sol";
 
-contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, ReentrancyGuard {
+contract MystikoStaking is
+    MystikoStakingRecord,
+    MystikoStakingToken,
+    MystikoDAOAccessControl,
+    ReentrancyGuard
+{
     // Total reward amount (50 million tokens) of underlying token
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
@@ -34,11 +40,18 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
     // total unstaked amount of underlying token
     uint256 public totalUnstaked;
 
+    // Whether the staking is paused
+    bool public isStakingPaused;
+
     event Staked(address indexed account, uint256 amount, uint256 stakingAmount);
     event Unstaked(address indexed account, uint256 stakingAmount, uint256 amount);
     event Claimed(address indexed account, uint256 amount);
+    event ClaimedToDao(address indexed account, uint256 amount);
+    event StakingPausedByDao();
+    event StakingUnpausedByDao();
 
     constructor(
+        address _daoRegistry,
         IERC20 _underlyingToken,
         string memory _stakingTokenName,
         string memory _stakingTokenSymbol,
@@ -48,16 +61,20 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
     )
         MystikoStakingToken(_underlyingToken, _stakingTokenName, _stakingTokenSymbol)
         MystikoStakingRecord(_stakingPeriod)
+        MystikoDAOAccessControl(_daoRegistry)
     {
         require(_startBlock > block.number + START_DELAY_BLOCKS, "Start block must one day after deployment");
+        require(TOTAL_BLOCKS < 1e9, "Total blocks must be less than 1e9");
         START_BLOCK = _startBlock;
         TOTAL_FACTOR = _totalFactor;
         TOTAL_REWARD = (ALL_REWARD * TOTAL_FACTOR) / ALL_SHARES;
         totalStaked = 0;
         totalUnstaked = 0;
+        isStakingPaused = false;
     }
 
     function stake(uint256 _amount) external nonReentrant returns (bool) {
+        require(!isStakingPaused, "MystikoStaking: Staking is paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_amount > 0, "MystikoStaking: Invalid amount");
@@ -72,14 +89,21 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
         return true;
     }
 
-    function unstake(uint256 _stakingAmount, uint256[] calldata _nonces) external nonReentrant returns (bool) {
+    function unstake(
+        uint256 _stakingAmount,
+        uint256[] calldata _nonces
+    ) external nonReentrant returns (bool) {
+        require(!isStakingPaused, "MystikoStaking: Staking is paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_stakingAmount > 0, "MystikoStaking: Invalid amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
         if (STAKING_PERIOD > 0) {
             require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
-            require(_unstakeRecord(account, _stakingAmount, _nonces), "MystikoStaking: Unstake record failed");
+            require(
+                _unstakeRecord(account, _stakingAmount, _nonces),
+                "MystikoStaking: Unstake record failed"
+            );
         } else {
             require(_nonces.length == 0, "MystikoStaking: Invalid parameter");
         }
@@ -92,6 +116,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
     }
 
     function claim() external nonReentrant returns (bool) {
+        require(!isStakingPaused, "MystikoStaking: Staking is paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         uint256 amount = _consumeClaim(account);
@@ -100,11 +125,20 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, Reentrancy
         return true;
     }
 
-    function claimTo(address _to, uint256 _amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+    function claimToDao(uint256 _amount) external onlyMystikoDAO {
         require(_amount > 0, "MystikoStaking: Invalid amount");
-        SafeERC20.safeTransfer(UNDERLYING_TOKEN, _to, _amount);
-        emit Claimed(_to, _amount);
-        return true;
+        SafeERC20.safeTransfer(UNDERLYING_TOKEN, _msgSender(), _amount);
+        emit ClaimedToDao(_msgSender(), _amount);
+    }
+
+    function pauseStaking() external onlyMystikoDAO {
+        isStakingPaused = true;
+        emit StakingPausedByDao();
+    }
+
+    function unpauseStaking() external onlyMystikoDAO {
+        isStakingPaused = false;
+        emit StakingUnpausedByDao();
     }
 
     function swapToStakingToken(uint256 _amount) public view returns (uint256) {

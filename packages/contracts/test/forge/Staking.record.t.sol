@@ -11,10 +11,11 @@ contract MockMystikoStakingRecord is MystikoStakingRecord {
         return _stakeRecord(_account, _stakingAmount);
     }
 
-    function unstakeRecord(address _account, uint256 _stakingAmount, uint256[] calldata _nonces)
-        external
-        returns (bool)
-    {
+    function unstakeRecord(
+        address _account,
+        uint256 _stakingAmount,
+        uint256[] calldata _nonces
+    ) external returns (bool) {
         return _unstakeRecord(_account, _stakingAmount, _nonces);
     }
 
@@ -28,30 +29,33 @@ contract MockMystikoStakingRecord is MystikoStakingRecord {
 }
 
 contract MystikoStakingRecordTest is Test {
-    MockMystikoStakingRecord public stakingRecord;
+    MockMystikoStakingRecord public mockContract;
     uint256 public constant STAKING_PERIOD = 100;
     address public user = address(0x1);
-    address public admin = address(0x2);
+    address public user2 = address(0x2);
+    address public admin = address(0x3);
 
     function setUp() public {
-        stakingRecord = new MockMystikoStakingRecord(STAKING_PERIOD);
-        stakingRecord.grantRole(stakingRecord.DEFAULT_ADMIN_ROLE(), admin);
+        mockContract = new MockMystikoStakingRecord(STAKING_PERIOD);
+        mockContract.grantRole(mockContract.DEFAULT_ADMIN_ROLE(), admin);
         vm.startPrank(admin);
     }
+
+    // ============ Basic Functionality Tests ============
 
     function test_StakeRecord() public {
         vm.stopPrank();
         vm.startPrank(user);
 
         uint256 amount = 1000;
-        bool success = stakingRecord.stakeRecord(user, amount);
+        bool success = mockContract.stakeRecord(user, amount);
         assertTrue(success);
 
-        (uint256 stakedBlock, uint256 stakedAmount, uint256 remaining) = stakingRecord.stakingRecords(user, 0);
+        (uint256 stakedBlock, uint256 stakedAmount, uint256 remaining) = mockContract.stakingRecords(user, 0);
         assertEq(stakedBlock, block.number);
         assertEq(stakedAmount, amount);
         assertEq(remaining, amount);
-        assertEq(stakingRecord.stakingNonces(user), 1);
+        assertEq(mockContract.stakingNonces(user), 1);
     }
 
     function test_UnstakeRecord() public {
@@ -60,7 +64,8 @@ contract MystikoStakingRecordTest is Test {
 
         // First stake
         uint256 amount = 1000;
-        stakingRecord.stakeRecord(user, amount);
+        bool success = mockContract.stakeRecord(user, amount);
+        assertTrue(success);
 
         // Move forward past staking period
         vm.roll(block.number + STAKING_PERIOD + 1);
@@ -68,10 +73,10 @@ contract MystikoStakingRecordTest is Test {
         // Unstake
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = 0;
-        bool success = stakingRecord.unstakeRecord(user, amount, nonces);
-        assertTrue(success);
+        bool success2 = mockContract.unstakeRecord(user, amount, nonces);
+        assertTrue(success2);
 
-        (,, uint256 remaining) = stakingRecord.stakingRecords(user, 0);
+        (, , uint256 remaining) = mockContract.stakingRecords(user, 0);
         assertEq(remaining, 0);
     }
 
@@ -80,10 +85,10 @@ contract MystikoStakingRecordTest is Test {
         vm.startPrank(user);
 
         uint256 amount = 1000;
-        bool success = stakingRecord.claimRecord(user, amount);
+        bool success = mockContract.claimRecord(user, amount);
         assertTrue(success);
 
-        (uint256 claimAmount, uint256 unstakeBlock, bool claimPaused) = stakingRecord.claimRecords(user);
+        (uint256 claimAmount, uint256 unstakeBlock, bool claimPaused) = mockContract.claimRecords(user);
         assertEq(claimAmount, amount);
         assertEq(unstakeBlock, block.number);
         assertFalse(claimPaused);
@@ -95,17 +100,18 @@ contract MystikoStakingRecordTest is Test {
 
         // First claim
         uint256 amount = 1000;
-        stakingRecord.claimRecord(user, amount);
+        bool success = mockContract.claimRecord(user, amount);
+        assertTrue(success);
 
         // Move forward past claim delay
-        vm.roll(block.number + stakingRecord.CLAIM_DELAY_BLOCKS() + 1);
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
 
         // Consume claim
-        uint256 consumedAmount = stakingRecord.consumeClaim(user);
+        uint256 consumedAmount = mockContract.consumeClaim(user);
         assertEq(consumedAmount, amount);
 
         // Verify claim record is deleted
-        (uint256 claimAmount,,) = stakingRecord.claimRecords(user);
+        (uint256 claimAmount, , ) = mockContract.claimRecords(user);
         assertEq(claimAmount, 0);
     }
 
@@ -115,30 +121,210 @@ contract MystikoStakingRecordTest is Test {
 
         // First claim
         uint256 amount = 1000;
-        stakingRecord.claimRecord(user, amount);
+        bool success = mockContract.claimRecord(user, amount);
+        assertTrue(success);
 
         // Admin pauses
         vm.stopPrank();
         vm.startPrank(admin);
-        stakingRecord.pause(user);
+        mockContract.pause(user);
 
         // Verify pause
-        (,, bool claimPaused) = stakingRecord.claimRecords(user);
+        (, , bool claimPaused) = mockContract.claimRecords(user);
         assertTrue(claimPaused);
 
+        // Move forward past claim delay
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+
+        // Try to consume claim
+        vm.expectRevert("MystikoClaim: Claim paused");
+        mockContract.consumeClaim(user);
+
         // Admin unpauses
-        stakingRecord.unpause(user);
+        mockContract.unpause(user);
 
         // Verify unpause
-        (,, claimPaused) = stakingRecord.claimRecords(user);
+        (, , claimPaused) = mockContract.claimRecords(user);
         assertFalse(claimPaused);
+
+        // Try to consume claim
+        uint256 consumedAmount2 = mockContract.consumeClaim(user);
+        assertEq(consumedAmount2, amount);
     }
+
+    // ============ Multiple Staking Records Tests ============
+
+    function test_MultipleStakeRecords() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 amount1 = 1000;
+        uint256 amount2 = 2000;
+        uint256 amount3 = 3000;
+
+        // Stake multiple times
+        bool success1 = mockContract.stakeRecord(user, amount1);
+        assertTrue(success1);
+        bool success2 = mockContract.stakeRecord(user, amount2);
+        assertTrue(success2);
+        bool success3 = mockContract.stakeRecord(user, amount3);
+        assertTrue(success3);
+
+        assertEq(mockContract.stakingNonces(user), 3);
+
+        // Verify all records
+        (uint256 stakedBlock1, uint256 stakedAmount1, uint256 remaining1) = mockContract.stakingRecords(
+            user,
+            0
+        );
+        (uint256 stakedBlock2, uint256 stakedAmount2, uint256 remaining2) = mockContract.stakingRecords(
+            user,
+            1
+        );
+        (uint256 stakedBlock3, uint256 stakedAmount3, uint256 remaining3) = mockContract.stakingRecords(
+            user,
+            2
+        );
+
+        assertEq(stakedAmount1, amount1);
+        assertEq(stakedAmount2, amount2);
+        assertEq(stakedAmount3, amount3);
+        assertEq(remaining1, amount1);
+        assertEq(remaining2, amount2);
+        assertEq(remaining3, amount3);
+    }
+
+    function test_UnstakeMultipleRecords() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 amount1 = 1000;
+        uint256 amount2 = 2000;
+
+        // Stake multiple times
+        bool success1 = mockContract.stakeRecord(user, amount1);
+        assertTrue(success1);
+        bool success2 = mockContract.stakeRecord(user, amount2);
+        assertTrue(success2);
+
+        // Move forward past staking period
+        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        // Unstake from first record
+        uint256[] memory nonces = new uint256[](1);
+        nonces[0] = 0;
+        bool success = mockContract.unstakeRecord(user, amount1, nonces);
+        assertTrue(success);
+
+        // Verify first record is consumed
+        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        assertEq(remaining1, 0);
+
+        // Verify second record is intact
+        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        assertEq(remaining2, amount2);
+    }
+
+    function test_UnstakePartialFromMultipleRecords() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 amount1 = 1000;
+        uint256 amount2 = 2000;
+
+        // Stake multiple times
+        bool success1 = mockContract.stakeRecord(user, amount1);
+        assertTrue(success1);
+        bool success2 = mockContract.stakeRecord(user, amount2);
+        assertTrue(success2);
+
+        // Move forward past staking period
+        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        // Unstake partial amount that spans multiple records
+        uint256[] memory nonces = new uint256[](2);
+        nonces[0] = 0;
+        nonces[1] = 1;
+        uint256 unstakeAmount = 1500; // 1000 from first + 500 from second
+        bool success = mockContract.unstakeRecord(user, unstakeAmount, nonces);
+        assertTrue(success);
+
+        // Verify first record is fully consumed
+        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        assertEq(remaining1, 0);
+
+        // Verify second record is partially consumed
+        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        assertEq(remaining2, amount2 - 500);
+    }
+
+    // ============ Edge Cases and Boundary Tests ============
+
+    function test_StakeRecordWithMaxAmount() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 maxAmount = type(uint256).max;
+        bool success = mockContract.stakeRecord(user, maxAmount);
+        assertTrue(success);
+
+        (uint256 stakedBlock, uint256 stakedAmount, uint256 remaining) = mockContract.stakingRecords(user, 0);
+        assertEq(stakedAmount, maxAmount);
+        assertEq(remaining, maxAmount);
+    }
+
+    function test_ClaimRecordWithMaxAmount() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 maxAmount = type(uint256).max;
+        bool success = mockContract.claimRecord(user, maxAmount);
+        assertTrue(success);
+
+        (uint256 claimAmount, , ) = mockContract.claimRecords(user);
+        assertEq(claimAmount, maxAmount);
+    }
+
+    function test_ConsumeClaimWithMaxAmount() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 maxAmount = type(uint256).max;
+        mockContract.claimRecord(user, maxAmount);
+
+        // Move forward past claim delay
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+
+        uint256 consumedAmount = mockContract.consumeClaim(user);
+        assertEq(consumedAmount, maxAmount);
+    }
+
+    function test_StakeRecordAtBlockBoundary() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        // Stake at block 1
+        vm.roll(1);
+        mockContract.stakeRecord(user, 1000);
+
+        // Stake at block 2
+        vm.roll(2);
+        mockContract.stakeRecord(user, 2000);
+
+        (uint256 stakedBlock1, , ) = mockContract.stakingRecords(user, 0);
+        (uint256 stakedBlock2, , ) = mockContract.stakingRecords(user, 1);
+
+        assertEq(stakedBlock1, 1);
+        assertEq(stakedBlock2, 2);
+    }
+
+    // ============ Error Handling Tests ============
 
     function test_RevertWhen_StakeZeroAmount() public {
         vm.stopPrank();
         vm.startPrank(user);
-        vm.expectRevert();
-        stakingRecord.stakeRecord(user, 0);
+        vm.expectRevert("MystikoClaim: Invalid staking token amount");
+        mockContract.stakeRecord(user, 0);
     }
 
     function test_RevertWhen_UnstakeBeforePeriod() public {
@@ -147,13 +333,40 @@ contract MystikoStakingRecordTest is Test {
 
         // Stake
         uint256 amount = 1000;
-        stakingRecord.stakeRecord(user, amount);
+        mockContract.stakeRecord(user, amount);
 
         // Try to unstake before period ends
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = 0;
-        vm.expectRevert();
-        stakingRecord.unstakeRecord(user, amount, nonces);
+        vm.expectRevert("MystikoClaim: Staking period not ended");
+        mockContract.unstakeRecord(user, amount, nonces);
+    }
+
+    function test_RevertWhen_UnstakeNonExistentRecord() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256[] memory nonces = new uint256[](1);
+        nonces[0] = 999; // Non-existent nonce
+        vm.expectRevert("MystikoClaim: Staking record not found");
+        mockContract.unstakeRecord(user, 1000, nonces);
+    }
+
+    function test_RevertWhen_UnstakeInsufficientAmount() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 amount = 1000;
+        mockContract.stakeRecord(user, amount);
+
+        // Move forward past staking period
+        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        // Try to unstake more than available
+        uint256[] memory nonces = new uint256[](1);
+        nonces[0] = 0;
+        vm.expectRevert("MystikoClaim: Invalid remaining amount");
+        mockContract.unstakeRecord(user, amount + 1, nonces);
     }
 
     function test_RevertWhen_ConsumeClaimBeforeDelay() public {
@@ -162,11 +375,11 @@ contract MystikoStakingRecordTest is Test {
 
         // Claim
         uint256 amount = 1000;
-        stakingRecord.claimRecord(user, amount);
+        mockContract.claimRecord(user, amount);
 
         // Try to consume before delay
-        vm.expectRevert();
-        stakingRecord.consumeClaim(user);
+        vm.expectRevert("MystikoClaim: Claim delay not reached");
+        mockContract.consumeClaim(user);
     }
 
     function test_RevertWhen_ConsumeClaimWhenPaused() public {
@@ -175,17 +388,211 @@ contract MystikoStakingRecordTest is Test {
 
         // Claim
         uint256 amount = 1000;
-        stakingRecord.claimRecord(user, amount);
+        mockContract.claimRecord(user, amount);
 
         // Admin pauses
         vm.stopPrank();
         vm.startPrank(admin);
-        stakingRecord.pause(user);
+        mockContract.pause(user);
+
+        // Move forward past claim delay
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
 
         // Try to consume while paused
         vm.stopPrank();
         vm.startPrank(user);
+        vm.expectRevert("MystikoClaim: Claim paused");
+        mockContract.consumeClaim(user);
+    }
+
+    function test_RevertWhen_ConsumeClaimWithNoAmount() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        // Move forward past claim delay
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+
+        // Try to consume without claiming first
+        vm.expectRevert("MystikoClaim: No claimable amount");
+        mockContract.consumeClaim(user);
+    }
+
+    function test_RevertWhen_ConsumeClaimAfterConsuming() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        // Claim and consume
+        uint256 amount = 1000;
+        mockContract.claimRecord(user, amount);
+
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        mockContract.consumeClaim(user);
+
+        // Try to consume again
+        vm.expectRevert("MystikoClaim: No claimable amount");
+        mockContract.consumeClaim(user);
+    }
+
+    // ============ Permission Tests ============
+
+    function test_RevertWhen_PauseByNonAdmin() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
         vm.expectRevert();
-        stakingRecord.consumeClaim(user);
+        mockContract.pause(user);
+    }
+
+    function test_RevertWhen_UnpauseByNonAdmin() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        vm.expectRevert();
+        mockContract.unpause(user);
+    }
+
+    function test_PauseAndUnpauseMultipleAccounts() public {
+        vm.stopPrank();
+        vm.startPrank(admin);
+
+        // Pause multiple accounts
+        mockContract.pause(user);
+        mockContract.pause(user2);
+
+        // Verify both are paused
+        (, , bool claimPaused1) = mockContract.claimRecords(user);
+        (, , bool claimPaused2) = mockContract.claimRecords(user2);
+        assertTrue(claimPaused1);
+        assertTrue(claimPaused2);
+
+        // Unpause both
+        mockContract.unpause(user);
+        mockContract.unpause(user2);
+
+        // Verify both are unpaused
+        (, , claimPaused1) = mockContract.claimRecords(user);
+        (, , claimPaused2) = mockContract.claimRecords(user2);
+        assertFalse(claimPaused1);
+        assertFalse(claimPaused2);
+    }
+
+    // ============ Complex Scenarios Tests ============
+
+    function test_CompleteStakingLifecycle() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        // 1. Stake multiple amounts
+        uint256 amount1 = 1000;
+        uint256 amount2 = 2000;
+        mockContract.stakeRecord(user, amount1);
+        mockContract.stakeRecord(user, amount2);
+
+        // 2. Move past staking period
+        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        // 3. Unstake partial amount
+        uint256[] memory nonces = new uint256[](2);
+        nonces[0] = 0;
+        nonces[1] = 1;
+        uint256 unstakeAmount = 1500;
+        bool success = mockContract.unstakeRecord(user, unstakeAmount, nonces);
+        assertTrue(success);
+
+        // 4. Claim the unstaked amount
+        mockContract.claimRecord(user, unstakeAmount);
+
+        // 5. Move past claim delay
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+
+        // 6. Consume the claim
+        uint256 consumedAmount = mockContract.consumeClaim(user);
+        assertEq(consumedAmount, unstakeAmount);
+
+        // 7. Verify remaining staking amount
+        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        assertEq(remaining1, 0); // Fully consumed
+        assertEq(remaining2, amount2 - 500); // Partially consumed
+
+        // 8. unstake the remaining amount
+        uint256[] memory nonces2 = new uint256[](1);
+        nonces2[0] = 1;
+        bool success2 = mockContract.unstakeRecord(user, amount2 - 500, nonces2);
+        assertTrue(success2);
+
+        // 9. claim the remaining amount
+        mockContract.claimRecord(user, amount2 - 500);
+
+        // 10. move past claim delay
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+
+        // 11. consume the remaining amount
+        uint256 consumedAmount2 = mockContract.consumeClaim(user);
+        assertEq(consumedAmount2, amount2 - 500);
+    }
+
+    function test_StakeUnstakeClaimWithPause() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        // 1. Stake and unstake
+        uint256 amount = 1000;
+        mockContract.stakeRecord(user, amount);
+        vm.roll(block.number + STAKING_PERIOD + 1);
+        uint256[] memory nonces = new uint256[](1);
+        nonces[0] = 0;
+        mockContract.unstakeRecord(user, amount, nonces);
+
+        // 2. Claim
+        mockContract.claimRecord(user, amount);
+
+        // 3. Admin pauses
+        vm.stopPrank();
+        vm.startPrank(admin);
+        mockContract.pause(user);
+
+        // 4. Try to consume while paused
+        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.stopPrank();
+        vm.startPrank(user);
+        vm.expectRevert("MystikoClaim: Claim paused");
+        mockContract.consumeClaim(user);
+
+        // 5. Admin unpauses
+        vm.stopPrank();
+        vm.startPrank(admin);
+        mockContract.unpause(user);
+
+        // 6. Now consume should work
+        vm.stopPrank();
+        vm.startPrank(user);
+        uint256 consumedAmount = mockContract.consumeClaim(user);
+        assertEq(consumedAmount, amount);
+    }
+
+    function test_MultipleUsersStaking() public {
+        vm.stopPrank();
+
+        // User 1 stakes
+        vm.startPrank(user);
+        mockContract.stakeRecord(user, 1000);
+        vm.stopPrank();
+
+        // User 2 stakes
+        vm.startPrank(user2);
+        mockContract.stakeRecord(user2, 2000);
+        vm.stopPrank();
+
+        // Verify both have records
+        assertEq(mockContract.stakingNonces(user), 1);
+        assertEq(mockContract.stakingNonces(user2), 1);
+
+        (uint256 stakedBlock1, uint256 stakedAmount1, ) = mockContract.stakingRecords(user, 0);
+        (uint256 stakedBlock2, uint256 stakedAmount2, ) = mockContract.stakingRecords(user2, 0);
+
+        assertEq(stakedAmount1, 1000);
+        assertEq(stakedAmount2, 2000);
+        assertEq(stakedBlock1, stakedBlock2); // Same block
     }
 }
