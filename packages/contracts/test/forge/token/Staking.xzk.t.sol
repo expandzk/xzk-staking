@@ -8,11 +8,9 @@ import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.so
 
 // Concrete implementation for testing
 contract TestMystikoStakingToken is MystikoStakingToken {
-    constructor(
-        IERC20 _mystikoToken,
-        string memory _stakingTokenName,
-        string memory _stakingTokenSymbol
-    ) MystikoStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol) {}
+    constructor(IERC20 _mystikoToken, string memory _stakingTokenName, string memory _stakingTokenSymbol)
+        MystikoStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol)
+    {}
 
     // Expose internal functions for testing
     function mint(address to, uint256 amount) public {
@@ -48,11 +46,7 @@ contract MystikoStakingTokenXZKTest is Test {
         assertEq(stakingToken.name(), TOKEN_NAME, "Token name should match");
         assertEq(stakingToken.symbol(), TOKEN_SYMBOL, "Token symbol should match");
         assertEq(stakingToken.decimals(), TOKEN_DECIMALS, "Token decimals should match");
-        assertEq(
-            address(stakingToken.UNDERLYING_TOKEN()),
-            address(underlyingToken),
-            "Underlying token should match"
-        );
+        assertEq(address(stakingToken.UNDERLYING_TOKEN()), address(underlyingToken), "Underlying token should match");
     }
 
     // ============ ERC20 Basic Functionality Tests ============
@@ -72,16 +66,8 @@ contract MystikoStakingTokenXZKTest is Test {
         stakingToken.mint(user1, mintAmount);
         stakingToken.burn(user1, burnAmount);
 
-        assertEq(
-            stakingToken.balanceOf(user1),
-            mintAmount - burnAmount,
-            "Balance should be reduced after burn"
-        );
-        assertEq(
-            stakingToken.totalSupply(),
-            mintAmount - burnAmount,
-            "Total supply should be reduced after burn"
-        );
+        assertEq(stakingToken.balanceOf(user1), mintAmount - burnAmount, "Balance should be reduced after burn");
+        assertEq(stakingToken.totalSupply(), mintAmount - burnAmount, "Total supply should be reduced after burn");
     }
 
     function testMultipleMints() public {
@@ -152,11 +138,7 @@ contract MystikoStakingTokenXZKTest is Test {
         vm.prank(user1);
         stakingToken.delegate(user1);
         stakingToken.burn(user1, burnAmount);
-        assertEq(
-            stakingToken.getVotes(user1),
-            mintAmount - burnAmount,
-            "Voting power should decrease after burn"
-        );
+        assertEq(stakingToken.getVotes(user1), mintAmount - burnAmount, "Voting power should decrease after burn");
     }
 
     function testTotalVotingPower() public {
@@ -187,9 +169,7 @@ contract MystikoStakingTokenXZKTest is Test {
         vm.warp(block.timestamp + 1);
         uint256 pastTimestamp = block.timestamp - 1;
         assertEq(
-            stakingToken.getPastVotes(user1, pastTimestamp),
-            amount,
-            "Past votes should match balance at that time"
+            stakingToken.getPastVotes(user1, pastTimestamp), amount, "Past votes should match balance at that time"
         );
     }
 
@@ -264,11 +244,7 @@ contract MystikoStakingTokenXZKTest is Test {
 
         assertEq(name, TOKEN_NAME, "EIP712 name should match token name");
         assertEq(version, "1", "EIP712 version should be 1");
-        assertEq(
-            verifyingContract,
-            address(stakingToken),
-            "EIP712 verifying contract should be token address"
-        );
+        assertEq(verifyingContract, address(stakingToken), "EIP712 verifying contract should be token address");
         assertEq(chainId, block.chainid, "EIP712 chainId should match current chain");
         assertEq(salt, bytes32(0), "EIP712 salt should be zero");
         assertEq(extensions.length, 0, "EIP712 extensions should be empty");
@@ -297,11 +273,7 @@ contract MystikoStakingTokenXZKTest is Test {
         vm.prank(user1);
         stakingToken.delegate(address(0));
         assertEq(stakingToken.delegates(user1), address(0), "Delegation to zero address should be set");
-        assertEq(
-            stakingToken.getVotes(user1),
-            0,
-            "Voting power should be zero after delegating to zero address"
-        );
+        assertEq(stakingToken.getVotes(user1), 0, "Voting power should be zero after delegating to zero address");
     }
 
     // ============ Integration Tests ============

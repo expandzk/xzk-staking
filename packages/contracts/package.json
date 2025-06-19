@@ -27,7 +27,7 @@
     "coverage": "forge coverage --lib-paths=../../node_modules --lib-paths=../../foundry --report lcov",
     "coverage:html": "forge coverage --lib-paths=../../node_modules --lib-paths=../../foundry --report summary",
     "format": "yarn format:ts && yarn format:sol",
-    "format:ts": "prettier --write \"./**/*.{ts,tsx,js,jsx}\" --config .prettierrc",
+    "format:ts": "prettier --write \"./**/*.ts\" --config .prettierrc",
     "format:sol": "forge fmt",
     "lint": "forge fmt --check",
     "lint:aderyn": "aderyn"

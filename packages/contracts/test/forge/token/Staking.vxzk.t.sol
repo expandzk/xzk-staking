@@ -8,14 +8,14 @@ import {MockVoteToken} from "../../../contracts/mocks/MockVoteToken.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract TestMystikoStakingToken is MystikoStakingToken {
-    constructor(
-        IERC20 _underlying,
-        string memory _name,
-        string memory _symbol
-    ) MystikoStakingToken(_underlying, _name, _symbol) {}
+    constructor(IERC20 _underlying, string memory _name, string memory _symbol)
+        MystikoStakingToken(_underlying, _name, _symbol)
+    {}
+
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
+
     function burn(address from, uint256 amount) public {
         _burn(from, amount);
     }
@@ -45,11 +45,7 @@ contract MystikoStakingTokenVXZKTest is Test {
         assertEq(stakingToken.name(), TOKEN_NAME, "Token name should match");
         assertEq(stakingToken.symbol(), TOKEN_SYMBOL, "Token symbol should match");
         assertEq(stakingToken.decimals(), TOKEN_DECIMALS, "Token decimals should match");
-        assertEq(
-            address(stakingToken.UNDERLYING_TOKEN()),
-            address(voteToken),
-            "Underlying token should match"
-        );
+        assertEq(address(stakingToken.UNDERLYING_TOKEN()), address(voteToken), "Underlying token should match");
     }
 
     function testMintAndBalance() public {
@@ -64,16 +60,8 @@ contract MystikoStakingTokenVXZKTest is Test {
         uint256 burnAmount = 500 * 1e18;
         stakingToken.mint(user1, mintAmount);
         stakingToken.burn(user1, burnAmount);
-        assertEq(
-            stakingToken.balanceOf(user1),
-            mintAmount - burnAmount,
-            "Balance should be reduced after burn"
-        );
-        assertEq(
-            stakingToken.totalSupply(),
-            mintAmount - burnAmount,
-            "Total supply should be reduced after burn"
-        );
+        assertEq(stakingToken.balanceOf(user1), mintAmount - burnAmount, "Balance should be reduced after burn");
+        assertEq(stakingToken.totalSupply(), mintAmount - burnAmount, "Total supply should be reduced after burn");
     }
 
     function testTransferDisabled() public {
@@ -107,9 +95,7 @@ contract MystikoStakingTokenVXZKTest is Test {
         vm.warp(block.timestamp + 1);
         uint256 pastTimestamp = block.timestamp - 1;
         assertEq(
-            stakingToken.getPastVotes(user1, pastTimestamp),
-            amount,
-            "Past votes should match balance at that time"
+            stakingToken.getPastVotes(user1, pastTimestamp), amount, "Past votes should match balance at that time"
         );
     }
 
@@ -129,11 +115,7 @@ contract MystikoStakingTokenVXZKTest is Test {
         voteToken.approve(address(stakingToken), baseAmount);
         // user1 mint stakingToken
         stakingToken.mint(user1, baseAmount);
-        assertEq(
-            stakingToken.balanceOf(user1),
-            baseAmount,
-            "StakingToken balance should match minted amount"
-        );
+        assertEq(stakingToken.balanceOf(user1), baseAmount, "StakingToken balance should match minted amount");
         // user1 delegate
         vm.prank(user1);
         stakingToken.delegate(user1);
