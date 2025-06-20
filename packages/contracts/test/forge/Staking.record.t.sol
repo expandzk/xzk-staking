@@ -79,6 +79,28 @@ contract MystikoStakingRecordTest is Test {
         assertEq(remaining, 0);
     }
 
+    function test_UnstakePartialRecord() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        // First stake
+        uint256 amount = 1000;
+        bool success = mockContract.stakeRecord(user, amount);
+        assertTrue(success);
+
+        // Move forward past staking period
+        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        // Unstake
+        uint256[] memory nonces = new uint256[](1);
+        nonces[0] = 0;
+        bool success2 = mockContract.unstakeRecord(user, amount - 100, nonces);
+        assertTrue(success2);
+
+        (,, uint256 remaining) = mockContract.stakingRecords(user, 0);
+        assertEq(remaining, 100);
+    }
+
     function test_ClaimRecord() public {
         vm.stopPrank();
         vm.startPrank(user);
@@ -221,21 +243,26 @@ contract MystikoStakingRecordTest is Test {
 
         uint256 amount1 = 1000;
         uint256 amount2 = 2000;
+        uint256 amount3 = 3000;
+        uint256 totalAmount = amount1 + amount2 + amount3;
 
         // Stake multiple times
         bool success1 = mockContract.stakeRecord(user, amount1);
         assertTrue(success1);
         bool success2 = mockContract.stakeRecord(user, amount2);
         assertTrue(success2);
+        bool success3 = mockContract.stakeRecord(user, amount3);
+        assertTrue(success3);
 
         // Move forward past staking period
         vm.roll(block.number + STAKING_PERIOD + 1);
 
         // Unstake partial amount that spans multiple records
-        uint256[] memory nonces = new uint256[](2);
+        uint256[] memory nonces = new uint256[](3);
         nonces[0] = 0;
         nonces[1] = 1;
-        uint256 unstakeAmount = 1500; // 1000 from first + 500 from second
+        nonces[2] = 2;
+        uint256 unstakeAmount = totalAmount - 100; // 5000 from third
         bool success = mockContract.unstakeRecord(user, unstakeAmount, nonces);
         assertTrue(success);
 
@@ -245,7 +272,53 @@ contract MystikoStakingRecordTest is Test {
 
         // Verify second record is partially consumed
         (,, uint256 remaining2) = mockContract.stakingRecords(user, 1);
-        assertEq(remaining2, amount2 - 500);
+        assertEq(remaining2, 0);
+
+        // Verify third record is partially consumed
+        (,, uint256 remaining3) = mockContract.stakingRecords(user, 2);
+        assertEq(remaining3, 100);
+    }
+
+    function test_UnstakeAllFromMultipleRecords() public {
+        vm.stopPrank();
+        vm.startPrank(user);
+
+        uint256 amount1 = 1000;
+        uint256 amount2 = 2000;
+        uint256 amount3 = 3000;
+        uint256 totalAmount = amount1 + amount2 + amount3;
+
+        // Stake multiple times
+        bool success1 = mockContract.stakeRecord(user, amount1);
+        assertTrue(success1);
+        bool success2 = mockContract.stakeRecord(user, amount2);
+        assertTrue(success2);
+        bool success3 = mockContract.stakeRecord(user, amount3);
+        assertTrue(success3);
+
+        // Move forward past staking period
+        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        // Unstake partial amount that spans multiple records
+        uint256[] memory nonces = new uint256[](3);
+        nonces[0] = 0;
+        nonces[1] = 1;
+        nonces[2] = 2;
+        uint256 unstakeAmount = totalAmount;
+        bool success = mockContract.unstakeRecord(user, unstakeAmount, nonces);
+        assertTrue(success);
+
+        // Verify first record is fully consumed
+        (,, uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        assertEq(remaining1, 0);
+
+        // Verify second record is partially consumed
+        (,, uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        assertEq(remaining2, 0);
+
+        // Verify third record is partially consumed
+        (,, uint256 remaining3) = mockContract.stakingRecords(user, 2);
+        assertEq(remaining3, 0);
     }
 
     // ============ Edge Cases and Boundary Tests ============
