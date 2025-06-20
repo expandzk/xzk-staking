@@ -24,10 +24,10 @@
     "test": "yarn test:forge",
     "test:hardhat": "hardhat test",
     "test:forge": "forge test -vvvv --lib-paths=../../node_modules --lib-paths=../../foundry",
-    "coverage": "forge coverage --lib-paths=../../node_modules --lib-paths=../../foundry --report lcov",
-    "coverage:html": "forge coverage --lib-paths=../../node_modules --lib-paths=../../foundry --report summary",
+    "coverage": "rm -rf lcov.info && forge coverage --ir-minimum --lib-paths=../../node_modules --lib-paths=../../foundry --report lcov",
+    "coverage:html": "yarn coverage && rm -rf coverage-html && genhtml lcov.info -o coverage-html",
     "format": "yarn format:ts && yarn format:sol",
-    "format:ts": "prettier --write \"./**/*.{ts,tsx,js,jsx}\" --config .prettierrc",
+    "format:ts": "prettier --write \"./**/*.ts\" --config .prettierrc",
     "format:sol": "forge fmt",
     "lint": "forge fmt --check",
     "lint:aderyn": "aderyn"

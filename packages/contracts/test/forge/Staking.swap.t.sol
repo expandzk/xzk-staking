@@ -7,7 +7,7 @@ import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../contracts/mocks/MockVoteToken.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract StakingCalcTest is Test {
+contract StakingSwapTest is Test {
     MystikoStaking public stakingFlexible;
     MockToken public mockToken;
     address public owner;
@@ -25,13 +25,7 @@ contract StakingCalcTest is Test {
         mockToken = new MockToken();
 
         stakingFlexible = new MystikoStaking(
-            dao,
-            mockToken,
-            "Mystiko Staking Vote Token Flexible",
-            "sVXZK-FLEX",
-            0,
-            1,
-            block.number + 10000
+            dao, mockToken, "Mystiko Staking Vote Token Flexible", "sVXZK-FLEX", 0, 1, block.number + 10000
         );
         vm.stopPrank();
     }

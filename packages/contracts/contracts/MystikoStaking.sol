@@ -8,12 +8,7 @@ import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
 import {RewardsLibrary} from "./libs/Reward.sol";
 import {MystikoStakingRecord} from "./MystikoStakingRecord.sol";
 
-contract MystikoStaking is
-    MystikoStakingRecord,
-    MystikoStakingToken,
-    MystikoDAOAccessControl,
-    ReentrancyGuard
-{
+contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAOAccessControl, ReentrancyGuard {
     // Total reward amount (50 million tokens) of underlying token
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
@@ -74,7 +69,7 @@ contract MystikoStaking is
     }
 
     function stake(uint256 _amount) external nonReentrant returns (bool) {
-        require(!isStakingPaused, "MystikoStaking: Staking is paused");
+        require(!isStakingPaused, "MystikoStaking: paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_amount > 0, "MystikoStaking: Invalid amount");
@@ -89,21 +84,15 @@ contract MystikoStaking is
         return true;
     }
 
-    function unstake(
-        uint256 _stakingAmount,
-        uint256[] calldata _nonces
-    ) external nonReentrant returns (bool) {
-        require(!isStakingPaused, "MystikoStaking: Staking is paused");
+    function unstake(uint256 _stakingAmount, uint256[] calldata _nonces) external nonReentrant returns (bool) {
+        require(!isStakingPaused, "MystikoStaking: paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_stakingAmount > 0, "MystikoStaking: Invalid amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
         if (STAKING_PERIOD > 0) {
             require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
-            require(
-                _unstakeRecord(account, _stakingAmount, _nonces),
-                "MystikoStaking: Unstake record failed"
-            );
+            require(_unstakeRecord(account, _stakingAmount, _nonces), "MystikoStaking: Unstake record failed");
         } else {
             require(_nonces.length == 0, "MystikoStaking: Invalid parameter");
         }
@@ -116,7 +105,7 @@ contract MystikoStaking is
     }
 
     function claim() external nonReentrant returns (bool) {
-        require(!isStakingPaused, "MystikoStaking: Staking is paused");
+        require(!isStakingPaused, "MystikoStaking: paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         uint256 amount = _consumeClaim(account);
@@ -144,10 +133,11 @@ contract MystikoStaking is
     function swapToStakingToken(uint256 _amount) public view returns (uint256) {
         uint256 totalReward = currentTotalReward();
         uint256 total = totalStaked + totalReward - totalUnstaked;
-        if (total == 0) {
+        uint256 totalSupply = totalSupply();
+        if (total == 0 || totalSupply == 0) {
             return _amount;
         }
-        uint256 swapAmount = (_amount * totalSupply()) / total;
+        uint256 swapAmount = (_amount * totalSupply) / total;
         return swapAmount;
     }
 

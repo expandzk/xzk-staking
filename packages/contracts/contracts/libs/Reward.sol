@@ -6,7 +6,7 @@ library RewardsLibrary {
     uint256 private constant LAMBDA_DECAY = 200 * 1e9;
     uint256 private constant TOTAL_FACTOR = 63_383_177;
 
-    function calcTotalRewardAtBlock(uint256 blocksPassed) internal pure returns (uint256 totalRelease) {
+    function calcTotalRewardAtBlock(uint256 blocksPassed) internal pure returns (uint256) {
         require(blocksPassed < 1e9, "Reward: Invalid blocks passed");
         uint256 x = LAMBDA_DECAY * blocksPassed;
         uint256 expNeg = expTaylor(x);

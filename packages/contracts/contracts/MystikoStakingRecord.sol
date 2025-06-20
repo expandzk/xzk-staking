@@ -14,8 +14,8 @@ abstract contract MystikoStakingRecord is AccessControl {
     }
 
     struct ClaimRecord {
-        uint256 amount;
         uint256 unstakeBlock;
+        uint256 amount;
         bool claimPaused;
     }
 
@@ -85,12 +85,12 @@ abstract contract MystikoStakingRecord is AccessControl {
         return amount;
     }
 
-    function pause(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+    function pauseClaim(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         claimRecords[_account].claimPaused = true;
         emit AccountPaused(_account);
     }
 
-    function unpause(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
+    function unpauseClaim(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         claimRecords[_account].claimPaused = false;
         emit AccountUnpaused(_account);
     }

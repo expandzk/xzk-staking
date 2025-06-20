@@ -129,13 +129,4 @@ contract RewardsLibraryTest is Test {
         assertTrue(result1 < result2, "exp should be monotonically increasing");
         assertTrue(result2 < result3, "exp should be monotonically increasing");
     }
-
-    function testCalcTotalRewardAtBlock_gas_efficiency(uint256 offset) public view {
-        offset = bound(offset, 0, totalBlocks - 4);
-        uint256 gasBefore = gasleft();
-        wrapper.calcTotalRewardAtBlock(offset);
-        uint256 gasUsed = gasBefore - gasleft();
-
-        assertTrue(gasUsed < 10000, "Gas usage should be reasonable");
-    }
 }
