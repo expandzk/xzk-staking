@@ -1,0 +1,496 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
+import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
+import {TOTAL_FACTOR_365, TOTAL_FACTOR_180, TOTAL_FACTOR_90, TOTAL_FACTOR_FLEXIBLE} from "./const.sol";
+import {SEPOLIA_DAO_REGISTRY, SEPOLIA_XZK_TOKEN, SEPOLIA_VXZK_TOKEN, SEPOLIA_PAUSE_ADMIN} from "./const.sol";
+import {ETHEREUM_DAO_REGISTRY, ETHEREUM_XZK_TOKEN, ETHEREUM_VXZK_TOKEN, ETHEREUM_PAUSE_ADMIN} from "./const.sol";
+import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
+contract CheckStaking is Script {
+    function run(bool is_mainnet, uint256 startTime) public view {
+        console.log("Checking staking contracts...");
+        if (is_mainnet) {
+            check_ethereum_staking(startTime);
+        } else {
+            check_sepolia_staking(startTime);
+        }
+    }
+
+    function check_ethereum_staking(uint256 startTime) public view {
+        console.log("Checking ethereum staking contracts...");
+        check_ethereum_sXZK_365d_contract(startTime);
+        check_ethereum_sVXZK_365d_contract(startTime);
+        check_ethereum_sXZK_180d_contract(startTime);
+        check_ethereum_sVXZK_180d_contract(startTime);
+        check_ethereum_sXZK_90d_contract(startTime);
+        check_ethereum_sVXZK_90d_contract(startTime);
+        check_ethereum_sXZK_flexible_contract(startTime);
+        check_ethereum_sVXZK_flexible_contract(startTime);
+        console.log("check success");
+    }
+
+    function check_sepolia_staking(uint256 startTime) public view {
+        console.log("Checking sepolia staking contracts...");
+        check_sepolia_sXZK_365d_contract(startTime);
+        check_sepolia_sVXZK_365d_contract(startTime);
+        check_sepolia_sXZK_180d_contract(startTime);
+        check_sepolia_sVXZK_180d_contract(startTime);
+        check_sepolia_sXZK_90d_contract(startTime);
+        check_sepolia_sVXZK_90d_contract(startTime);
+        check_sepolia_sXZK_flexible_contract(startTime);
+        check_sepolia_sVXZK_flexible_contract(startTime);
+        console.log("check success");
+    }
+
+    function check_ethereum_sXZK_365d_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sXZK_365d");
+        address staking_contract = vm.envAddress("ethereum_sXZK_365d");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sXZK_365d is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 365 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-365d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_365d_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_xzk_token(staking);
+    }
+
+    function check_ethereum_sVXZK_365d_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sVXZK_365d");
+        address staking_contract = vm.envAddress("ethereum_sVXZK_365d");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sVXZK_365d is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 365 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-365d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_365d_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_vxzk_token(staking);
+    }
+
+    function check_ethereum_sXZK_180d_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sXZK_180d");
+        address staking_contract = vm.envAddress("ethereum_sXZK_180d");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sXZK_180d is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 180 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-180d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_180d_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_xzk_token(staking);
+    }
+
+    function check_ethereum_sVXZK_180d_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sVXZK_180d");
+        address staking_contract = vm.envAddress("ethereum_sVXZK_180d");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sVXZK_180d is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 180 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-180d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_180d_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_vxzk_token(staking);
+    }
+
+    function check_ethereum_sXZK_90d_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sXZK_90d");
+        address staking_contract = vm.envAddress("ethereum_sXZK_90d");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sXZK_90d is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 90 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-90d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_90d_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_xzk_token(staking);
+    }
+
+    function check_ethereum_sVXZK_90d_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sVXZK_90d");
+        address staking_contract = vm.envAddress("ethereum_sVXZK_90d");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sVXZK_90d is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 90 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-90d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_90d_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_vxzk_token(staking);
+    }
+
+    function check_ethereum_sXZK_flexible_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sXZK_flexible");
+        address staking_contract = vm.envAddress("ethereum_sXZK_flexible");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sXZK_flexible is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK Flexible")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-Flex")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_flexible_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_xzk_token(staking);
+    }
+
+    function check_ethereum_sVXZK_flexible_contract(uint256 startTime) public view {
+        console.log("Checking ethereum staking contract: ethereum_sVXZK_Flex");
+        address staking_contract = vm.envAddress("ethereum_sVXZK_Flex");
+        if (staking_contract == address(0)) {
+            console.log("ethereum_sVXZK_flexible is not deployed");
+            return;
+        }
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK Flexible")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-Flex")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_flexible_contract(staking);
+        check_ethereum_admin(staking);
+        check_ethereum_vxzk_token(staking);
+    }
+
+    function check_sepolia_sXZK_365d_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sXZK_365d");
+        address staking_contract = vm.envAddress("sepolia_sXZK_365d");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 365 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-365d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_365d_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_xzk_token(staking);
+    }
+
+    function check_sepolia_sVXZK_365d_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sVXZK_365d");
+        address staking_contract = vm.envAddress("sepolia_sVXZK_365d");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 365 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-365d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_365d_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_vxzk_token(staking);
+    }
+
+    function check_sepolia_sXZK_180d_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sXZK_180d");
+        address staking_contract = vm.envAddress("sepolia_sXZK_180d");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 180 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-180d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_180d_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_xzk_token(staking);
+    }
+
+    function check_sepolia_sVXZK_180d_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sVXZK_180d");
+        address staking_contract = vm.envAddress("sepolia_sVXZK_180d");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 180 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-180d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_180d_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_vxzk_token(staking);
+    }
+
+    function check_sepolia_sXZK_90d_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sXZK_90d");
+        address staking_contract = vm.envAddress("sepolia_sXZK_90d");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 90 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-90d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_90d_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_xzk_token(staking);
+    }
+
+    function check_sepolia_sVXZK_90d_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sVXZK_90d");
+        address staking_contract = vm.envAddress("sepolia_sVXZK_90d");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 90 days")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-90d")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_90d_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_vxzk_token(staking);
+    }
+
+    function check_sepolia_sXZK_flexible_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sXZK_Flex");
+        address staking_contract = vm.envAddress("sepolia_sXZK_Flex");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK Flexible")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-Flex")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_flexible_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_xzk_token(staking);
+    }
+
+    function check_sepolia_sVXZK_flexible_contract(uint256 startTime) public view {
+        console.log("Checking sepolia staking contract: sepolia_sVXZK_Flex");
+        address staking_contract = vm.envAddress("sepolia_sVXZK_Flex");
+        assert(staking_contract != address(0));
+
+        MystikoStaking staking = MystikoStaking(staking_contract);
+        string memory name = staking.name();
+        assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK Flexible")));
+
+        string memory symbol = staking.symbol();
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-Flex")));
+
+        uint256 startTimestamp = staking.START_TIME();
+        assert(startTimestamp == startTime);
+
+        check_flexible_contract(staking);
+        check_sepolia_admin(staking);
+        check_sepolia_vxzk_token(staking);
+    }
+
+    function check_365d_contract(MystikoStaking staking) public view {
+        uint256 totalFactor = staking.TOTAL_FACTOR();
+        assert(totalFactor == TOTAL_FACTOR_365);
+
+        uint256 period = staking.STAKING_PERIOD_SECONDS();
+        assert(period == 365 days);
+
+        check_staking_contract(staking);
+    }
+
+    function check_180d_contract(MystikoStaking staking) public view {
+        uint256 totalFactor = staking.TOTAL_FACTOR();
+        assert(totalFactor == TOTAL_FACTOR_180);
+
+        uint256 period = staking.STAKING_PERIOD_SECONDS();
+        assert(period == 180 days);
+
+        check_staking_contract(staking);
+    }
+
+    function check_90d_contract(MystikoStaking staking) public view {
+        uint256 totalFactor = staking.TOTAL_FACTOR();
+        assert(totalFactor == TOTAL_FACTOR_90);
+
+        uint256 period = staking.STAKING_PERIOD_SECONDS();
+        assert(period == 90 days);
+
+        check_staking_contract(staking);
+    }
+
+    function check_flexible_contract(MystikoStaking staking) public view {
+        uint256 totalFactor = staking.TOTAL_FACTOR();
+        assert(totalFactor == TOTAL_FACTOR_FLEXIBLE);
+
+        uint256 period = staking.STAKING_PERIOD_SECONDS();
+        assert(period == 0);
+
+        uint256 totalReward = staking.TOTAL_REWARD();
+        assert(totalReward == (staking.ALL_REWARD() * totalFactor) / staking.ALL_SHARES());
+
+        check_staking_contract(staking);
+    }
+
+    function check_staking_contract(MystikoStaking staking) public view {
+        uint256 totalDuration = staking.TOTAL_DURATION_SECONDS();
+        assert(totalDuration == 3 * 365 days);
+
+        uint256 totalShares = staking.ALL_SHARES();
+        assert(totalShares == 100);
+
+        uint256 totalStaked = staking.totalStaked();
+        assert(totalStaked == 0);
+
+        uint256 totalUnstaked = staking.totalUnstaked();
+        assert(totalUnstaked == 0);
+
+        uint256 claimDelay = staking.CLAIM_DELAY_SECONDS();
+        assert(claimDelay == 1 days);
+
+        uint256 startDelay = staking.START_DELAY_SECONDS();
+        assert(startDelay == 1 days);
+
+        bool isPaused = staking.isStakingPaused();
+        assert(isPaused == false);
+
+        uint256 totalSupply = staking.totalSupply();
+        assert(totalSupply == 0);
+    }
+
+    function check_ethereum_admin(MystikoStaking staking) public view {
+        bool hasPauseAdmin = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), ETHEREUM_PAUSE_ADMIN);
+        assert(hasPauseAdmin == true);
+
+        address daoRegistry = address(staking.daoRegistry());
+        assert(daoRegistry == ETHEREUM_DAO_REGISTRY);
+    }
+
+    function check_sepolia_admin(MystikoStaking staking) public view {
+        bool hasPauseAdmin = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), SEPOLIA_PAUSE_ADMIN);
+        assert(hasPauseAdmin == true);
+
+        address daoRegistry = address(staking.daoRegistry());
+        assert(daoRegistry == SEPOLIA_DAO_REGISTRY);
+    }
+
+    function check_ethereum_xzk_token(MystikoStaking staking) public view {
+        IERC20 xzkToken = staking.UNDERLYING_TOKEN();
+        assert(xzkToken == ETHEREUM_XZK_TOKEN);
+    }
+
+    function check_sepolia_xzk_token(MystikoStaking staking) public view {
+        IERC20 xzkToken = staking.UNDERLYING_TOKEN();
+        assert(xzkToken == SEPOLIA_XZK_TOKEN);
+    }
+
+    function check_ethereum_vxzk_token(MystikoStaking staking) public view {
+        IERC20 vxzkToken = IERC20(staking.UNDERLYING_TOKEN());
+        assert(vxzkToken == ETHEREUM_VXZK_TOKEN);
+    }
+
+    function check_sepolia_vxzk_token(MystikoStaking staking) public view {
+        IERC20 vxzkToken = IERC20(staking.UNDERLYING_TOKEN());
+        assert(vxzkToken == SEPOLIA_VXZK_TOKEN);
+    }
+}

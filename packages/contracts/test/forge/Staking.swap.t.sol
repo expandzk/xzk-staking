@@ -25,7 +25,14 @@ contract StakingSwapTest is Test {
         mockToken = new MockToken();
 
         stakingFlexible = new MystikoStaking(
-            dao, mockToken, "Mystiko Staking Vote Token 180D", "sVXZK-180D", 180 days, 15, block.timestamp + 1 days
+            dao,
+            owner,
+            mockToken,
+            "Mystiko Staking Vote Token 180D",
+            "sVXZK-180D",
+            180 days,
+            15,
+            block.timestamp + 1 days
         );
         vm.stopPrank();
     }

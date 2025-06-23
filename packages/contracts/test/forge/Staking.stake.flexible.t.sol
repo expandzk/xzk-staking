@@ -43,6 +43,7 @@ contract StakingStakeFlexibleTest is Test {
 
         stakingFlexible = new MystikoStaking(
             address(daoRegistry),
+            owner,
             mockToken,
             "Mystiko Staking Token",
             "sXZK",

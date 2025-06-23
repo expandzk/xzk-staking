@@ -49,6 +49,7 @@ contract StakingStake360DayTest is Test {
 
         staking = new MystikoStaking(
             address(daoRegistry),
+            owner,
             mockVoteToken,
             "Mystiko Staking Vote Token 360D",
             "sVXZK-360D",

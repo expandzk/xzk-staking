@@ -46,6 +46,7 @@ contract StakingGovernorTest is Test {
         vm.startPrank(deployer);
         staking = new MystikoStaking(
             address(daoRegistry),
+            deployer,
             mockToken,
             "Mystiko Staking Vote Token 90D",
             "sVXZK-90D",
@@ -568,6 +569,7 @@ contract StakingGovernorTest is Test {
         // Create a new staking contract without calling setAdminRole
         MystikoStaking newStaking = new MystikoStaking(
             address(daoRegistry),
+            address(0),
             mockToken,
             "Mystiko Staking Vote Token 2",
             "sVXZK2",

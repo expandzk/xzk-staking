@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {MystikoStakingRecord} from "../../contracts/MystikoStakingRecord.sol";
 
 contract MockMystikoStakingRecord is MystikoStakingRecord {
-    constructor(uint256 _stakingPeriod) MystikoStakingRecord(_stakingPeriod) {}
+    constructor(address _admin, uint256 _stakingPeriod) MystikoStakingRecord(_admin, _stakingPeriod) {}
 
     function stakeRecord(address _account, uint256 _stakingAmount) external returns (bool) {
         return _stakeRecord(_account, _stakingAmount);
@@ -35,8 +35,7 @@ contract MystikoStakingRecordTest is Test {
     address public admin = address(0x3);
 
     function setUp() public {
-        mockContract = new MockMystikoStakingRecord(STAKING_PERIOD);
-        mockContract.grantRole(mockContract.DEFAULT_ADMIN_ROLE(), admin);
+        mockContract = new MockMystikoStakingRecord(admin, STAKING_PERIOD);
         vm.startPrank(admin);
     }
 

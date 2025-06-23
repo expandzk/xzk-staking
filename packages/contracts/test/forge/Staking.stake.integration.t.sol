@@ -47,6 +47,7 @@ contract StakingStakeIntegrationTest is Test {
 
         staking = new MystikoStaking(
             address(daoRegistry),
+            owner,
             mockVoteToken,
             "Mystiko Staking Vote Token 90D",
             "sVXZK-90D",

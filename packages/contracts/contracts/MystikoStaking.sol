@@ -47,6 +47,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
 
     constructor(
         address _daoRegistry,
+        address _pauseAdmin,
         IERC20 _underlyingToken,
         string memory _stakingTokenName,
         string memory _stakingTokenSymbol,
@@ -55,7 +56,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
         uint256 _startTime
     )
         MystikoStakingToken(_underlyingToken, _stakingTokenName, _stakingTokenSymbol)
-        MystikoStakingRecord(_stakingPeriodSeconds)
+        MystikoStakingRecord(_pauseAdmin, _stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
         require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must one day after deployment");
