@@ -47,11 +47,11 @@ contract StakingGovernorTest is Test {
         staking = new MystikoStaking(
             address(daoRegistry),
             mockToken,
-            "Mystiko Staking Vote Token Flexible",
-            "sVXZK-FLEX",
-            0, // staking period
-            5, // total factor
-            block.number + 10000 // start block
+            "Mystiko Staking Vote Token 90D",
+            "sVXZK-90D",
+            90 days, // staking period
+            15, // total factor
+            block.timestamp + 1 days // start time
         );
         vm.stopPrank();
 
@@ -573,7 +573,7 @@ contract StakingGovernorTest is Test {
             "sVXZK2",
             0, // staking period
             1, // total factor
-            block.number + 10000 // start block
+            block.timestamp + 1 days // start time
         );
 
         // DAO should not have admin role initially

@@ -29,7 +29,7 @@ contract MockMystikoStakingRecord is MystikoStakingRecord {
 
 contract MystikoStakingRecordTest is Test {
     MockMystikoStakingRecord public mockContract;
-    uint256 public constant STAKING_PERIOD = 100;
+    uint256 public constant STAKING_PERIOD = 90 days;
     address public user = address(0x1);
     address public user2 = address(0x2);
     address public admin = address(0x3);
@@ -67,7 +67,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // Unstake
         uint256[] memory nonces = new uint256[](1);
@@ -89,7 +90,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // Unstake
         uint256[] memory nonces = new uint256[](1);
@@ -125,7 +127,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success);
 
         // Move forward past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // Consume claim
         uint256 consumedAmount = mockContract.consumeClaim(user);
@@ -155,7 +158,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(claimPaused);
 
         // Move forward past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // Try to consume claim
         vm.expectRevert("MystikoClaim: Claim paused");
@@ -194,9 +198,9 @@ contract MystikoStakingRecordTest is Test {
         assertEq(mockContract.stakingNonces(user), 3);
 
         // Verify all records
-        (uint256 stakedBlock1, uint256 stakedAmount1, uint256 remaining1) = mockContract.stakingRecords(user, 0);
-        (uint256 stakedBlock2, uint256 stakedAmount2, uint256 remaining2) = mockContract.stakingRecords(user, 1);
-        (uint256 stakedBlock3, uint256 stakedAmount3, uint256 remaining3) = mockContract.stakingRecords(user, 2);
+        (, uint256 stakedAmount1, uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        (, uint256 stakedAmount2, uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        (, uint256 stakedAmount3, uint256 remaining3) = mockContract.stakingRecords(user, 2);
 
         assertEq(stakedAmount1, amount1);
         assertEq(stakedAmount2, amount2);
@@ -220,7 +224,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success2);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // Unstake from first record
         uint256[] memory nonces = new uint256[](1);
@@ -255,7 +260,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success3);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // Unstake partial amount that spans multiple records
         uint256[] memory nonces = new uint256[](3);
@@ -297,7 +303,8 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success3);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // Unstake partial amount that spans multiple records
         uint256[] memory nonces = new uint256[](3);
@@ -331,7 +338,7 @@ contract MystikoStakingRecordTest is Test {
         bool success = mockContract.stakeRecord(user, maxAmount);
         assertTrue(success);
 
-        (uint256 stakedBlock, uint256 stakedAmount, uint256 remaining) = mockContract.stakingRecords(user, 0);
+        (, uint256 stakedAmount, uint256 remaining) = mockContract.stakingRecords(user, 0);
         assertEq(stakedAmount, maxAmount);
         assertEq(remaining, maxAmount);
     }
@@ -356,7 +363,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.claimRecord(user, maxAmount);
 
         // Move forward past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         uint256 consumedAmount = mockContract.consumeClaim(user);
         assertEq(consumedAmount, maxAmount);
@@ -367,18 +375,22 @@ contract MystikoStakingRecordTest is Test {
         vm.startPrank(user);
 
         // Stake at block 1
-        vm.roll(1);
+        uint256 block1Timestamp = 243431;
+        vm.warp(block1Timestamp);
+        vm.roll(block.number + 1);
         mockContract.stakeRecord(user, 1000);
 
         // Stake at block 2
-        vm.roll(2);
+        uint256 block2Timestamp = block1Timestamp + 1;
+        vm.warp(block2Timestamp);
+        vm.roll(block.number + 1);
         mockContract.stakeRecord(user, 2000);
 
-        (uint256 stakedBlock1,,) = mockContract.stakingRecords(user, 0);
-        (uint256 stakedBlock2,,) = mockContract.stakingRecords(user, 1);
+        (uint256 stakedTime1,,) = mockContract.stakingRecords(user, 0);
+        (uint256 stakedTime2,,) = mockContract.stakingRecords(user, 1);
 
-        assertEq(stakedBlock1, 1);
-        assertEq(stakedBlock2, 2);
+        assertEq(stakedTime1, block1Timestamp);
+        assertEq(stakedTime2, block2Timestamp);
     }
 
     // ============ Error Handling Tests ============
@@ -397,6 +409,9 @@ contract MystikoStakingRecordTest is Test {
         // Stake
         uint256 amount = 1000;
         mockContract.stakeRecord(user, amount);
+
+        vm.warp(block.timestamp + STAKING_PERIOD);
+        vm.roll(block.number + (STAKING_PERIOD) / 12);
 
         // Try to unstake before period ends
         uint256[] memory nonces = new uint256[](1);
@@ -423,12 +438,13 @@ contract MystikoStakingRecordTest is Test {
         mockContract.stakeRecord(user, amount);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // Try to unstake more than available
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = 0;
-        vm.expectRevert("MystikoClaim: Invalid remaining amount");
+        vm.expectRevert("MystikoClaim: no enough staking amount");
         mockContract.unstakeRecord(user, amount + 1, nonces);
     }
 
@@ -439,6 +455,9 @@ contract MystikoStakingRecordTest is Test {
         // Claim
         uint256 amount = 1000;
         mockContract.claimRecord(user, amount);
+
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS());
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS()) / 12);
 
         // Try to consume before delay
         vm.expectRevert("MystikoClaim: Claim delay not reached");
@@ -459,7 +478,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.pauseClaim(user);
 
         // Move forward past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // Try to consume while paused
         vm.stopPrank();
@@ -473,7 +493,8 @@ contract MystikoStakingRecordTest is Test {
         vm.startPrank(user);
 
         // Move forward past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // Try to consume without claiming first
         vm.expectRevert("MystikoClaim: No claimable amount");
@@ -488,7 +509,8 @@ contract MystikoStakingRecordTest is Test {
         uint256 amount = 1000;
         mockContract.claimRecord(user, amount);
 
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
         mockContract.consumeClaim(user);
 
         // Try to consume again
@@ -552,7 +574,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.stakeRecord(user, amount2);
 
         // 2. Move past staking period
-        vm.roll(block.number + STAKING_PERIOD + 1);
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
 
         // 3. Unstake partial amount
         uint256[] memory nonces = new uint256[](2);
@@ -566,7 +589,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.claimRecord(user, unstakeAmount);
 
         // 5. Move past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // 6. Consume the claim
         uint256 consumedAmount = mockContract.consumeClaim(user);
@@ -588,7 +612,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.claimRecord(user, amount2 - 500);
 
         // 10. move past claim delay
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // 11. consume the remaining amount
         uint256 consumedAmount2 = mockContract.consumeClaim(user);
@@ -602,7 +627,10 @@ contract MystikoStakingRecordTest is Test {
         // 1. Stake and unstake
         uint256 amount = 1000;
         mockContract.stakeRecord(user, amount);
-        vm.roll(block.number + STAKING_PERIOD + 1);
+
+        vm.warp(block.timestamp + STAKING_PERIOD + 1);
+        vm.roll(block.number + (STAKING_PERIOD + 1) / 12);
+
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = 0;
         mockContract.unstakeRecord(user, amount, nonces);
@@ -614,10 +642,12 @@ contract MystikoStakingRecordTest is Test {
         vm.stopPrank();
         vm.startPrank(admin);
         mockContract.pauseClaim(user);
+        vm.stopPrank();
 
         // 4. Try to consume while paused
-        vm.roll(block.number + mockContract.CLAIM_DELAY_BLOCKS() + 1);
-        vm.stopPrank();
+        vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
+
         vm.startPrank(user);
         vm.expectRevert("MystikoClaim: Claim paused");
         mockContract.consumeClaim(user);

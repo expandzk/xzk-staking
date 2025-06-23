@@ -25,8 +25,7 @@ contract StakingStake360DayTest is Test {
     uint256 public constant STAKE_AMOUNT = 100 ether;
     uint256 public constant SMALL_AMOUNT = 1 ether;
     uint256 public constant LARGE_AMOUNT = 1000 ether;
-    uint256 public constant STAKING_PERIOD_DAYS = 360;
-    uint256 public constant STAKING_PERIOD_BLOCKS = (STAKING_PERIOD_DAYS * 24 * 60 * 60) / 12;
+    uint256 public constant STAKING_PERIOD_SECONDS = 360 days;
 
     // Event declarations
     event Staked(address indexed account, uint256 amount, uint256 stakingAmount);
@@ -53,9 +52,9 @@ contract StakingStake360DayTest is Test {
             mockVoteToken,
             "Mystiko Staking Vote Token 360D",
             "sVXZK-360D",
-            STAKING_PERIOD_BLOCKS, // 360-day staking period
+            STAKING_PERIOD_SECONDS, // 360-day staking period
             20, // total factor
-            block.number + 10000 // start block
+            block.timestamp + 1 days // start time
         );
         vm.stopPrank();
 
@@ -188,14 +187,15 @@ contract StakingStake360DayTest is Test {
 
     // ============ UNSTAKE TESTS ============
 
-    function test_Unstake_Success() public {
+    function test_360day_Unstake_Success() public {
         // First stake
         vm.startPrank(user1);
         mockVoteToken.approve(address(staking), STAKE_AMOUNT);
         staking.stake(STAKE_AMOUNT);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
 
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256 tokenBalanceBefore = mockVoteToken.balanceOf(user1);
@@ -213,9 +213,9 @@ contract StakingStake360DayTest is Test {
             totalUnstakedBefore + expectedAmount,
             "Total unstaked should increase by expected amount"
         );
-        (uint256 unstakeBlock, uint256 amount, bool claimPaused) = staking.claimRecords(user1);
+        (uint256 unstakeTime, uint256 amount, bool claimPaused) = staking.claimRecords(user1);
         assertEq(amount, expectedAmount, "Amount should be the same as the unstaked amount");
-        assertEq(unstakeBlock, block.number, "Unstake block should be the current block number");
+        assertEq(unstakeTime, block.timestamp, "Unstake block should be the current block timestamp");
         assertFalse(claimPaused, "Claim should not be paused");
         vm.stopPrank();
     }
@@ -280,7 +280,8 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
 
         uint256 partialAmount = STAKE_AMOUNT / 2;
         uint256 balanceBefore = staking.balanceOf(user1);
@@ -299,24 +300,58 @@ contract StakingStake360DayTest is Test {
         vm.startPrank(user1);
         mockVoteToken.approve(address(staking), STAKE_AMOUNT * 2);
         staking.stake(STAKE_AMOUNT);
+        vm.stopPrank();
 
-        // Second stake
-        vm.roll(block.number + 1000);
+        (uint256 firstStakeTime,,) = staking.stakingRecords(user1, 0);
+        assertEq(firstStakeTime, block.timestamp);
+
+        // Second stake (1 day later)
+        vm.warp(firstStakeTime + 1);
+        vm.roll(block.number + 1);
+        vm.startPrank(user1);
         staking.stake(STAKE_AMOUNT);
         vm.stopPrank();
 
-        // Move forward past staking period for first stake
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        (uint256 secondStakeTime,,) = staking.stakingRecords(user1, 1);
+        assertEq(secondStakeTime, block.timestamp);
+
+        vm.warp(firstStakeTime + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + 10);
 
         vm.startPrank(user1);
         uint256 stakingBalance = staking.balanceOf(user1);
-        uint256[] memory nonces = new uint256[](1);
+        uint256[] memory nonces = new uint256[](2);
         nonces[0] = 0;
+        nonces[1] = 1;
 
         // Should fail because second stake period hasn't ended
-        vm.expectRevert("MystikoClaim: Invalid remaining amount");
+        vm.expectRevert("MystikoClaim: Staking period not ended");
         staking.unstake(stakingBalance, nonces);
         vm.stopPrank();
+
+        vm.warp(secondStakeTime + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + 10);
+
+        uint256[] memory nonces2 = new uint256[](1);
+        nonces2[0] = 0;
+        vm.startPrank(user1);
+        vm.expectRevert("MystikoClaim: no enough staking amount");
+        staking.unstake(stakingBalance, nonces2);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        staking.unstake(stakingBalance, nonces);
+        vm.stopPrank();
+        assertEq(staking.balanceOf(user1), 0);
+        assertEq(staking.stakingNonces(user1), 2);
+        (uint256 stakedTime, uint256 amount, uint256 remaining) = staking.stakingRecords(user1, 0);
+        assertEq(stakedTime, firstStakeTime);
+        assertEq(amount, STAKE_AMOUNT);
+        assertEq(remaining, 0);
+        (stakedTime, amount, remaining) = staking.stakingRecords(user1, 1);
+        assertEq(stakedTime, secondStakeTime);
+        assertEq(amount, STAKE_AMOUNT);
+        assertEq(remaining, 0);
     }
 
     // ============ CLAIM TESTS ============
@@ -328,7 +363,9 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move forward past staking period and unstake
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = 0;
@@ -336,7 +373,8 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Wait for claim delay
-        vm.roll(block.number + staking.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
         (, uint256 claimAmount,) = staking.claimRecords(user1);
 
         vm.startPrank(owner);
@@ -368,9 +406,10 @@ contract StakingStake360DayTest is Test {
         assertEq(staking.totalUnstaked(), 0);
 
         // Move to reward period
-        uint256 startBlock = staking.START_BLOCK();
-        offset = bound(offset, staking.STAKING_PERIOD() + 1, 2 * staking.TOTAL_BLOCKS());
-        vm.roll(startBlock + offset);
+        uint256 startTimestamp = staking.START_TIME();
+        offset = bound(offset, staking.STAKING_PERIOD_SECONDS() + 1, 2 * staking.TOTAL_DURATION_SECONDS());
+        vm.warp(startTimestamp + offset);
+        vm.roll(block.number + (offset + 1) / 12);
 
         uint256 totalReward = staking.currentTotalReward();
         vm.startPrank(owner);
@@ -388,7 +427,8 @@ contract StakingStake360DayTest is Test {
         assertEq(staking.totalUnstaked(), totalReward + amount);
 
         // Wait for claim delay
-        vm.roll(block.number + staking.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         vm.startPrank(user1);
         bool success = staking.claim();
@@ -424,7 +464,9 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Move forward past staking period and unstake
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+
         vm.startPrank(user1);
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256[] memory nonces = new uint256[](1);
@@ -437,6 +479,10 @@ contract StakingStake360DayTest is Test {
         staking.pauseClaim(address(user1));
         vm.stopPrank();
 
+        // Move forward past claim delay
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
         vm.startPrank(user1);
         vm.expectRevert("MystikoClaim: Claim paused");
         staking.claim();
@@ -444,6 +490,9 @@ contract StakingStake360DayTest is Test {
     }
 
     function test_Claim_MultipleTimes() public {
+        uint256 userNonce0 = staking.stakingNonces(user1);
+        assertEq(userNonce0, 0);
+
         // Stake before rewards start
         vm.startPrank(user1);
         mockVoteToken.approve(address(staking), STAKE_AMOUNT);
@@ -451,7 +500,11 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Move forward past staking period and unstake
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+
+        uint256 userNonce1 = staking.stakingNonces(user1);
+        assertEq(userNonce1, 1);
 
         uint256 totalReward1 = staking.currentTotalReward();
         vm.startPrank(owner);
@@ -466,7 +519,8 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Wait for claim delay
-        vm.roll(block.number + staking.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         vm.startPrank(user1);
         bool firstClaim = staking.claim();
@@ -478,9 +532,15 @@ contract StakingStake360DayTest is Test {
         mockVoteToken.approve(address(staking), STAKE_AMOUNT);
         bool success = staking.stake(STAKE_AMOUNT);
         assertTrue(success, "Stake should succeed");
+        vm.stopPrank();
 
-        // Move forward past staking period
-        vm.roll(block.number + staking.STAKING_PERIOD() + 1);
+        uint256 userNonce2 = staking.stakingNonces(user1);
+        assertEq(userNonce2, 2);
+
+        // Move forward past staking period for the second stake
+        uint256 stakedTime2 = block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1;
+        vm.warp(stakedTime2);
+        vm.roll(block.number + stakedTime2 / 12);
 
         uint256 totalReward2 = staking.currentTotalReward();
         uint256 rewardAmount = totalReward2 - totalReward1;
@@ -496,8 +556,9 @@ contract StakingStake360DayTest is Test {
         staking.unstake(stakingBalance2, nonces2);
         vm.stopPrank();
 
-        // // Wait for claim delay
-        vm.roll(block.number + staking.CLAIM_DELAY_BLOCKS() + 1);
+        // Wait for claim delay
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         vm.startPrank(user1);
         bool secondClaim = staking.claim();
@@ -512,7 +573,7 @@ contract StakingStake360DayTest is Test {
 
     // ============ INTEGRATION TESTS ============
 
-    function test_MultipleUsers_StakeUnstake() public {
+    function test_360day_MultipleUsers_StakeUnstake() public {
         // User1 stakes
         vm.startPrank(user1);
         mockVoteToken.approve(address(staking), STAKE_AMOUNT);
@@ -526,8 +587,9 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Move to reward period
-        uint256 startBlock = staking.START_BLOCK();
-        vm.roll(startBlock + 2000);
+        uint256 startTimestamp = staking.START_TIME();
+        vm.warp(startTimestamp + 2000 seconds);
+        vm.roll(block.number + (startTimestamp + 2000) / 12);
 
         uint256 totalReward1 = staking.currentTotalReward();
         vm.startPrank(owner);
@@ -535,7 +597,8 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
 
         vm.startPrank(owner);
         uint256 totalReward2 = staking.currentTotalReward();
@@ -559,7 +622,8 @@ contract StakingStake360DayTest is Test {
         vm.stopPrank();
 
         // Wait for claim delay
-        vm.roll(block.number + staking.CLAIM_DELAY_BLOCKS() + 1);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // Both users claim
         vm.startPrank(user1);
@@ -615,7 +679,8 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
 
         uint256 fullBalance = staking.balanceOf(user1);
         uint256[] memory nonces = new uint256[](1);
@@ -646,7 +711,8 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move forward past staking period
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
 
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256 expectedAmount = staking.swapToUnderlyingToken(stakingBalance);
@@ -666,15 +732,17 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move forward past staking period and unstake
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256[] memory nonces = new uint256[](1);
         nonces[0] = 0;
         staking.unstake(stakingBalance, nonces);
         vm.stopPrank();
 
-        uint256 claimDelay = staking.CLAIM_DELAY_BLOCKS();
-        vm.roll(block.number + claimDelay + 1);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         vm.startPrank(owner);
         uint256 totalReward = staking.currentTotalReward();
@@ -709,7 +777,9 @@ contract StakingStake360DayTest is Test {
     // ============ STAKING PERIOD TESTS ============
 
     function test_StakingPeriod_IsCorrect() public {
-        assertEq(staking.STAKING_PERIOD(), STAKING_PERIOD_BLOCKS, "Staking period should be 360 days in blocks");
+        assertEq(
+            staking.STAKING_PERIOD_SECONDS(), STAKING_PERIOD_SECONDS, "Staking period should be 360 days in seconds"
+        );
     }
 
     function test_Unstake_ExactPeriodEnd() public {
@@ -719,7 +789,8 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move to exact period end
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS);
+        vm.warp(block.timestamp + STAKING_PERIOD_SECONDS);
+        vm.roll(block.number + (STAKING_PERIOD_SECONDS + 1) / 12);
 
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256[] memory nonces = new uint256[](1);
@@ -738,7 +809,8 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
 
         // Move one block after period end
-        vm.roll(block.number + STAKING_PERIOD_BLOCKS + 1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
 
         uint256 stakingBalance = staking.balanceOf(user1);
         uint256[] memory nonces = new uint256[](1);

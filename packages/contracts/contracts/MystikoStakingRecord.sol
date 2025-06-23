@@ -4,17 +4,17 @@ pragma solidity 0.8.26;
 import {AccessControl} from "lib/openzeppelin-contracts/contracts/access/AccessControl.sol";
 
 abstract contract MystikoStakingRecord is AccessControl {
-    uint256 public constant CLAIM_DELAY_BLOCKS = 7200;
-    uint256 public immutable STAKING_PERIOD;
+    uint256 public constant CLAIM_DELAY_SECONDS = 1 days;
+    uint256 public immutable STAKING_PERIOD_SECONDS;
 
     struct StakingRecord {
-        uint256 stakedBlock;
+        uint256 stakedTime;
         uint256 amount;
         uint256 remaining;
     }
 
     struct ClaimRecord {
-        uint256 unstakeBlock;
+        uint256 unstakeTime;
         uint256 amount;
         bool claimPaused;
     }
@@ -26,8 +26,8 @@ abstract contract MystikoStakingRecord is AccessControl {
     event AccountPaused(address indexed account);
     event AccountUnpaused(address indexed account);
 
-    constructor(uint256 _stakingPeriod) {
-        STAKING_PERIOD = _stakingPeriod;
+    constructor(uint256 _stakingPeriodSeconds) {
+        STAKING_PERIOD_SECONDS = _stakingPeriodSeconds;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -35,7 +35,7 @@ abstract contract MystikoStakingRecord is AccessControl {
         require(_stakingAmount > 0, "MystikoClaim: Invalid staking token amount");
         uint256 nonce = stakingNonces[_account];
         stakingRecords[_account][nonce] =
-            StakingRecord({stakedBlock: block.number, amount: _stakingAmount, remaining: _stakingAmount});
+            StakingRecord({stakedTime: block.timestamp, amount: _stakingAmount, remaining: _stakingAmount});
         stakingNonces[_account] = nonce + 1;
         return true;
     }
@@ -44,33 +44,35 @@ abstract contract MystikoStakingRecord is AccessControl {
         internal
         returns (bool)
     {
-        uint256 totalRemaining = 0;
+        uint256 totalCanClaim = 0;
         uint256 length = _nonces.length;
         for (uint256 i = 0; i < length; i++) {
             StakingRecord storage record = stakingRecords[_account][_nonces[i]];
-            require(record.stakedBlock > 0, "MystikoClaim: Staking record not found");
-            require(block.number > record.stakedBlock + STAKING_PERIOD, "MystikoClaim: Staking period not ended");
+            require(record.stakedTime > 0, "MystikoClaim: Staking record not found");
+            require(
+                block.timestamp > record.stakedTime + STAKING_PERIOD_SECONDS, "MystikoClaim: Staking period not ended"
+            );
             require(record.amount > 0, "MystikoClaim: Staking record not found");
             require(record.remaining > 0, "MystikoClaim: Staking record not found");
-            totalRemaining += record.remaining;
-            if (totalRemaining < _stakingAmount) {
+            totalCanClaim += record.remaining;
+            if (totalCanClaim < _stakingAmount) {
                 record.remaining = 0;
-            } else if (totalRemaining == _stakingAmount) {
+            } else if (totalCanClaim == _stakingAmount) {
                 record.remaining = 0;
                 break;
             } else {
-                record.remaining = totalRemaining - _stakingAmount;
+                record.remaining = totalCanClaim - _stakingAmount;
                 break;
             }
         }
-        require(totalRemaining >= _stakingAmount, "MystikoClaim: Invalid remaining amount");
+        require(totalCanClaim >= _stakingAmount, "MystikoClaim: no enough staking amount");
         return true;
     }
 
     function _claimRecord(address _account, uint256 _amount) internal returns (bool) {
         ClaimRecord storage record = claimRecords[_account];
         record.amount += _amount;
-        record.unstakeBlock = block.number;
+        record.unstakeTime = block.timestamp;
         record.claimPaused = false;
         return true;
     }
@@ -78,7 +80,7 @@ abstract contract MystikoStakingRecord is AccessControl {
     function _consumeClaim(address _account) internal returns (uint256) {
         ClaimRecord storage record = claimRecords[_account];
         require(!record.claimPaused, "MystikoClaim: Claim paused");
-        require(block.number > record.unstakeBlock + CLAIM_DELAY_BLOCKS, "MystikoClaim: Claim delay not reached");
+        require(block.timestamp > record.unstakeTime + CLAIM_DELAY_SECONDS, "MystikoClaim: Claim delay not reached");
         require(record.amount > 0, "MystikoClaim: No claimable amount");
         uint256 amount = record.amount;
         delete claimRecords[_account];

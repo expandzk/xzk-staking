@@ -4,10 +4,11 @@ pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
 import {RewardsLibrary} from "../../../contracts/libs/reward.sol";
+import {console} from "forge-std/console.sol";
 
 contract RewardsLibraryWrapper {
-    function calcTotalRewardAtBlock(uint256 blocksPassed) public pure returns (uint256) {
-        return RewardsLibrary.calcTotalRewardAtBlock(blocksPassed);
+    function calcTotalReward(uint256 timePassed) public pure returns (uint256) {
+        return RewardsLibrary.calcTotalReward(timePassed);
     }
 
     function expTaylor(uint256 x) public pure returns (uint256) {
@@ -17,10 +18,10 @@ contract RewardsLibraryWrapper {
 
 contract RewardsLibraryTest is Test {
     uint256 public constant totalAmount = 50_000_000 * 1e18;
-    uint256 public constant totalBlocks = 7_776_000;
+    uint256 public constant totalTime = 3 * 365 days;
     uint256 public constant SCALE = 1e18;
     uint256 public constant LAMBDA_DECAY = 200 * 1e9;
-    uint256 public constant TOTAL_FACTOR = 63_383_177;
+    uint256 public constant TOTAL_FACTOR = 63022819693366840;
 
     RewardsLibraryWrapper public wrapper;
 
@@ -28,43 +29,44 @@ contract RewardsLibraryTest is Test {
         wrapper = new RewardsLibraryWrapper();
     }
 
-    function testCalcTotalReward_before_start_block() public view {
-        uint256 reward = wrapper.calcTotalRewardAtBlock(0);
+    function testCalcTotalReward_before_start_time() public view {
+        uint256 reward = wrapper.calcTotalReward(0);
         assertTrue(reward == 0, "Reward should be 0");
     }
 
-    function testCalcTotalReward_after_post_block() public view {
-        uint256 reward = wrapper.calcTotalRewardAtBlock(totalBlocks);
-        assertTrue(totalAmount - reward < 0.3 * 1e18, "Reward should be close to total amount");
+    function testCalcTotalReward_after_post_time() public view {
+        uint256 reward = wrapper.calcTotalReward(totalTime);
+        console.log("reward", reward);
+        assertTrue(totalAmount - reward < 0.0001 * 1e18, "Reward should be close to total amount");
     }
 
-    function testCalcTotalRewardAtBlock_for_fuzz_blocks(uint256 offset) public view {
-        offset = bound(offset, 0, totalBlocks);
-        uint256 reward = wrapper.calcTotalRewardAtBlock(offset);
+    function testCalcTotalReward_for_fuzz_time(uint256 offset) public view {
+        offset = bound(offset, 0, totalTime);
+        uint256 reward = wrapper.calcTotalReward(offset);
         assertTrue(reward >= 0, "Reward should be positive");
         assertTrue(reward <= totalAmount, "Reward should be less than total amount");
     }
 
-    function testCalcTotalRewardAtBlock_invalid_blocks() public {
-        vm.expectRevert("Reward: Invalid blocks passed");
-        wrapper.calcTotalRewardAtBlock(1e9);
+    function testCalcTotalReward_invalid_time() public {
+        vm.expectRevert("Reward: Invalid time passed");
+        wrapper.calcTotalReward(10 * 365 days);
     }
 
-    function testCalcTotalRewardAtBlock_max_valid_blocks() public view {
-        uint256 reward = wrapper.calcTotalRewardAtBlock(1e9 - 1);
-        assertTrue(reward > 0, "Reward should be positive for max valid blocks");
+    function testCalcTotalReward_max_valid_time() public view {
+        uint256 reward = wrapper.calcTotalReward(10 * 365 days - 1);
+        assertTrue(reward > 0, "Reward should be positive for max valid time");
     }
 
-    function testCalcTotalRewardAtBlock_monotonicity(uint256 offset) public view {
-        offset = bound(offset, 0, totalBlocks - 4);
-        uint256 totalReward1 = wrapper.calcTotalRewardAtBlock(offset);
-        uint256 totalReward2 = wrapper.calcTotalRewardAtBlock(offset + 1);
-        uint256 totalReward3 = wrapper.calcTotalRewardAtBlock(offset + 2);
-        uint256 totalReward4 = wrapper.calcTotalRewardAtBlock(offset + 3);
+    function testCalcTotalReward_monotonicity(uint256 offset) public view {
+        offset = bound(offset, 0, totalTime - 4);
+        uint256 totalReward1 = wrapper.calcTotalReward(offset);
+        uint256 totalReward2 = wrapper.calcTotalReward(offset + 1);
+        uint256 totalReward3 = wrapper.calcTotalReward(offset + 2);
+        uint256 totalReward4 = wrapper.calcTotalReward(offset + 3);
 
-        assertTrue(totalReward1 < totalReward2, "Reward should increase with blocks");
-        assertTrue(totalReward2 < totalReward3, "Reward should increase with blocks");
-        assertTrue(totalReward3 < totalReward4, "Reward should increase with blocks");
+        assertTrue(totalReward1 < totalReward2, "Reward should increase with time");
+        assertTrue(totalReward2 < totalReward3, "Reward should increase with time");
+        assertTrue(totalReward3 < totalReward4, "Reward should increase with time");
 
         uint256 reward1 = totalReward2 - totalReward1;
         uint256 reward2 = totalReward3 - totalReward2;
@@ -74,30 +76,30 @@ contract RewardsLibraryTest is Test {
         assertTrue(reward2 > reward3, "Reward should decrease with blocks");
     }
 
-    function testCalcTotalRewardAtBlock_monotonicity_fuzz(uint256 blocks1, uint256 blocks2) public view {
-        blocks1 = bound(blocks1, 0, totalBlocks / 2);
-        blocks2 = bound(blocks2, totalBlocks / 2 + 1, totalBlocks);
+    function testCalcTotalReward_monotonicity_fuzz(uint256 time1, uint256 time2) public view {
+        time1 = bound(time1, 0, totalTime / 2);
+        time2 = bound(time2, totalTime / 2 + 1, totalTime);
 
-        uint256 reward1 = wrapper.calcTotalRewardAtBlock(blocks1);
-        uint256 reward2 = wrapper.calcTotalRewardAtBlock(blocks2);
+        uint256 reward1 = wrapper.calcTotalReward(time1);
+        uint256 reward2 = wrapper.calcTotalReward(time2);
 
         assertTrue(reward1 < reward2, "Reward should be monotonically increasing");
     }
 
-    function testCalcTotalRewardAtBlock_small_values() public view {
-        uint256 reward1 = wrapper.calcTotalRewardAtBlock(1);
-        uint256 reward10 = wrapper.calcTotalRewardAtBlock(10);
-        uint256 reward100 = wrapper.calcTotalRewardAtBlock(100);
+    function testCalcTotalReward_small_values() public view {
+        uint256 reward1 = wrapper.calcTotalReward(1);
+        uint256 reward10 = wrapper.calcTotalReward(10);
+        uint256 reward100 = wrapper.calcTotalReward(100);
 
-        assertTrue(reward1 > 0, "Reward should be positive for 1 block");
+        assertTrue(reward1 > 0, "Reward should be positive for 1 second");
         assertTrue(reward10 > reward1, "Reward should increase");
         assertTrue(reward100 > reward10, "Reward should increase");
     }
 
-    function testCalcTotalRewardAtBlock_large_values() public view {
-        uint256 rewardHalf = wrapper.calcTotalRewardAtBlock(totalBlocks / 2);
-        uint256 rewardThreeQuarters = wrapper.calcTotalRewardAtBlock((totalBlocks * 3) / 4);
-        uint256 rewardFull = wrapper.calcTotalRewardAtBlock(totalBlocks);
+    function testCalcTotalReward_large_values() public view {
+        uint256 rewardHalf = wrapper.calcTotalReward(totalTime / 2);
+        uint256 rewardThreeQuarters = wrapper.calcTotalReward((totalTime * 3) / 4);
+        uint256 rewardFull = wrapper.calcTotalReward(totalTime);
 
         assertTrue(rewardHalf > 0, "Half way reward should be positive");
         assertTrue(rewardThreeQuarters > rewardHalf, "Three quarters should be more than half");

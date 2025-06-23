@@ -25,7 +25,7 @@ contract StakingSwapTest is Test {
         mockToken = new MockToken();
 
         stakingFlexible = new MystikoStaking(
-            dao, mockToken, "Mystiko Staking Vote Token Flexible", "sVXZK-FLEX", 0, 1, block.number + 10000
+            dao, mockToken, "Mystiko Staking Vote Token 180D", "sVXZK-180D", 180 days, 15, block.timestamp + 1 days
         );
         vm.stopPrank();
     }
@@ -79,8 +79,8 @@ contract StakingSwapTest is Test {
         stakingFlexible.stake(amount);
 
         // Move to start block to begin rewards
-        uint256 startBlock = stakingFlexible.START_BLOCK();
-        vm.roll(startBlock + 1);
+        vm.warp(stakingFlexible.START_TIME() + 1);
+        vm.roll(block.number + stakingFlexible.START_DELAY_SECONDS() / 12);
 
         // Test staking calculation after rewards start
         uint256 secondAmount = 25 ether;
@@ -129,8 +129,8 @@ contract StakingSwapTest is Test {
         stakingFlexible.stake(amount);
 
         // Move to reward block
-        uint256 rewardBlock = stakingFlexible.START_BLOCK() + 1000;
-        vm.roll(rewardBlock);
+        vm.warp(stakingFlexible.START_TIME() + 1 seconds);
+        vm.roll(block.number + stakingFlexible.START_DELAY_SECONDS() / 12);
 
         // Test conversion consistency
         uint256 stakedAmount = stakingFlexible.swapToStakingToken(amount);

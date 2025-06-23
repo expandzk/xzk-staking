@@ -30,7 +30,11 @@ describe('MystikoStaking', function () {
     await mockVoteToken.waitForDeployment();
     const mockVoteTokenAddress = await mockVoteToken.getAddress();
 
-    const startBlock = (await ethers.provider.getBlockNumber()) + 10000;
+    const latestBlock = await ethers.provider.getBlock('latest');
+    if (!latestBlock) {
+      throw new Error('Latest block not found');
+    }
+    const startTimestamp = latestBlock.timestamp + 24 * 3600 + 120;
     const MystikoStaking = await ethers.getContractFactory('MystikoStaking');
 
     staking360 = await MystikoStaking.deploy(
@@ -40,7 +44,7 @@ describe('MystikoStaking', function () {
       'sVXZK-360D',
       360,
       20,
-      startBlock,
+      startTimestamp,
     );
     await staking360.waitForDeployment();
 
@@ -51,7 +55,7 @@ describe('MystikoStaking', function () {
       'sVXZK-180D',
       180,
       15,
-      startBlock,
+      startTimestamp,
     );
     await staking180.waitForDeployment();
 
@@ -62,7 +66,7 @@ describe('MystikoStaking', function () {
       'sVXZK-90D',
       90,
       10,
-      startBlock,
+      startTimestamp,
     );
     await staking90.waitForDeployment();
 
@@ -73,7 +77,7 @@ describe('MystikoStaking', function () {
       'sVXZK-FLEX',
       0,
       5,
-      startBlock,
+      startTimestamp,
     );
     await stakingFlexible.waitForDeployment();
   });
