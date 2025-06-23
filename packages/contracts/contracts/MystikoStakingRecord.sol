@@ -26,9 +26,9 @@ abstract contract MystikoStakingRecord is AccessControl {
     event AccountPaused(address indexed account);
     event AccountUnpaused(address indexed account);
 
-    constructor(uint256 _stakingPeriodSeconds) {
+    constructor(address _pauseAdmin, uint256 _stakingPeriodSeconds) {
         STAKING_PERIOD_SECONDS = _stakingPeriodSeconds;
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, _pauseAdmin);
     }
 
     function _stakeRecord(address _account, uint256 _stakingAmount) internal returns (bool) {
