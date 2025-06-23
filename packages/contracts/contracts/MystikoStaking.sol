@@ -8,17 +8,22 @@ import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
 import {RewardsLibrary} from "./libs/Reward.sol";
 import {MystikoStakingRecord} from "./MystikoStakingRecord.sol";
 
-contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAOAccessControl, ReentrancyGuard {
+contract MystikoStaking is
+    MystikoStakingRecord,
+    MystikoStakingToken,
+    MystikoDAOAccessControl,
+    ReentrancyGuard
+{
     // Total reward amount (50 million tokens) of underlying token
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
     // Total shares for the underlying token
     uint256 public constant ALL_SHARES = 100;
 
-    // Total duration in blocks (7,776,000 blocks at 12s block time ≈ 3 years)
-    uint256 public constant TOTAL_BLOCKS = 7_776_000;
+    // Total duration 3 years)
+    uint256 public constant TOTAL_DURATION_SECONDS = 3 * 365 days;
 
-    uint256 public constant START_DELAY_BLOCKS = 7200; // 1 days / 12s block time
+    uint256 public constant START_DELAY_SECONDS = 1 days;
 
     // Total factor for the staking token of total share
     uint256 public immutable TOTAL_FACTOR;
@@ -26,8 +31,8 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
     // Total reward amount of underlying token for current staking period
     uint256 public immutable TOTAL_REWARD;
 
-    // Start block for calculating rewards
-    uint256 public immutable START_BLOCK;
+    // Start timestamp for calculating rewards
+    uint256 public immutable START_TIME;
 
     // total staked amount of underlying token
     uint256 public totalStaked;
@@ -50,17 +55,20 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
         IERC20 _underlyingToken,
         string memory _stakingTokenName,
         string memory _stakingTokenSymbol,
-        uint256 _stakingPeriod,
+        uint256 _stakingPeriodSeconds,
         uint256 _totalFactor,
-        uint256 _startBlock
+        uint256 _startTime
     )
         MystikoStakingToken(_underlyingToken, _stakingTokenName, _stakingTokenSymbol)
-        MystikoStakingRecord(_stakingPeriod)
+        MystikoStakingRecord(_stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
-        require(_startBlock > block.number + START_DELAY_BLOCKS, "Start block must one day after deployment");
-        require(TOTAL_BLOCKS < 1e9, "Total blocks must be less than 1e9");
-        START_BLOCK = _startBlock;
+        require(
+            _startTime >= block.timestamp + START_DELAY_SECONDS,
+            "Start time must one day after deployment"
+        );
+        require(TOTAL_DURATION_SECONDS < 10 * 365 days, "Total duration must be less than 10 years");
+        START_TIME = _startTime;
         TOTAL_FACTOR = _totalFactor;
         TOTAL_REWARD = (ALL_REWARD * TOTAL_FACTOR) / ALL_SHARES;
         totalStaked = 0;
@@ -76,7 +84,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
         uint256 stakingAmount = swapToStakingToken(_amount);
         SafeERC20.safeTransferFrom(UNDERLYING_TOKEN, account, address(this), _amount);
         _mint(account, stakingAmount);
-        if (STAKING_PERIOD > 0) {
+        if (STAKING_PERIOD_SECONDS > 0) {
             require(_stakeRecord(account, stakingAmount), "MystikoStaking: Stake record failed");
         }
         totalStaked += _amount;
@@ -84,15 +92,21 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
         return true;
     }
 
-    function unstake(uint256 _stakingAmount, uint256[] calldata _nonces) external nonReentrant returns (bool) {
+    function unstake(
+        uint256 _stakingAmount,
+        uint256[] calldata _nonces
+    ) external nonReentrant returns (bool) {
         require(!isStakingPaused, "MystikoStaking: paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
         require(_stakingAmount > 0, "MystikoStaking: Invalid amount");
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
-        if (STAKING_PERIOD > 0) {
+        if (STAKING_PERIOD_SECONDS > 0) {
             require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
-            require(_unstakeRecord(account, _stakingAmount, _nonces), "MystikoStaking: Unstake record failed");
+            require(
+                _unstakeRecord(account, _stakingAmount, _nonces),
+                "MystikoStaking: Unstake record failed"
+            );
         } else {
             require(_nonces.length == 0, "MystikoStaking: Invalid parameter");
         }
@@ -154,16 +168,16 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
     }
 
     function currentTotalReward() public view returns (uint256) {
-        if (block.number <= START_BLOCK) {
+        if (block.timestamp <= START_TIME) {
             return 0;
         }
 
-        uint256 blocksPassed = block.number - START_BLOCK;
-        if (blocksPassed >= TOTAL_BLOCKS) {
+        uint256 timePassed = block.timestamp - START_TIME;
+        if (timePassed >= TOTAL_DURATION_SECONDS) {
             return TOTAL_REWARD;
         }
 
-        uint256 reward = RewardsLibrary.calcTotalRewardAtBlock(blocksPassed);
+        uint256 reward = RewardsLibrary.calcTotalReward(timePassed);
         return (reward * TOTAL_FACTOR) / ALL_SHARES;
     }
 }

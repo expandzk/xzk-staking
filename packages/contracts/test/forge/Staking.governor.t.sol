@@ -4,8 +4,7 @@ pragma solidity ^0.8.26;
 import {Test, console2} from "forge-std/Test.sol";
 import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
-import {MystikoGovernorRegistry} from
-    "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
+import {MystikoGovernorRegistry} from "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {GovernanceErrors} from "../../lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
 
@@ -47,11 +46,11 @@ contract StakingGovernorTest is Test {
         staking = new MystikoStaking(
             address(daoRegistry),
             mockToken,
-            "Mystiko Staking Vote Token Flexible",
-            "sVXZK-FLEX",
-            0, // staking period
-            5, // total factor
-            block.number + 10000 // start block
+            "Mystiko Staking Vote Token 90D",
+            "sVXZK-90D",
+            90 days, // staking period
+            15, // total factor
+            block.timestamp + 1 days // start time
         );
         vm.stopPrank();
 
@@ -573,7 +572,7 @@ contract StakingGovernorTest is Test {
             "sVXZK2",
             0, // staking period
             1, // total factor
-            block.number + 10000 // start block
+            block.timestamp + 1 days // start time
         );
 
         // DAO should not have admin role initially

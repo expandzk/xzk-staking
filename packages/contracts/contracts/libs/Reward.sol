@@ -3,16 +3,16 @@ pragma solidity 0.8.26;
 
 library RewardsLibrary {
     uint256 private constant SCALE = 1e18;
-    uint256 private constant LAMBDA_DECAY = 200 * 1e9;
-    uint256 private constant TOTAL_FACTOR = 63_383_177;
+    uint256 private constant LAMBDA_DECAY = 20 * 1e9;
+    uint256 private constant TOTAL_FACTOR = 58875190375432478;
 
-    function calcTotalRewardAtBlock(uint256 blocksPassed) internal pure returns (uint256) {
-        require(blocksPassed < 1e9, "Reward: Invalid blocks passed");
-        uint256 x = LAMBDA_DECAY * blocksPassed;
+    function calcTotalReward(uint256 timePassed) internal pure returns (uint256) {
+        require(timePassed < 10 * 365 days, "Reward: Invalid time passed");
+        uint256 x = LAMBDA_DECAY * timePassed;
         uint256 expNeg = expTaylor(x);
         uint256 scaledExpVal = (SCALE * SCALE) / expNeg;
         uint256 raw = SCALE - scaledExpVal;
-        uint256 total = raw * TOTAL_FACTOR;
+        uint256 total = (raw * TOTAL_FACTOR) / 1e9;
         return total;
     }
 
