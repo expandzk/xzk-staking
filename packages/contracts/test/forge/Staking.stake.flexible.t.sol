@@ -5,7 +5,8 @@ import {Test, console2} from "forge-std/Test.sol";
 import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {MystikoGovernorRegistry} from "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
+import {MystikoGovernorRegistry} from
+    "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
 import {GovernanceErrors} from "lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
 
 contract StakingStakeFlexibleTest is Test {
@@ -74,15 +75,9 @@ contract StakingStakeFlexibleTest is Test {
         assertTrue(success, "Stake should succeed");
         assertEq(mockToken.balanceOf(user1), balanceBefore - STAKE_AMOUNT, "Token balance should decrease");
         assertEq(
-            stakingFlexible.balanceOf(user1),
-            stakingBalanceBefore + STAKE_AMOUNT,
-            "Staking balance should increase"
+            stakingFlexible.balanceOf(user1), stakingBalanceBefore + STAKE_AMOUNT, "Staking balance should increase"
         );
-        assertEq(
-            stakingFlexible.totalStaked(),
-            totalStakedBefore + STAKE_AMOUNT,
-            "Total staked should increase"
-        );
+        assertEq(stakingFlexible.totalStaked(), totalStakedBefore + STAKE_AMOUNT, "Total staked should increase");
         (uint256 stakedBlock, uint256 amount, uint256 remaining) = stakingFlexible.stakingRecords(user1, 0);
         assertEq(stakedBlock, 0, "Staked block should be the current block number");
         assertEq(amount, 0, "Amount should be the same as the staked amount");
@@ -159,11 +154,7 @@ contract StakingStakeFlexibleTest is Test {
         stakingFlexible.stake(STAKE_AMOUNT);
         vm.stopPrank();
 
-        assertEq(
-            stakingFlexible.totalStaked(),
-            STAKE_AMOUNT * 2,
-            "Total staked should be sum of both stakes"
-        );
+        assertEq(stakingFlexible.totalStaked(), STAKE_AMOUNT * 2, "Total staked should be sum of both stakes");
         assertEq(stakingFlexible.balanceOf(user1), STAKE_AMOUNT, "User1 should have correct staking balance");
         assertEq(stakingFlexible.balanceOf(user2), STAKE_AMOUNT, "User2 should have correct staking balance");
     }
@@ -267,7 +258,7 @@ contract StakingStakeFlexibleTest is Test {
         vm.warp(block.timestamp + stakingFlexible.CLAIM_DELAY_SECONDS() + 1);
         vm.roll(block.number + (stakingFlexible.CLAIM_DELAY_SECONDS() + 1) / 12);
 
-        (, uint256 claimAmount, ) = stakingFlexible.claimRecords(user1);
+        (, uint256 claimAmount,) = stakingFlexible.claimRecords(user1);
         uint256 balanceBefore = mockToken.balanceOf(user1);
         vm.startPrank(user1);
         bool success = stakingFlexible.claim();
@@ -320,11 +311,7 @@ contract StakingStakeFlexibleTest is Test {
         bool success = stakingFlexible.claim();
         uint256 balanceAfter = mockToken.balanceOf(user1);
         assertTrue(success, "Claim should succeed after delay");
-        assertEq(
-            balanceAfter,
-            balanceBefore + amount + totalReward,
-            "claim should return the correct amount"
-        );
+        assertEq(balanceAfter, balanceBefore + amount + totalReward, "claim should return the correct amount");
         vm.stopPrank();
     }
 

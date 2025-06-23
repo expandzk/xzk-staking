@@ -8,12 +8,7 @@ import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
 import {RewardsLibrary} from "./libs/Reward.sol";
 import {MystikoStakingRecord} from "./MystikoStakingRecord.sol";
 
-contract MystikoStaking is
-    MystikoStakingRecord,
-    MystikoStakingToken,
-    MystikoDAOAccessControl,
-    ReentrancyGuard
-{
+contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAOAccessControl, ReentrancyGuard {
     // Total reward amount (50 million tokens) of underlying token
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
@@ -63,10 +58,7 @@ contract MystikoStaking is
         MystikoStakingRecord(_stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
-        require(
-            _startTime >= block.timestamp + START_DELAY_SECONDS,
-            "Start time must one day after deployment"
-        );
+        require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must one day after deployment");
         require(TOTAL_DURATION_SECONDS < 10 * 365 days, "Total duration must be less than 10 years");
         START_TIME = _startTime;
         TOTAL_FACTOR = _totalFactor;
@@ -92,10 +84,7 @@ contract MystikoStaking is
         return true;
     }
 
-    function unstake(
-        uint256 _stakingAmount,
-        uint256[] calldata _nonces
-    ) external nonReentrant returns (bool) {
+    function unstake(uint256 _stakingAmount, uint256[] calldata _nonces) external nonReentrant returns (bool) {
         require(!isStakingPaused, "MystikoStaking: paused");
         address account = _msgSender();
         require(account != address(this), "MystikoStaking: Invalid receiver");
@@ -103,10 +92,7 @@ contract MystikoStaking is
         require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
         if (STAKING_PERIOD_SECONDS > 0) {
             require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
-            require(
-                _unstakeRecord(account, _stakingAmount, _nonces),
-                "MystikoStaking: Unstake record failed"
-            );
+            require(_unstakeRecord(account, _stakingAmount, _nonces), "MystikoStaking: Unstake record failed");
         } else {
             require(_nonces.length == 0, "MystikoStaking: Invalid parameter");
         }

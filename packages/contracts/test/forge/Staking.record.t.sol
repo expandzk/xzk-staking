@@ -11,11 +11,10 @@ contract MockMystikoStakingRecord is MystikoStakingRecord {
         return _stakeRecord(_account, _stakingAmount);
     }
 
-    function unstakeRecord(
-        address _account,
-        uint256 _stakingAmount,
-        uint256[] calldata _nonces
-    ) external returns (bool) {
+    function unstakeRecord(address _account, uint256 _stakingAmount, uint256[] calldata _nonces)
+        external
+        returns (bool)
+    {
         return _unstakeRecord(_account, _stakingAmount, _nonces);
     }
 
@@ -77,7 +76,7 @@ contract MystikoStakingRecordTest is Test {
         bool success2 = mockContract.unstakeRecord(user, amount, nonces);
         assertTrue(success2);
 
-        (, , uint256 remaining) = mockContract.stakingRecords(user, 0);
+        (,, uint256 remaining) = mockContract.stakingRecords(user, 0);
         assertEq(remaining, 0);
     }
 
@@ -100,7 +99,7 @@ contract MystikoStakingRecordTest is Test {
         bool success2 = mockContract.unstakeRecord(user, amount - 100, nonces);
         assertTrue(success2);
 
-        (, , uint256 remaining) = mockContract.stakingRecords(user, 0);
+        (,, uint256 remaining) = mockContract.stakingRecords(user, 0);
         assertEq(remaining, 100);
     }
 
@@ -136,7 +135,7 @@ contract MystikoStakingRecordTest is Test {
         assertEq(consumedAmount, amount);
 
         // Verify claim record is deleted
-        (uint256 claimAmount, , ) = mockContract.claimRecords(user);
+        (uint256 claimAmount,,) = mockContract.claimRecords(user);
         assertEq(claimAmount, 0);
     }
 
@@ -155,7 +154,7 @@ contract MystikoStakingRecordTest is Test {
         mockContract.pauseClaim(user);
 
         // Verify pause
-        (, , bool claimPaused) = mockContract.claimRecords(user);
+        (,, bool claimPaused) = mockContract.claimRecords(user);
         assertTrue(claimPaused);
 
         // Move forward past claim delay
@@ -170,7 +169,7 @@ contract MystikoStakingRecordTest is Test {
         mockContract.unpauseClaim(user);
 
         // Verify unpause
-        (, , claimPaused) = mockContract.claimRecords(user);
+        (,, claimPaused) = mockContract.claimRecords(user);
         assertFalse(claimPaused);
 
         // Try to consume claim
@@ -235,11 +234,11 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success);
 
         // Verify first record is consumed
-        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        (,, uint256 remaining1) = mockContract.stakingRecords(user, 0);
         assertEq(remaining1, 0);
 
         // Verify second record is intact
-        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        (,, uint256 remaining2) = mockContract.stakingRecords(user, 1);
         assertEq(remaining2, amount2);
     }
 
@@ -274,15 +273,15 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success);
 
         // Verify first record is fully consumed
-        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        (,, uint256 remaining1) = mockContract.stakingRecords(user, 0);
         assertEq(remaining1, 0);
 
         // Verify second record is partially consumed
-        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        (,, uint256 remaining2) = mockContract.stakingRecords(user, 1);
         assertEq(remaining2, 0);
 
         // Verify third record is partially consumed
-        (, , uint256 remaining3) = mockContract.stakingRecords(user, 2);
+        (,, uint256 remaining3) = mockContract.stakingRecords(user, 2);
         assertEq(remaining3, 100);
     }
 
@@ -317,15 +316,15 @@ contract MystikoStakingRecordTest is Test {
         assertTrue(success);
 
         // Verify first record is fully consumed
-        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        (,, uint256 remaining1) = mockContract.stakingRecords(user, 0);
         assertEq(remaining1, 0);
 
         // Verify second record is partially consumed
-        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        (,, uint256 remaining2) = mockContract.stakingRecords(user, 1);
         assertEq(remaining2, 0);
 
         // Verify third record is partially consumed
-        (, , uint256 remaining3) = mockContract.stakingRecords(user, 2);
+        (,, uint256 remaining3) = mockContract.stakingRecords(user, 2);
         assertEq(remaining3, 0);
     }
 
@@ -352,7 +351,7 @@ contract MystikoStakingRecordTest is Test {
         bool success = mockContract.claimRecord(user, maxAmount);
         assertTrue(success);
 
-        (, uint256 claimAmount, ) = mockContract.claimRecords(user);
+        (, uint256 claimAmount,) = mockContract.claimRecords(user);
         assertEq(claimAmount, maxAmount);
     }
 
@@ -387,8 +386,8 @@ contract MystikoStakingRecordTest is Test {
         vm.roll(block.number + 1);
         mockContract.stakeRecord(user, 2000);
 
-        (uint256 stakedTime1, , ) = mockContract.stakingRecords(user, 0);
-        (uint256 stakedTime2, , ) = mockContract.stakingRecords(user, 1);
+        (uint256 stakedTime1,,) = mockContract.stakingRecords(user, 0);
+        (uint256 stakedTime2,,) = mockContract.stakingRecords(user, 1);
 
         assertEq(stakedTime1, block1Timestamp);
         assertEq(stakedTime2, block2Timestamp);
@@ -546,8 +545,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.pauseClaim(user2);
 
         // Verify both are paused
-        (, , bool claimPaused1) = mockContract.claimRecords(user);
-        (, , bool claimPaused2) = mockContract.claimRecords(user2);
+        (,, bool claimPaused1) = mockContract.claimRecords(user);
+        (,, bool claimPaused2) = mockContract.claimRecords(user2);
         assertTrue(claimPaused1);
         assertTrue(claimPaused2);
 
@@ -556,8 +555,8 @@ contract MystikoStakingRecordTest is Test {
         mockContract.unpauseClaim(user2);
 
         // Verify both are unpaused
-        (, , claimPaused1) = mockContract.claimRecords(user);
-        (, , claimPaused2) = mockContract.claimRecords(user2);
+        (,, claimPaused1) = mockContract.claimRecords(user);
+        (,, claimPaused2) = mockContract.claimRecords(user2);
         assertFalse(claimPaused1);
         assertFalse(claimPaused2);
     }
@@ -598,8 +597,8 @@ contract MystikoStakingRecordTest is Test {
         assertEq(consumedAmount, unstakeAmount);
 
         // 7. Verify remaining staking amount
-        (, , uint256 remaining1) = mockContract.stakingRecords(user, 0);
-        (, , uint256 remaining2) = mockContract.stakingRecords(user, 1);
+        (,, uint256 remaining1) = mockContract.stakingRecords(user, 0);
+        (,, uint256 remaining2) = mockContract.stakingRecords(user, 1);
         assertEq(remaining1, 0); // Fully consumed
         assertEq(remaining2, amount2 - 500); // Partially consumed
 
@@ -682,8 +681,8 @@ contract MystikoStakingRecordTest is Test {
         assertEq(mockContract.stakingNonces(user), 1);
         assertEq(mockContract.stakingNonces(user2), 1);
 
-        (uint256 stakedBlock1, uint256 stakedAmount1, ) = mockContract.stakingRecords(user, 0);
-        (uint256 stakedBlock2, uint256 stakedAmount2, ) = mockContract.stakingRecords(user2, 0);
+        (uint256 stakedBlock1, uint256 stakedAmount1,) = mockContract.stakingRecords(user, 0);
+        (uint256 stakedBlock2, uint256 stakedAmount2,) = mockContract.stakingRecords(user2, 0);
 
         assertEq(stakedAmount1, 1000);
         assertEq(stakedAmount2, 2000);

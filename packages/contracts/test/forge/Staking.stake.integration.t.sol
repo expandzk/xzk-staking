@@ -6,7 +6,8 @@ import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../contracts/mocks/MockVoteToken.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {MystikoGovernorRegistry} from "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
+import {MystikoGovernorRegistry} from
+    "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
 import {GovernanceErrors} from "lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
 
 contract StakingStakeIntegrationTest is Test {
@@ -99,16 +100,9 @@ contract StakingStakeIntegrationTest is Test {
             uint256 randomSeed = bound(seed, 1, type(uint256).max);
             uint256 userChoice = uint256(keccak256(abi.encodePacked(randomSeed, i, "user"))) % 3;
             uint256 operationChoice = uint256(keccak256(abi.encodePacked(randomSeed, i, "op"))) % 3;
-            uint256 timeInterval = bound(
-                uint256(keccak256(abi.encodePacked(randomSeed, i, "time"))),
-                12 hours,
-                24 hours
-            );
-            uint256 amount = bound(
-                uint256(keccak256(abi.encodePacked(randomSeed, i, "amount"))),
-                1 ether,
-                100 ether
-            );
+            uint256 timeInterval =
+                bound(uint256(keccak256(abi.encodePacked(randomSeed, i, "time"))), 12 hours, 24 hours);
+            uint256 amount = bound(uint256(keccak256(abi.encodePacked(randomSeed, i, "amount"))), 1 ether, 100 ether);
 
             address currentUser;
             if (userChoice == 0) {
@@ -154,11 +148,8 @@ contract StakingStakeIntegrationTest is Test {
                     // Check if staking period has ended
                     uint256 unstakeNonce = 0;
                     uint256 unstakeAmount = 0;
-                    (unstakeNonce, unstakeAmount) = findUnstakeNonce(
-                        currentUser,
-                        staking.stakingNonces(currentUser),
-                        randomSeed
-                    );
+                    (unstakeNonce, unstakeAmount) =
+                        findUnstakeNonce(currentUser, staking.stakingNonces(currentUser), randomSeed);
 
                     if (unstakeAmount > 0) {
                         // Calculate expected unstaked amount and fund contract
@@ -174,10 +165,10 @@ contract StakingStakeIntegrationTest is Test {
                 }
             } else {
                 // Claim operation
-                (, uint256 claimAmount, ) = staking.claimRecords(currentUser);
+                (, uint256 claimAmount,) = staking.claimRecords(currentUser);
                 if (claimAmount > 0) {
                     // Check if claim delay has passed
-                    (, uint256 unstakeTimestamp, ) = staking.claimRecords(currentUser);
+                    (, uint256 unstakeTimestamp,) = staking.claimRecords(currentUser);
                     if (block.timestamp > unstakeTimestamp + staking.CLAIM_DELAY_SECONDS()) {
                         bool success = staking.claim();
                         assertTrue(success, "Claim should succeed");
@@ -192,28 +183,27 @@ contract StakingStakeIntegrationTest is Test {
         uint256 user3Balance = mockVoteToken.balanceOf(user3);
         uint256 stakingBalance = mockVoteToken.balanceOf(address(staking));
         assertEq(
-            user1Balance + user2Balance + user3Balance + stakingBalance,
-            LARGE_AMOUNT * 3 + totalRewardsTransferred
+            user1Balance + user2Balance + user3Balance + stakingBalance, LARGE_AMOUNT * 3 + totalRewardsTransferred
         );
     }
 
-    function findUnstakeNonce(
-        address user,
-        uint256 currentNonce,
-        uint256 randomSeed
-    ) public view returns (uint256, uint256) {
+    function findUnstakeNonce(address user, uint256 currentNonce, uint256 randomSeed)
+        public
+        view
+        returns (uint256, uint256)
+    {
         uint256 start = bound(randomSeed, 0, currentNonce - 1);
         uint256 unstakeNonce = 0;
         bool found = false;
         for (uint256 j = start; j < currentNonce; j++) {
-            (uint256 stakedBlock, , uint256 remaining) = staking.stakingRecords(user, j);
+            (uint256 stakedBlock,, uint256 remaining) = staking.stakingRecords(user, j);
             if (remaining > 0 && block.timestamp > stakedBlock + staking.STAKING_PERIOD_SECONDS()) {
                 return (j, remaining);
             }
         }
 
         for (uint256 j = 0; j < start; j++) {
-            (uint256 stakedBlock, , uint256 remaining) = staking.stakingRecords(user, j);
+            (uint256 stakedBlock,, uint256 remaining) = staking.stakingRecords(user, j);
             if (remaining > 0 && block.timestamp > stakedBlock + staking.STAKING_PERIOD_SECONDS()) {
                 return (j, remaining);
             }

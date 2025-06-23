@@ -6,7 +6,8 @@ import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../contracts/mocks/MockVoteToken.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {MystikoGovernorRegistry} from "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
+import {MystikoGovernorRegistry} from
+    "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
 import {GovernanceErrors} from "lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
 import {console} from "forge-std/console.sol";
 
@@ -100,16 +101,8 @@ contract StakingStake360DayTest is Test {
         bool success = staking.stake(STAKE_AMOUNT);
 
         assertTrue(success, "Stake should succeed");
-        assertEq(
-            mockVoteToken.balanceOf(user1),
-            balanceBefore - STAKE_AMOUNT,
-            "Vote token balance should decrease"
-        );
-        assertEq(
-            staking.balanceOf(user1),
-            stakingBalanceBefore + STAKE_AMOUNT,
-            "Staking balance should increase"
-        );
+        assertEq(mockVoteToken.balanceOf(user1), balanceBefore - STAKE_AMOUNT, "Vote token balance should decrease");
+        assertEq(staking.balanceOf(user1), stakingBalanceBefore + STAKE_AMOUNT, "Staking balance should increase");
         assertEq(staking.totalStaked(), totalStakedBefore + STAKE_AMOUNT, "Total staked should increase");
         (uint256 stakedBlock, uint256 amount, uint256 remaining) = staking.stakingRecords(user1, 0);
         assertEq(stakedBlock, block.number, "Staked block should be the current block number");
@@ -297,9 +290,7 @@ contract StakingStake360DayTest is Test {
         bool success = staking.unstake(partialAmount, nonces);
         assertTrue(success, "Partial unstake should succeed");
         assertEq(
-            staking.balanceOf(user1),
-            balanceBefore - partialAmount,
-            "Staking balance should decrease by partial amount"
+            staking.balanceOf(user1), balanceBefore - partialAmount, "Staking balance should decrease by partial amount"
         );
         vm.stopPrank();
     }
@@ -311,7 +302,7 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
         vm.stopPrank();
 
-        (uint256 firstStakeTime, , ) = staking.stakingRecords(user1, 0);
+        (uint256 firstStakeTime,,) = staking.stakingRecords(user1, 0);
         assertEq(firstStakeTime, block.timestamp);
 
         // Second stake (1 day later)
@@ -321,7 +312,7 @@ contract StakingStake360DayTest is Test {
         staking.stake(STAKE_AMOUNT);
         vm.stopPrank();
 
-        (uint256 secondStakeTime, , ) = staking.stakingRecords(user1, 1);
+        (uint256 secondStakeTime,,) = staking.stakingRecords(user1, 1);
         assertEq(secondStakeTime, block.timestamp);
 
         vm.warp(firstStakeTime + staking.STAKING_PERIOD_SECONDS() + 1);
@@ -384,7 +375,7 @@ contract StakingStake360DayTest is Test {
         // Wait for claim delay
         vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
         vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
-        (, uint256 claimAmount, ) = staking.claimRecords(user1);
+        (, uint256 claimAmount,) = staking.claimRecords(user1);
 
         vm.startPrank(owner);
         mockVoteToken.transfer(address(staking), staking.currentTotalReward());
@@ -443,11 +434,7 @@ contract StakingStake360DayTest is Test {
         bool success = staking.claim();
         uint256 balanceAfter = mockVoteToken.balanceOf(user1);
         assertTrue(success, "Claim should succeed after delay");
-        assertEq(
-            balanceAfter,
-            balanceBefore + amount + totalReward,
-            "Claim should return the correct amount"
-        );
+        assertEq(balanceAfter, balanceBefore + amount + totalReward, "Claim should return the correct amount");
         vm.stopPrank();
     }
 
@@ -791,9 +778,7 @@ contract StakingStake360DayTest is Test {
 
     function test_StakingPeriod_IsCorrect() public {
         assertEq(
-            staking.STAKING_PERIOD_SECONDS(),
-            STAKING_PERIOD_SECONDS,
-            "Staking period should be 360 days in seconds"
+            staking.STAKING_PERIOD_SECONDS(), STAKING_PERIOD_SECONDS, "Staking period should be 360 days in seconds"
         );
     }
 
