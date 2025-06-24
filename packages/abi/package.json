@@ -1,9 +1,9 @@
 {
-  "name": "@mystikonetwork/staking-rewards-abi",
+  "name": "@expandzk/xzk-staking-abi",
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mystikonetwork/mystiko-staking-rewards",
+    "url": "https://github.com/expandzk/xzk-staking",
     "directory": "packages/abi"
   },
   "publishConfig": {
@@ -15,7 +15,7 @@
   "files": [
     "build"
   ],
-  "author": "Mystiko Network",
+  "author": "Expand ZK",
   "license": "MIT",
   "scripts": {
     "lint": "yarn prettier:check",
@@ -30,7 +30,7 @@
     "test": "echo 'No tests'"
   },
   "devDependencies": {
-    "@mystikonetwork/staking-rewards-contracts": "1.0.0",
+    "@expandzk/xzk-staking-contracts": "1.0.0",
     "@tsconfig/recommended": "^1.0.1",
     "@typechain/ethers-v5": "^11.1.2",
     "prettier": "3.2.4",
