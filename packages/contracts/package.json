@@ -1,5 +1,5 @@
 {
-  "name": "@mystikonetwork/staking-rewards-contracts",
+  "name": "@expandzk/xzk-staking-contracts",
   "version": "1.0.0",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
@@ -9,10 +9,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mystikonetwork/mystiko-staking-rewards",
+    "url": "https://github.com/expandzk/xzk-staking",
     "directory": "packages/contracts"
   },
-  "author": "Mystiko Network",
+  "author": "Expand ZK",
   "license": "MIT",
   "scripts": {
     "forge:install": "forge install foundry-rs/forge-std Openzeppelin/openzeppelin-contracts@v5.0.0",
