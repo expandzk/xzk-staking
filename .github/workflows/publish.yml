@@ -23,7 +23,7 @@ jobs:
       - name: Setup Registry
         run: |
           echo "@mystikonetwork:registry=https://npm.pkg.github.com" >> $HOME/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.MYSTIKO_PACKAGE_TOKEN }}" >> $HOME/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.XZK_STAKING_PACKAGE_TOKEN }}" >> $HOME/.npmrc
 
       - name: Install Dependencies
         run: yarn install
@@ -31,8 +31,15 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Publish
-        run: yarn publish from-package --yes
+      - name: Publish ABI Package
+        run: |
+          cd packages/abi
+          yarn publish --yes
+
+      - name: Publish API Package
+        run: |
+          cd packages/api
+          yarn publish --yes
 
       # - name: Telegram Failure Notification
       #   uses: appleboy/telegram-action@master
