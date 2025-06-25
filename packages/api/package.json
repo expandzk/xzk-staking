@@ -9,9 +9,9 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
-  "main": "build/cjs/index.js",
-  "module": "build/esm/index.js",
-  "types": "build/cjs/index.d.ts",
+  "main": "build/cjs/src/index.js",
+  "module": "build/esm/src/index.js",
+  "types": "build/cjs/src/index.d.ts",
   "files": [
     "build"
   ],
