@@ -34,12 +34,12 @@ jobs:
       - name: Publish ABI Package
         run: |
           cd packages/abi
-          yarn publish from-package --yes
+          yarn publish --yes
 
       - name: Publish API Package
         run: |
           cd packages/api
-          yarn publish from-package --yes
+          yarn publish --yes
 
       # - name: Telegram Failure Notification
       #   uses: appleboy/telegram-action@master
