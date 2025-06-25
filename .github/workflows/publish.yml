@@ -12,10 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.MYSTIKO_PACKAGE_TOKEN }}
-          lfs: true
-          submodules: recursive
 
       - name: Setup Node
         uses: actions/setup-node@v4
