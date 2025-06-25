@@ -23,7 +23,7 @@ jobs:
       - name: Setup Registry
         run: |
           echo "@mystikonetwork:registry=https://npm.pkg.github.com" >> $HOME/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.MYSTIKO_PACKAGE_TOKEN }}" >> $HOME/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.XZK_STAKING_PACKAGE_TOKEN }}" >> $HOME/.npmrc
 
       - name: Install Dependencies
         run: yarn install
