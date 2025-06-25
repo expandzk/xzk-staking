@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import stakingApiClient from '../../src/api';
 import type { ClientOptions, InitOptions } from '../../src/index';
-import { XZKStakingErrorCode } from '../../src/error';
 import { GlobalClientOptions } from '../../src/config/config';
 
 // Mock the dependencies
-let allowanceCallCount = 0;
 jest.mock('@expandzk/xzk-staking-abi', () => ({
   MystikoStakingContractFactory: {
     connect: jest.fn(() => ({
@@ -19,16 +17,20 @@ jest.mock('@expandzk/xzk-staking-abi', () => ({
       swapToStakingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
       swapToUnderlyingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
       stakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 2 })),
-      stakingRecords: jest.fn(() => Promise.resolve({
-        stakedTime: { toNumber: () => 1 },
-        amount: { toString: () => '2000000000000000000' },
-        remaining: { toString: () => '3000000000000000000' }
-      })),
-      claimRecords: jest.fn(() => Promise.resolve({
-        unstakeTime: { toNumber: () => 1 },
-        amount: { toString: () => '2000000000000000000' },
-        claimPaused: false
-      })),
+      stakingRecords: jest.fn(() =>
+        Promise.resolve({
+          stakedTime: { toNumber: () => 1 },
+          amount: { toString: () => '2000000000000000000' },
+          remaining: { toString: () => '3000000000000000000' },
+        }),
+      ),
+      claimRecords: jest.fn(() =>
+        Promise.resolve({
+          unstakeTime: { toNumber: () => 1 },
+          amount: { toString: () => '2000000000000000000' },
+          claimPaused: false,
+        }),
+      ),
       populateTransaction: {
         stake: jest.fn(() => Promise.resolve({ gasLimit: { toString: () => '120000' } })),
         unstake: jest.fn(() => Promise.resolve({ gasLimit: { toString: () => '120000' } })),
@@ -39,12 +41,14 @@ jest.mock('@expandzk/xzk-staking-abi', () => ({
   ERC20ContractFactory: {
     connect: jest.fn(() => ({
       balanceOf: jest.fn(() => Promise.resolve({ toString: () => '100000000000000000000' })),
-      allowance: jest.fn(() => Promise.resolve({
-        toString: () => '0',
-        gte: jest.fn(() => false), // always require approval
-        lt: jest.fn(() => true),
-        gt: jest.fn(() => false),
-      })),
+      allowance: jest.fn(() =>
+        Promise.resolve({
+          toString: () => '0',
+          gte: jest.fn(() => false), // always require approval
+          lt: jest.fn(() => true),
+          gt: jest.fn(() => false),
+        }),
+      ),
       populateTransaction: {
         approve: jest.fn(() => Promise.resolve({ gasLimit: { toString: () => '120000' } })),
       },
@@ -56,10 +60,7 @@ jest.mock('@mystikonetwork/utils', () => ({
   DefaultProviderFactory: jest.fn().mockImplementation(() => ({
     createProvider: jest.fn(() => ({})),
   })),
-  fromDecimals: jest.fn((value: any, decimals: number) => {
-    // Mock implementation that returns a reasonable number
-    return parseFloat(value.toString()) / Math.pow(10, decimals);
-  }),
+  fromDecimals: jest.fn((value: any, decimals: number) => parseFloat(value.toString()) / 10 ** decimals),
   toBN: jest.fn((value: any) => ({
     toString: () => value.toString(),
     gte: jest.fn(() => false), // false for allowance checks
@@ -70,7 +71,7 @@ jest.mock('@mystikonetwork/utils', () => ({
     gt: jest.fn(() => false),
     gte: jest.fn(() => true),
     lt: jest.fn(() => false),
-    toString: () => (value * Math.pow(10, decimals)).toString()
+    toString: () => (value * 10 ** decimals).toString(),
   })),
 }));
 
@@ -85,7 +86,6 @@ describe('StakingApiClient', () => {
     stakingApiClient.resetInitStatus();
     // Clear all mocks
     jest.clearAllMocks();
-    allowanceCallCount = 0;
   });
 
   it('should not be initialized by default', () => {

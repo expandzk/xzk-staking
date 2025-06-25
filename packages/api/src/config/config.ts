@@ -1,4 +1,3 @@
-
 import type { ClientOptions, StakingPeriod } from '../index';
 
 export type ChainConfig = {
@@ -124,7 +123,6 @@ export class Config {
     throw new Error(`Unsupported staking period: ${period}`);
   }
 }
-
 
 export const GlobalClientOptions: ClientOptions[] = [
   {

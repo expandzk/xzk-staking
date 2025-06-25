@@ -1,12 +1,10 @@
-import { MystikoStaking } from '@expandzk/xzk-staking-abi';
+import { MystikoStaking, MystikoStakingContractFactory } from '@expandzk/xzk-staking-abi';
 import { fromDecimals, toBN, toDecimals } from '@mystikonetwork/utils';
 import { BigNumber, PopulatedTransaction } from 'ethers';
 import BN from 'bn.js';
 import { createErrorPromise, XZKStakingErrorCode } from '../error';
-import type { StakingSummary, StakingRecord, ClaimSummary } from '../index';
+import type { StakingSummary, StakingRecord, ClaimSummary, ClientOptions } from '../api';
 import { ClientContext } from './context';
-import { ClientOptions } from '..';
-import { MystikoStakingContractFactory } from '@expandzk/xzk-staking-abi';
 
 export class ContractClient {
   private options: ClientOptions;
@@ -19,7 +17,11 @@ export class ContractClient {
     this.context = context;
     this.options = options;
     const stakingContractAddress = this.context.config.stakingContractAddress(this.options);
-    this.stakingInstance = MystikoStakingContractFactory.connect<MystikoStaking>('MystikoStaking', stakingContractAddress, this.context.provider);
+    this.stakingInstance = MystikoStakingContractFactory.connect<MystikoStaking>(
+      'MystikoStaking',
+      stakingContractAddress,
+      this.context.provider,
+    );
   }
 
   public getChainId(): Promise<number> {
@@ -183,8 +185,8 @@ export class ContractClient {
     });
   }
 
-  public claim(to?: string): Promise<PopulatedTransaction> {
-    return this.buildClaimTransaction(to);
+  public claim(): Promise<PopulatedTransaction> {
+    return this.buildClaimTransaction();
   }
 
   private checkApprove(account: string, amount: BN): Promise<void> {
@@ -244,16 +246,9 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 
-  private buildClaimTransaction(to?: string): Promise<PopulatedTransaction> {
-    // todo add to
+  private buildClaimTransaction(): Promise<PopulatedTransaction> {
     return this.stakingInstance.populateTransaction
       .claim()
-      .then(() => this.stakingInstance.populateTransaction.claim())
-      .then((result: any) => {
-        // TODO: to be optimized
-        result.gasLimit = BigNumber.from(120000);
-        return result;
-      })
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 
@@ -283,4 +278,3 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 }
-
