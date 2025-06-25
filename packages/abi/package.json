@@ -20,12 +20,12 @@
   "scripts": {
     "lint": "yarn prettier:check",
     "prettier:check": "prettier --check \"./**/*.{js,ts}\" --config .prettierrc",
+    "generate": "yarn generate:abi && yarn format",
+    "generate:abi": "rm -rf src/typechain/staking-rewards && typechain --target ethers-v5 --out-dir src/typechain/staking-rewards '../contracts/artifacts/{contracts,lib/openzeppelin-contracts/contracts/token,lib/openzeppelin-contracts/contracts/access}/!(build-info)/**/+([a-zA-Z0-9_]).json'",
     "format": "prettier --write \"./**/*.{js,ts}\" --config .prettierrc",
-    "generate": "rm -rf src/typechain/staking-rewards && typechain --target ethers-v5 --out-dir src/typechain/staking-rewards '../contracts/artifacts/{contracts,lib/openzeppelin-contracts/contracts/token,lib/openzeppelin-contracts/contracts/access}/!(build-info)/**/+([a-zA-Z0-9_]).json'",
-    "build": "rm -rf build && yarn build:contracts && yarn build:cjs && yarn build:esm",
+    "build": "rm -rf build && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p ./tsconfig.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
-    "build:contracts": "cd ../contracts && yarn build",
     "clean": "rm -rf src/typechain && rm -rf build",
     "test": "echo 'No tests'"
   },

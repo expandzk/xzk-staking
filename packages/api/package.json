@@ -27,7 +27,8 @@
     "lint": "eslint --ext .js,.ts .",
     "test": "jest --forceExit",
     "coverage": "jest --forceExit --coverage",
-    "integrate": "jest --forceExit ./tests/integrate.test.ts"
+    "integrate": "jest --forceExit ./tests/integrate.test.ts",
+    "clean": "rm -rf build"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
