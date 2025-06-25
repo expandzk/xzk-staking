@@ -58,7 +58,7 @@ export class ContractClient {
   public isStakingPaused(): Promise<boolean> {
     return this.stakingInstance
       .isStakingPaused()
-      .then((paused: any) => paused.toNumber())
+      .then((paused: any) => Boolean(paused))
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 

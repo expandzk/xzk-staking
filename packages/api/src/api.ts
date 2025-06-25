@@ -1,7 +1,7 @@
 import { PopulatedTransaction } from 'ethers';
 import { ContractClient } from './client';
 import { ClientContext } from './client/context';
-import { GlobalClientOptions } from './config/config';
+import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise } from './error';
 
 // Import types directly to avoid circular dependency
@@ -76,12 +76,12 @@ export interface IStakingClient {
 }
 
 class StakingApiClient implements StakingApiClient {
-  private clients: Map<ClientOptions, ContractClient>;
+  private clients: Map<string, ContractClient>;
 
   private initStatus: boolean = false;
 
   constructor() {
-    this.clients = new Map<ClientOptions, ContractClient>();
+    this.clients = new Map<string, ContractClient>();
   }
 
   public initialize(options: InitOptions): void {
@@ -92,7 +92,8 @@ class StakingApiClient implements StakingApiClient {
     const context = new ClientContext(options);
     GlobalClientOptions.forEach((clientOption) => {
       const client = new ContractClient(context, clientOption);
-      this.clients.set(clientOption, client);
+      const keyName = clientOptionToKey(clientOption);
+      this.clients.set(keyName, client);
     });
     this.initStatus = true;
   }
@@ -247,7 +248,8 @@ class StakingApiClient implements StakingApiClient {
   }
 
   private getClient(options: ClientOptions): ContractClient {
-    const client = this.clients.get(options);
+    const keyName = clientOptionToKey(options);
+    const client = this.clients.get(keyName);
     if (!client) {
       throw new Error(`Client not found for options: ${JSON.stringify(options)}`);
     }
