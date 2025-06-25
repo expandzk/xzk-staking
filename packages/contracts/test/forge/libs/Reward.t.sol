@@ -3,7 +3,7 @@
 pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
-import {RewardsLibrary} from "../../../contracts/libs/reward.sol";
+import {RewardsLibrary} from "../../../contracts/libs/Reward.sol";
 import {console} from "forge-std/console.sol";
 
 contract RewardsLibraryWrapper {
