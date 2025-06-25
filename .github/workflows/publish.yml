@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PACKAGES_TOKEN }}
+          token: ${{ secrets.MYSTIKO_PACKAGE_TOKEN }}
           lfs: true
           submodules: recursive
 
@@ -25,7 +25,7 @@ jobs:
       - name: Setup Registry
         run: |
           echo "@mystikonetwork:registry=https://npm.pkg.github.com" >> $HOME/.npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_TOKEN }}" >> $HOME/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.MYSTIKO_PACKAGE_TOKEN }}" >> $HOME/.npmrc
 
       - name: Install Dependencies
         run: yarn install
