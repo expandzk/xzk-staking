@@ -50,6 +50,7 @@ export interface IStakingClient {
   stakingPeriodSeconds(options: ClientOptions): Promise<number>;
   claimDelaySeconds(options: ClientOptions): Promise<number>;
   isStakingPaused(options: ClientOptions): Promise<boolean>;
+  poolTokenAmount(options: ClientOptions): Promise<number>;
   totalStaked(options: ClientOptions): Promise<number>;
   totalUnstaked(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
@@ -103,6 +104,7 @@ class StakingApiClient implements StakingApiClient {
   }
 
   public resetInitStatus(): void {
+    this.clients.clear();
     this.initStatus = false;
   }
 
@@ -151,6 +153,12 @@ class StakingApiClient implements StakingApiClient {
   public isStakingPaused(options: ClientOptions): Promise<boolean> {
     return this.getClient(options)
       .isStakingPaused()
+      .catch((error: any) => createErrorPromise(error.toString()));
+  }
+
+  public poolTokenAmount(options: ClientOptions): Promise<number> {
+    return this.getClient(options)
+      .poolTokenAmount()
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 
