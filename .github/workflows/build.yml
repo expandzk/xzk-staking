@@ -1,0 +1,88 @@
+name: build
+env:
+  GITHUB_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PACKAGES_TOKEN }}
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Setup Registry
+        run: |
+          echo "@mystikonetwork:registry=https://npm.pkg.github.com" >> $HOME/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.PACKAGES_TOKEN }}" >> $HOME/.npmrc
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn build
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Test
+        run: yarn test
+
+      # - name: Coverage
+      #   run: yarn coverage
+
+      # - name: Upload Coverage
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     fail_ci_if_error: true
+
+      - name: Check Generated Files
+        run: |
+          if ! git diff --quiet; then
+            echo "❌ Generated files are not up to date with the repository"
+            echo ""
+            echo "📋 Files that have been modified:"
+            git diff --name-only
+            echo ""
+            echo "🔍 Detailed differences:"
+            git diff
+            echo ""
+            exit 1
+          else
+            echo "✅ All generated files are up to date"
+          fi
+
+      # - name: Telegram Failure Notification
+      #   uses: appleboy/telegram-action@master
+      #   if: failure()
+      #   with:
+      #     message: ❗ Build failed for [${{ github.repository }}](https://github.com/${{ github.repository }}/actions) because of ${{ github.actor }}
+      #     format: markdown
+      #     to: ${{ secrets.TELEGRAM_CHAT_ID }}
+      #     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      # - name: Telegram Success Notification
+      #   uses: appleboy/telegram-action@master
+      #   if: success()
+      #   with:
+      #     message: Build succeeded for [${{ github.repository }}](https://github.com/${{ github.repository }}/actions)
+      #     format: markdown
+      #     to: ${{ secrets.TELEGRAM_CHAT_ID }}
+      #     token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
