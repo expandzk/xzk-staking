@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { Config } from '../../src/config/config';
-import type { ClientOptions, StakingPeriod } from '../../src/index';
+import { Config } from '../../../src/config/config';
+import type { ClientOptions, StakingPeriod } from '../../../src/index';
 
 describe('Config', () => {
   describe('constructor', () => {

@@ -58,7 +58,15 @@ export class ContractClient {
   public isStakingPaused(): Promise<boolean> {
     return this.stakingInstance
       .isStakingPaused()
-      .then((paused: any) => paused.toNumber())
+      .then((paused: any) => Boolean(paused))
+      .catch((error: any) => createErrorPromise(error.toString()));
+  }
+
+  public poolTokenAmount(): Promise<number> {
+    const tokenContract = this.context.tokenContractInstance(this.options);
+    return tokenContract
+      .balanceOf(this.context.config.stakingContractAddress(this.options))
+      .then((amount: any) => fromDecimals(amount, this.context.config.decimals))
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 
@@ -84,7 +92,7 @@ export class ContractClient {
   }
 
   public tokenBalance(account: string): Promise<number> {
-    const tokenContract = this.context.tokenContractAddress(this.options);
+    const tokenContract = this.context.tokenContractInstance(this.options);
     return tokenContract
       .balanceOf(account)
       .then((balance: any) => fromDecimals(balance, this.context.config.decimals))
@@ -199,7 +207,7 @@ export class ContractClient {
   }
 
   private tokenAllowance(account: string): Promise<BN> {
-    const tokenContract = this.context.tokenContractAddress(this.options);
+    const tokenContract = this.context.tokenContractInstance(this.options);
     const stakingContractAddress = this.context.config.stakingContractAddress(this.options);
     return tokenContract
       .allowance(account, stakingContractAddress)
@@ -208,7 +216,7 @@ export class ContractClient {
   }
 
   private buildApproveTransaction(account: string, amount: BN): Promise<PopulatedTransaction | undefined> {
-    const tokenContract = this.context.tokenContractAddress(this.options);
+    const tokenContract = this.context.tokenContractInstance(this.options);
     const stakingContractAddress = this.context.config.stakingContractAddress(this.options);
     return this.tokenAllowance(account).then((allowance) => {
       if (allowance.gte(amount)) {

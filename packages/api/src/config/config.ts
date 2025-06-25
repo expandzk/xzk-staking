@@ -16,6 +16,10 @@ export type ChainConfig = {
   providers: string[];
 };
 
+export function clientOptionToKey(options: ClientOptions): string {
+  return `s${options.tokenName}${options.stakingPeriod}`;
+}
+
 export class Config {
   private static chainConfigs: { [chainId: number]: ChainConfig } = {
     1: {
@@ -95,8 +99,8 @@ export class Config {
   }
 
   public stakingContractAddress(options: ClientOptions): string {
-    const name = `s${options.tokenName}${options.stakingPeriod}`;
-    return this.config[name as keyof typeof this.config] as string;
+    const keyName = clientOptionToKey(options);
+    return this.config[keyName as keyof typeof this.config] as string;
   }
 
   public totalDurationSeconds(): number {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import stakingApiClient from '../../src/api';
-import type { ClientOptions, InitOptions } from '../../src/index';
-import { GlobalClientOptions } from '../../src/config/config';
+import stakingApiClient from '../../../src/api';
+import type { ClientOptions, InitOptions } from '../../../src/index';
+import { GlobalClientOptions } from '../../../src/config/config';
 
 // Mock the dependencies
 jest.mock('@expandzk/xzk-staking-abi', () => ({
@@ -116,7 +116,7 @@ describe('StakingApiClient', () => {
     expect(await stakingApiClient.totalDurationSeconds(testOptions)).toBeDefined();
     expect(await stakingApiClient.stakingPeriodSeconds(testOptions)).toBeDefined();
     expect(await stakingApiClient.claimDelaySeconds(testOptions)).toBeDefined();
-    expect(await stakingApiClient.isStakingPaused(testOptions)).toBe(0);
+    expect(await stakingApiClient.isStakingPaused(testOptions)).toBe(true);
     expect(await stakingApiClient.totalStaked(testOptions)).toBeDefined();
     expect(await stakingApiClient.totalUnstaked(testOptions)).toBeDefined();
     expect(await stakingApiClient.stakingTotalSupply(testOptions)).toBeDefined();

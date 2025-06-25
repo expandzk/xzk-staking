@@ -9,9 +9,9 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
-  "main": "build/cjs/index.js",
-  "module": "build/esm/index.js",
-  "types": "build/cjs/index.d.ts",
+  "main": "build/cjs/src/index.js",
+  "module": "build/esm/src/index.js",
+  "types": "build/cjs/src/index.d.ts",
   "files": [
     "build"
   ],
@@ -25,9 +25,11 @@
     "build:cjs": "tsc -p ./tsconfig.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
     "lint": "eslint --ext .js,.ts .",
-    "test": "jest --forceExit",
-    "coverage": "jest --forceExit --coverage",
-    "integrate": "jest --forceExit ./tests/integrate.test.ts",
+    "test": "jest --forceExit ./tests/ci",
+    "test:integration": "jest --forceExit --testPathPattern=tests/integration",
+    "test:all": "jest --forceExit",
+    "coverage": "jest --forceExit --coverage ./tests/ci",
+    "coverage:integration": "jest --forceExit --coverage --testPathPattern=tests/integration",
     "clean": "rm -rf build"
   },
   "devDependencies": {

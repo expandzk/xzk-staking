@@ -21,7 +21,7 @@ export class ClientContext {
     this.vXzkContract = ERC20ContractFactory.connect('ERC20', this.config.vXZkContract, this.provider);
   }
 
-  public tokenContractAddress(options: ClientOptions): ERC20 {
+  public tokenContractInstance(options: ClientOptions): ERC20 {
     if (options.tokenName === 'XZK') {
       return this.xzkContract;
     }
