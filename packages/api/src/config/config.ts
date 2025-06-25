@@ -1,11 +1,5 @@
-import {
-  MystikoStakingContractFactory,
-  ERC20ContractFactory,
-  MystikoStaking,
-  ERC20,
-} from '@expandzk/xzk-staking-abi';
-import { providers } from 'ethers';
-import type { StakingContractName } from '../index';
+
+import type { ClientOptions, StakingPeriod } from '../index';
 
 export type ChainConfig = {
   chainId: number;
@@ -94,30 +88,16 @@ export class Config {
     return this.config.providers;
   }
 
-  public tokenContractAddress(name: StakingContractName): string {
-    if (name === 'sXZK365d' || name === 'sXZK180d' || name === 'sXZK90d' || name === 'sXZKFlex') {
+  public tokenContractAddress(options: ClientOptions): string {
+    if (options.tokenName === 'XZK') {
       return this.config.xzkContract;
     }
     return this.config.vXZkContract;
   }
 
-  public stakingContractAddress(name: StakingContractName): string {
+  public stakingContractAddress(options: ClientOptions): string {
+    const name = `s${options.tokenName}${options.stakingPeriod}`;
     return this.config[name as keyof typeof this.config] as string;
-  }
-
-  public tokenContractInstance(provider: providers.Provider, name: StakingContractName): ERC20 {
-    if (name === 'sXZK365d' || name === 'sXZK180d' || name === 'sXZK90d' || name === 'sXZKFlex') {
-      return ERC20ContractFactory.connect('ERC20', this.config.xzkContract, provider);
-    }
-    if (name === 'sVXZK365d' || name === 'sVXZK180d' || name === 'sVXZK90d' || name === 'sVXZKFlex') {
-      return ERC20ContractFactory.connect('ERC20', this.config.vXZkContract, provider);
-    }
-    throw new Error(`Unsupported staking contract name: ${name}`);
-  }
-
-  public stakingContractInstance(provider: providers.Provider, name: StakingContractName): MystikoStaking {
-    const contractAddress = this.config[name as keyof typeof this.config] as string;
-    return MystikoStakingContractFactory.connect<MystikoStaking>('MystikoStaking', contractAddress, provider);
   }
 
   public totalDurationSeconds(): number {
@@ -128,19 +108,55 @@ export class Config {
     return 24 * 60 * 60;
   }
 
-  public stakingPeriodSeconds(name: StakingContractName): number {
-    if (name === 'sXZK365d' || name === 'sVXZK365d') {
+  public stakingPeriodSeconds(period: StakingPeriod): number {
+    if (period === '365d') {
       return 365 * 24 * 60 * 60;
     }
-    if (name === 'sXZK180d' || name === 'sVXZK180d') {
+    if (period === '180d') {
       return 180 * 24 * 60 * 60;
     }
-    if (name === 'sXZK90d' || name === 'sVXZK90d') {
+    if (period === '90d') {
       return 90 * 24 * 60 * 60;
     }
-    if (name === 'sXZKFlex' || name === 'sVXZKFlex') {
+    if (period === 'Flex') {
       return 0;
     }
-    throw new Error(`Unsupported staking contract name: ${name}`);
+    throw new Error(`Unsupported staking period: ${period}`);
   }
 }
+
+
+export const GlobalClientOptions: ClientOptions[] = [
+  {
+    tokenName: 'XZK',
+    stakingPeriod: '365d',
+  },
+  {
+    tokenName: 'VXZK',
+    stakingPeriod: '365d',
+  },
+  {
+    tokenName: 'XZK',
+    stakingPeriod: '180d',
+  },
+  {
+    tokenName: 'VXZK',
+    stakingPeriod: '180d',
+  },
+  {
+    tokenName: 'XZK',
+    stakingPeriod: '90d',
+  },
+  {
+    tokenName: 'VXZK',
+    stakingPeriod: '90d',
+  },
+  {
+    tokenName: 'XZK',
+    stakingPeriod: 'Flex',
+  },
+  {
+    tokenName: 'VXZK',
+    stakingPeriod: 'Flex',
+  },
+];

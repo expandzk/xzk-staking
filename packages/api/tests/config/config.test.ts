@@ -1,4 +1,6 @@
-import { Config, StakingContractName } from '../../src/config/config';
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import { Config } from '../../src/config/config';
+import type { ClientOptions, StakingPeriod } from '../../src/index';
 
 describe('Config', () => {
     describe('constructor', () => {
@@ -32,18 +34,14 @@ describe('Config', () => {
             config = new Config(1);
         });
 
-        it('should return xzkContract for XZK staking contracts', () => {
-            const xzkContracts: StakingContractName[] = ['sXZK365d', 'sXZK180d', 'sXZK90d', 'sXZKFlex'];
-            xzkContracts.forEach((contractName) => {
-                expect(config.tokenContractAddress(contractName)).toBe(config.xzkContract);
-            });
+        it('should return xzkContract for XZK token', () => {
+            const options: ClientOptions = { tokenName: 'XZK', stakingPeriod: '365d' };
+            expect(config.tokenContractAddress(options)).toBe(config.xzkContract);
         });
 
-        it('should return vXZkContract for VXZK staking contracts', () => {
-            const vxzkContracts: StakingContractName[] = ['sVXZK365d', 'sVXZK180d', 'sVXZK90d', 'sVXZKFlex'];
-            vxzkContracts.forEach((contractName) => {
-                expect(config.tokenContractAddress(contractName)).toBe(config.vXZkContract);
-            });
+        it('should return vXZkContract for VXZK token', () => {
+            const options: ClientOptions = { tokenName: 'VXZK', stakingPeriod: '365d' };
+            expect(config.tokenContractAddress(options)).toBe(config.vXZkContract);
         });
     });
 
@@ -56,83 +54,38 @@ describe('Config', () => {
 
         it('should return correct staking contract addresses for Sepolia', () => {
             const expectedAddresses = {
-                sXZK365d: '0x9cC6b3fE97c1F03eF74f369e61A2e87DD83B2EDF',
-                sXZK180d: '0xe4D932b62783953FE693069a09308f27DA8140c9',
-                sXZK90d: '0x1C91E9b6A81F92FEab337e206Bf218a30Bf581E2',
-                sXZKFlex: '0x59bAe9b5c007Cb0e06bad64E4DD69788A51321BA',
-                sVXZK365d: '0xb5971b52775735CcfD361251FF3982b0a71CD971',
-                sVXZK180d: '0x97DFa99097C5b8A359B947c63b131022ac33606d',
-                sVXZK90d: '0xd72627C7168434DC4a8f9Fa9e3E09951814bDeaE',
-                sVXZKFlex: '0x5958D56dB3ED16471989359005beB9bE5d430AAd',
+                'XZK-365d': '0x9cC6b3fE97c1F03eF74f369e61A2e87DD83B2EDF',
+                'XZK-180d': '0xe4D932b62783953FE693069a09308f27DA8140c9',
+                'XZK-90d': '0x1C91E9b6A81F92FEab337e206Bf218a30Bf581E2',
+                'XZK-Flex': '0x59bAe9b5c007Cb0e06bad64E4DD69788A51321BA',
+                'VXZK-365d': '0xb5971b52775735CcfD361251FF3982b0a71CD971',
+                'VXZK-180d': '0x97DFa99097C5b8A359B947c63b131022ac33606d',
+                'VXZK-90d': '0xd72627C7168434DC4a8f9Fa9e3E09951814bDeaE',
+                'VXZK-Flex': '0x5958D56dB3ED16471989359005beB9bE5d430AAd',
             };
 
-            Object.entries(expectedAddresses).forEach(([contractName, expectedAddress]) => {
-                expect(config.stakingContractAddress(contractName as StakingContractName)).toBe(expectedAddress);
+            Object.entries(expectedAddresses).forEach(([key, expectedAddress]) => {
+                const [tokenName, stakingPeriod] = key.split('-') as ['XZK' | 'VXZK', StakingPeriod];
+                const options: ClientOptions = { tokenName, stakingPeriod };
+                expect(config.stakingContractAddress(options)).toBe(expectedAddress);
             });
         });
 
         it('should return zero addresses for Ethereum mainnet (not deployed)', () => {
             const mainnetConfig = new Config(1);
-            const allContracts: StakingContractName[] = [
-                'sXZK365d', 'sXZK180d', 'sXZK90d', 'sXZKFlex',
-                'sVXZK365d', 'sVXZK180d', 'sVXZK90d', 'sVXZKFlex',
+            const testCases: ClientOptions[] = [
+                { tokenName: 'XZK', stakingPeriod: '365d' },
+                { tokenName: 'XZK', stakingPeriod: '180d' },
+                { tokenName: 'XZK', stakingPeriod: '90d' },
+                { tokenName: 'XZK', stakingPeriod: 'Flex' },
+                { tokenName: 'VXZK', stakingPeriod: '365d' },
+                { tokenName: 'VXZK', stakingPeriod: '180d' },
+                { tokenName: 'VXZK', stakingPeriod: '90d' },
+                { tokenName: 'VXZK', stakingPeriod: 'Flex' },
             ];
 
-            allContracts.forEach((contractName) => {
-                expect(mainnetConfig.stakingContractAddress(contractName)).toBe('0x0000000000000000000000000000000000000000');
-            });
-        });
-    });
-
-    describe('tokenContractInstance', () => {
-        let config: Config;
-        let mockProvider: any;
-
-        beforeEach(() => {
-            config = new Config(1);
-            mockProvider = {};
-        });
-
-        it('should create ERC20 instance for XZK contracts', () => {
-            const xzkContracts: StakingContractName[] = ['sXZK365d', 'sXZK180d', 'sXZK90d', 'sXZKFlex'];
-            xzkContracts.forEach((contractName) => {
-                const instance = config.tokenContractInstance(mockProvider, contractName);
-                expect(instance).toBeDefined();
-            });
-        });
-
-        it('should create ERC20 instance for VXZK contracts', () => {
-            const vxzkContracts: StakingContractName[] = ['sVXZK365d', 'sVXZK180d', 'sVXZK90d', 'sVXZKFlex'];
-            vxzkContracts.forEach((contractName) => {
-                const instance = config.tokenContractInstance(mockProvider, contractName);
-                expect(instance).toBeDefined();
-            });
-        });
-
-        it('should throw error for unsupported contract name', () => {
-            expect(() => config.tokenContractInstance(mockProvider, 'invalid' as StakingContractName))
-                .toThrow('Unsupported staking contract name: invalid');
-        });
-    });
-
-    describe('stakingContractInstance', () => {
-        let config: Config;
-        let mockProvider: any;
-
-        beforeEach(() => {
-            config = new Config(11155111);
-            mockProvider = {};
-        });
-
-        it('should create MystikoStaking instance for all contract names', () => {
-            const allContracts: StakingContractName[] = [
-                'sXZK365d', 'sXZK180d', 'sXZK90d', 'sXZKFlex',
-                'sVXZK365d', 'sVXZK180d', 'sVXZK90d', 'sVXZKFlex',
-            ];
-
-            allContracts.forEach((contractName) => {
-                const instance = config.stakingContractInstance(mockProvider, contractName);
-                expect(instance).toBeDefined();
+            testCases.forEach((options) => {
+                expect(mainnetConfig.stakingContractAddress(options)).toBe('0x0000000000000000000000000000000000000000');
             });
         });
     });
@@ -160,32 +113,28 @@ describe('Config', () => {
             config = new Config(1);
         });
 
-        it('should return 365 days for 365d contracts', () => {
+        it('should return 365 days for 365d period', () => {
             const expectedSeconds = 365 * 24 * 60 * 60;
-            expect(config.stakingPeriodSeconds('sXZK365d')).toBe(expectedSeconds);
-            expect(config.stakingPeriodSeconds('sVXZK365d')).toBe(expectedSeconds);
+            expect(config.stakingPeriodSeconds('365d')).toBe(expectedSeconds);
         });
 
-        it('should return 180 days for 180d contracts', () => {
+        it('should return 180 days for 180d period', () => {
             const expectedSeconds = 180 * 24 * 60 * 60;
-            expect(config.stakingPeriodSeconds('sXZK180d')).toBe(expectedSeconds);
-            expect(config.stakingPeriodSeconds('sVXZK180d')).toBe(expectedSeconds);
+            expect(config.stakingPeriodSeconds('180d')).toBe(expectedSeconds);
         });
 
-        it('should return 90 days for 90d contracts', () => {
+        it('should return 90 days for 90d period', () => {
             const expectedSeconds = 90 * 24 * 60 * 60;
-            expect(config.stakingPeriodSeconds('sXZK90d')).toBe(expectedSeconds);
-            expect(config.stakingPeriodSeconds('sVXZK90d')).toBe(expectedSeconds);
+            expect(config.stakingPeriodSeconds('90d')).toBe(expectedSeconds);
         });
 
-        it('should return 0 for flexible contracts', () => {
-            expect(config.stakingPeriodSeconds('sXZKFlex')).toBe(0);
-            expect(config.stakingPeriodSeconds('sVXZKFlex')).toBe(0);
+        it('should return 0 for flexible period', () => {
+            expect(config.stakingPeriodSeconds('Flex')).toBe(0);
         });
 
-        it('should throw error for unsupported contract name', () => {
-            expect(() => config.stakingPeriodSeconds('invalid' as StakingContractName))
-                .toThrow('Unsupported staking contract name: invalid');
+        it('should throw error for unsupported period', () => {
+            expect(() => config.stakingPeriodSeconds('invalid' as StakingPeriod))
+                .toThrow('Unsupported staking period: invalid');
         });
     });
 

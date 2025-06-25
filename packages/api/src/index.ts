@@ -1,21 +1,17 @@
-import type { PopulatedTransaction, providers } from 'ethers';
-import Client from './client';
+import type { PopulatedTransaction, } from 'ethers';
 import { XZKStakingErrorCode, XZKStakingError } from './error';
 
-export type StakingContractName =
-    | 'sXZK365d'
-    | 'sXZK180d'
-    | 'sXZK90d'
-    | 'sXZKFlex'
-    | 'sVXZK365d'
-    | 'sVXZK180d'
-    | 'sVXZK90d'
-    | 'sVXZKFlex';
+export type TokenName = 'XZK' | 'VXZK';
+export type StakingPeriod = '365d' | '180d' | '90d' | 'Flex';
 
 export interface InitOptions {
-    stakingContractName: StakingContractName;
     chainId?: number;
     scanApiBaseUrl?: string;
+}
+
+export interface ClientOptions {
+    tokenName: TokenName;
+    stakingPeriod: StakingPeriod;
 }
 
 export interface StakingSummary {
@@ -42,29 +38,29 @@ export interface IStakingClient {
     initialize(options: InitOptions): void;
     readonly isInitialized: boolean;
     resetInitStatus(): void;
-    getChainId(): Promise<number>;
-    tokenContractAddress(): Promise<string>;
-    stakingContractAddress(): Promise<string>;
-    stakingStartTimestamp(): Promise<number>;
-    totalDurationSeconds(): Promise<number>;
-    stakingPeriodSeconds(): Promise<number>;
-    claimDelaySeconds(): Promise<number>;
-    isStakingPaused(): Promise<boolean>;
-    totalStaked(): Promise<number>;
-    totalUnstaked(): Promise<number>;
-    stakingTotalSupply(): Promise<number>;
-    currentTotalReward(): Promise<number>;
-    tokenBalance(account: string): Promise<number>;
-    stakingBalance(account: string): Promise<number>;
-    swapToStakingToken(amount: number): Promise<number>;
-    swapToUnderlyingToken(amount: number): Promise<number>;
-    stakingSummary(account: string): Promise<StakingSummary>;
-    claimSummary(account: string): Promise<ClaimSummary>;
-    tokenApprove(account: string, amount: number): Promise<PopulatedTransaction | undefined>;
-    stake(account: string, amount: number): Promise<PopulatedTransaction>;
-    unstake(account: string, amount: number, nonces: number[]): Promise<PopulatedTransaction>;
-    claim(): Promise<PopulatedTransaction>;
+    getChainId(options: ClientOptions): Promise<number>;
+    tokenContractAddress(options: ClientOptions): Promise<string>;
+    stakingContractAddress(options: ClientOptions): Promise<string>;
+    stakingStartTimestamp(options: ClientOptions): Promise<number>;
+    totalDurationSeconds(options: ClientOptions): Promise<number>;
+    stakingPeriodSeconds(options: ClientOptions): Promise<number>;
+    claimDelaySeconds(options: ClientOptions): Promise<number>;
+    isStakingPaused(options: ClientOptions): Promise<boolean>;
+    totalStaked(options: ClientOptions): Promise<number>;
+    totalUnstaked(options: ClientOptions): Promise<number>;
+    stakingTotalSupply(options: ClientOptions): Promise<number>;
+    currentTotalReward(options: ClientOptions): Promise<number>;
+    tokenBalance(options: ClientOptions, account: string): Promise<number>;
+    stakingBalance(options: ClientOptions, account: string): Promise<number>;
+    swapToStakingToken(options: ClientOptions, amount: number): Promise<number>;
+    swapToUnderlyingToken(options: ClientOptions, amount: number): Promise<number>;
+    stakingSummary(options: ClientOptions, account: string): Promise<StakingSummary>;
+    claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary>;
+    tokenApprove(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction | undefined>;
+    stake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction>;
+    unstake(options: ClientOptions, account: string, amount: number, nonces: number[]): Promise<PopulatedTransaction>;
+    claim(options: ClientOptions, to?: string): Promise<PopulatedTransaction>;
 }
 
-export { Client, XZKStakingErrorCode, XZKStakingError };
-export { default } from './client';
+export { XZKStakingErrorCode, XZKStakingError };
+export { default } from './api';

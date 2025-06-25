@@ -5,6 +5,7 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   collectCoverageFrom: ['src/**/*.ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/build/'],
   globals: {
     'ts-jest': {
       tsconfig: {
