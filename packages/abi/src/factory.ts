@@ -1,10 +1,5 @@
 import { providers, Signer } from 'ethers';
-import {
-  ERC20,
-  ERC20__factory,
-  MystikoStaking,
-  MystikoStaking__factory,
-} from './typechain/staking-rewards';
+import { ERC20, ERC20__factory, MystikoStaking, MystikoStaking__factory } from './typechain/staking-rewards';
 
 export type SupportedContractType = MystikoStaking;
 
