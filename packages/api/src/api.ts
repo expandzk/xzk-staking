@@ -2,7 +2,7 @@ import { PopulatedTransaction } from 'ethers';
 import { ContractClient } from './client';
 import { ClientContext } from './client/context';
 import { clientOptionToKey, GlobalClientOptions } from './config/config';
-import { createErrorPromise } from './error';
+import { createErrorPromise, XZKStakingErrorCode } from './error';
 
 // Import types directly to avoid circular dependency
 export type TokenName = 'XZK' | 'VXZK';
@@ -19,23 +19,34 @@ export interface InitOptions {
 }
 
 export interface StakingSummary {
-  nonce: number;
-  totalStaked: number;
-  totalCanUnstake: number;
+  totalTokenAmount: number;
+  totalStakingTokenAmount: number;
+  totalStakingTokenRemaining: number;
+  totalCanUnstakeAmount: number;
   records: StakingRecord[];
 }
 
 export interface StakingRecord {
   stakedTime: number;
-  amount: number;
-  remaining: number;
+  tokenAmount: number;
+  stakingTokenAmount: number;
+  stakingTokenRemaining: number;
 }
 
-export interface ClaimSummary {
-  unstakeTime: number;
-  amount: number;
-  claimable: boolean;
-  paused: boolean;
+export interface UnstakingSummary {
+  totalTokenAmount: number;
+  totalStakingTokenAmount: number;
+  totalTokenRemaining: number;
+  totalCanClaimAmount: number;
+  records: UnstakingRecord[];
+}
+
+export interface UnstakingRecord {
+  unstakedTime: number;
+  claimTime: number;
+  stakingTokenAmount: number;
+  tokenAmount: number;
+  tokenRemaining: number;
 }
 
 export interface IStakingClient {
@@ -60,20 +71,15 @@ export interface IStakingClient {
   swapToStakingToken(options: ClientOptions, amount: number): Promise<number>;
   swapToUnderlyingToken(options: ClientOptions, amount: number): Promise<number>;
   stakingSummary(options: ClientOptions, account: string): Promise<StakingSummary>;
-  claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary>;
+  unstakingSummary(options: ClientOptions, account: string): Promise<UnstakingSummary>;
   tokenApprove(
     options: ClientOptions,
     account: string,
     amount: number,
   ): Promise<PopulatedTransaction | undefined>;
   stake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction>;
-  unstake(
-    options: ClientOptions,
-    account: string,
-    amount: number,
-    nonces: number[],
-  ): Promise<PopulatedTransaction>;
-  claim(options: ClientOptions): Promise<PopulatedTransaction>;
+  unstake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction>;
+  claim(options: ClientOptions, account: string, toAccount?: string): Promise<PopulatedTransaction>;
 }
 
 class StakingApiClient implements StakingApiClient {
@@ -109,117 +115,79 @@ class StakingApiClient implements StakingApiClient {
   }
 
   public getChainId(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .getChainId()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.getChainId());
   }
 
   public tokenContractAddress(options: ClientOptions): Promise<string> {
-    return this.getClient(options)
-      .tokenContractAddress()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.tokenContractAddress());
   }
 
   public stakingContractAddress(options: ClientOptions): Promise<string> {
-    return this.getClient(options)
-      .stakingContractAddress()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stakingContractAddress());
   }
 
   public stakingStartTimestamp(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .stakingStartTimestamp()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stakingStartTimestamp());
   }
 
   public totalDurationSeconds(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .totalDurationSeconds()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.totalDurationSeconds());
   }
 
   public stakingPeriodSeconds(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .stakingPeriodSeconds()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stakingPeriodSeconds());
   }
 
   public claimDelaySeconds(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .claimDelaySeconds()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.claimDelaySeconds());
   }
 
   public isStakingPaused(options: ClientOptions): Promise<boolean> {
-    return this.getClient(options)
-      .isStakingPaused()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.isStakingPaused());
   }
 
   public poolTokenAmount(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .poolTokenAmount()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.poolTokenAmount());
   }
 
   public totalStaked(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .totalStaked()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.totalStaked());
   }
 
   public totalUnstaked(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .totalUnstaked()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.totalUnstaked());
   }
 
   public stakingTotalSupply(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .stakingTotalSupply()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stakingTotalSupply());
   }
 
   public currentTotalReward(options: ClientOptions): Promise<number> {
-    return this.getClient(options)
-      .currentTotalReward()
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.currentTotalReward());
   }
 
   public tokenBalance(options: ClientOptions, account: string): Promise<number> {
-    return this.getClient(options)
-      .tokenBalance(account)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.tokenBalance(account));
   }
 
   public stakingBalance(options: ClientOptions, account: string): Promise<number> {
-    return this.getClient(options)
-      .stakingBalance(account)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stakingBalance(account));
   }
 
   public swapToStakingToken(options: ClientOptions, amount: number): Promise<number> {
-    return this.getClient(options)
-      .swapToStakingToken(amount)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.swapToStakingToken(amount));
   }
 
   public swapToUnderlyingToken(options: ClientOptions, amount: number): Promise<number> {
-    return this.getClient(options)
-      .swapToUnderlyingToken(amount)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.swapToUnderlyingToken(amount));
   }
 
   public stakingSummary(options: ClientOptions, account: string): Promise<StakingSummary> {
-    return this.getClient(options)
-      .stakingSummary(account)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stakingSummary(account));
   }
 
-  public claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary> {
-    return this.getClient(options)
-      .claimSummary(account)
-      .catch((error: any) => createErrorPromise(error.toString()));
+  public unstakingSummary(options: ClientOptions, account: string): Promise<UnstakingSummary> {
+    return this.getClient(options).then((client) => client.unstakingSummary(account));
   }
 
   public tokenApprove(
@@ -227,41 +195,72 @@ class StakingApiClient implements StakingApiClient {
     account: string,
     amount: number,
   ): Promise<PopulatedTransaction | undefined> {
-    return this.getClient(options)
-      .tokenApprove(account, amount)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.tokenApprove(account, amount));
   }
 
   public stake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction> {
-    return this.getClient(options)
-      .stake(account, amount)
-      .catch((error: any) => createErrorPromise(error.toString()));
+    return this.getClient(options).then((client) => client.stake(account, amount));
   }
 
-  public unstake(
-    options: ClientOptions,
-    account: string,
-    amount: number,
-    nonces: number[],
-  ): Promise<PopulatedTransaction> {
-    return this.getClient(options)
-      .unstake(account, amount, nonces)
-      .catch((error: any) => createErrorPromise(error.toString()));
+  public unstake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction> {
+    return this.getClient(options).then((client: ContractClient) =>
+      client.stakingSummary(account).then((summary: StakingSummary) => {
+        if (amount > summary.totalCanUnstakeAmount) {
+          return createErrorPromise(XZKStakingErrorCode.UNSTAKE_AMOUNT_TOO_LARGE_ERROR);
+        }
+        let startNonce = 0;
+        let endNonce = 0;
+        let totalCanUnstakeAmount = 0;
+        for (let i = 0; i < summary.records.length; i += 1) {
+          if (summary.records[i].stakingTokenRemaining > 0) {
+            if (startNonce === 0) {
+              startNonce = i;
+            }
+            totalCanUnstakeAmount += summary.records[i].stakingTokenRemaining;
+            if (totalCanUnstakeAmount >= amount) {
+              endNonce = i;
+              break;
+            }
+          }
+        }
+        return client.unstake(account, amount, startNonce, endNonce);
+      }),
+    );
   }
 
-  public claim(options: ClientOptions): Promise<PopulatedTransaction> {
-    return this.getClient(options)
-      .claim()
-      .catch((error: any) => createErrorPromise(error.toString()));
+  public claim(options: ClientOptions, account: string, toAccount?: string): Promise<PopulatedTransaction> {
+    return this.getClient(options).then((client) =>
+      client.unstakingSummary(account).then((summary: UnstakingSummary) => {
+        if (summary.totalCanClaimAmount <= 0) {
+          return createErrorPromise(XZKStakingErrorCode.NO_CLAIMABLE_AMOUNT_ERROR);
+        }
+        let startNonce = 0;
+        let endNonce = 0;
+        let totalCanClaimAmount = 0;
+        for (let i = 0; i < summary.records.length; i += 1) {
+          if (summary.records[i].tokenRemaining > 0) {
+            if (startNonce === 0) {
+              startNonce = i;
+            }
+            totalCanClaimAmount += summary.records[i].tokenRemaining;
+            if (totalCanClaimAmount >= summary.totalCanClaimAmount) {
+              endNonce = i;
+              break;
+            }
+          }
+        }
+        return client.claim(toAccount || account, startNonce, endNonce);
+      }),
+    );
   }
 
-  private getClient(options: ClientOptions): ContractClient {
+  private getClient(options: ClientOptions): Promise<ContractClient> {
     const keyName = clientOptionToKey(options);
     const client = this.clients.get(keyName);
     if (!client) {
-      throw new Error(`Client not found for options: ${JSON.stringify(options)}`);
+      return createErrorPromise(XZKStakingErrorCode.NOT_INITIALIZED_ERROR);
     }
-    return client;
+    return Promise.resolve(client);
   }
 }
 

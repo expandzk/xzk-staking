@@ -8,7 +8,8 @@ export type {
   ClientOptions,
   StakingSummary,
   StakingRecord,
-  ClaimSummary,
+  UnstakingSummary,
+  UnstakingRecord,
   IStakingClient,
 } from './api';
 

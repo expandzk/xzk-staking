@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
-import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
+import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {TOTAL_FACTOR_365, TOTAL_FACTOR_180, TOTAL_FACTOR_90, TOTAL_FACTOR_FLEXIBLE} from "./const.sol";
 import {SEPOLIA_DAO_REGISTRY, SEPOLIA_XZK_TOKEN, SEPOLIA_VXZK_TOKEN, SEPOLIA_PAUSE_ADMIN} from "./const.sol";
 import {ETHEREUM_DAO_REGISTRY, ETHEREUM_XZK_TOKEN, ETHEREUM_VXZK_TOKEN, ETHEREUM_PAUSE_ADMIN} from "./const.sol";
@@ -53,7 +53,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 365 days")));
 
@@ -76,7 +76,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 365 days")));
 
@@ -99,7 +99,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 180 days")));
 
@@ -122,7 +122,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 180 days")));
 
@@ -145,7 +145,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 90 days")));
 
@@ -168,7 +168,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 90 days")));
 
@@ -191,7 +191,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK Flexible")));
 
@@ -214,7 +214,7 @@ contract CheckStaking is Script {
             return;
         }
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK Flexible")));
 
@@ -234,7 +234,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sXZK_365d");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 365 days")));
 
@@ -254,7 +254,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sVXZK_365d");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 365 days")));
 
@@ -274,7 +274,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sXZK_180d");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 180 days")));
 
@@ -294,7 +294,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sVXZK_180d");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 180 days")));
 
@@ -314,7 +314,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sXZK_90d");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK 90 days")));
 
@@ -334,7 +334,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sVXZK_90d");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK 90 days")));
 
@@ -354,7 +354,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sXZK_Flex");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking XZK Flexible")));
 
@@ -374,7 +374,7 @@ contract CheckStaking is Script {
         address staking_contract = vm.envAddress("sepolia_sVXZK_Flex");
         assert(staking_contract != address(0));
 
-        MystikoStaking staking = MystikoStaking(staking_contract);
+        XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
         assert(keccak256(bytes(name)) == keccak256(bytes("Mystiko Staking VXZK Flexible")));
 
@@ -389,7 +389,7 @@ contract CheckStaking is Script {
         check_sepolia_vxzk_token(staking);
     }
 
-    function check_365d_contract(MystikoStaking staking) public view {
+    function check_365d_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_365);
 
@@ -399,7 +399,7 @@ contract CheckStaking is Script {
         check_staking_contract(staking);
     }
 
-    function check_180d_contract(MystikoStaking staking) public view {
+    function check_180d_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_180);
 
@@ -409,7 +409,7 @@ contract CheckStaking is Script {
         check_staking_contract(staking);
     }
 
-    function check_90d_contract(MystikoStaking staking) public view {
+    function check_90d_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_90);
 
@@ -419,7 +419,7 @@ contract CheckStaking is Script {
         check_staking_contract(staking);
     }
 
-    function check_flexible_contract(MystikoStaking staking) public view {
+    function check_flexible_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_FLEXIBLE);
 
@@ -432,7 +432,7 @@ contract CheckStaking is Script {
         check_staking_contract(staking);
     }
 
-    function check_staking_contract(MystikoStaking staking) public view {
+    function check_staking_contract(XzkStaking staking) public view {
         uint256 totalDuration = staking.TOTAL_DURATION_SECONDS();
         assert(totalDuration == 3 * 365 days);
 
@@ -458,7 +458,7 @@ contract CheckStaking is Script {
         assert(totalSupply == 0);
     }
 
-    function check_ethereum_admin(MystikoStaking staking) public view {
+    function check_ethereum_admin(XzkStaking staking) public view {
         bool hasPauseAdmin = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), ETHEREUM_PAUSE_ADMIN);
         assert(hasPauseAdmin == true);
 
@@ -466,7 +466,7 @@ contract CheckStaking is Script {
         assert(daoRegistry == ETHEREUM_DAO_REGISTRY);
     }
 
-    function check_sepolia_admin(MystikoStaking staking) public view {
+    function check_sepolia_admin(XzkStaking staking) public view {
         bool hasPauseAdmin = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), SEPOLIA_PAUSE_ADMIN);
         assert(hasPauseAdmin == true);
 
@@ -474,22 +474,22 @@ contract CheckStaking is Script {
         assert(daoRegistry == SEPOLIA_DAO_REGISTRY);
     }
 
-    function check_ethereum_xzk_token(MystikoStaking staking) public view {
+    function check_ethereum_xzk_token(XzkStaking staking) public view {
         IERC20 xzkToken = staking.UNDERLYING_TOKEN();
         assert(xzkToken == ETHEREUM_XZK_TOKEN);
     }
 
-    function check_sepolia_xzk_token(MystikoStaking staking) public view {
+    function check_sepolia_xzk_token(XzkStaking staking) public view {
         IERC20 xzkToken = staking.UNDERLYING_TOKEN();
         assert(xzkToken == SEPOLIA_XZK_TOKEN);
     }
 
-    function check_ethereum_vxzk_token(MystikoStaking staking) public view {
+    function check_ethereum_vxzk_token(XzkStaking staking) public view {
         IERC20 vxzkToken = IERC20(staking.UNDERLYING_TOKEN());
         assert(vxzkToken == ETHEREUM_VXZK_TOKEN);
     }
 
-    function check_sepolia_vxzk_token(MystikoStaking staking) public view {
+    function check_sepolia_vxzk_token(XzkStaking staking) public view {
         IERC20 vxzkToken = IERC20(staking.UNDERLYING_TOKEN());
         assert(vxzkToken == SEPOLIA_VXZK_TOKEN);
     }

@@ -1,9 +1,12 @@
 export enum XZKStakingErrorCode {
   UNKNOWN_ERROR = 0,
-  NOT_INITIALIZED_ERROR = 1,
-  PARAMETER_ERROR = 2,
-  BALANCE_ERROR = 3,
-  APPROVE_AMOUNT_ERROR = 4,
+  PROVIDER_ERROR = 1,
+  NOT_INITIALIZED_ERROR = 2,
+  PARAMETER_ERROR = 3,
+  BALANCE_ERROR = 4,
+  APPROVE_AMOUNT_ERROR = 5,
+  UNSTAKE_AMOUNT_TOO_LARGE_ERROR = 6,
+  NO_CLAIMABLE_AMOUNT_ERROR = 7,
 }
 
 export class XZKStakingError extends Error {
@@ -15,10 +18,35 @@ export class XZKStakingError extends Error {
   }
 }
 
-export function createError(message: string, code?: XZKStakingErrorCode): XZKStakingError {
-  return new XZKStakingError(message, code || XZKStakingErrorCode.UNKNOWN_ERROR);
+function createError(message: string, code: XZKStakingErrorCode): Promise<any> {
+  return Promise.reject(new XZKStakingError(message, code));
 }
 
-export function createErrorPromise(message: string, code?: XZKStakingErrorCode): Promise<any> {
-  return Promise.reject(createError(message, code));
+export function createErrorPromise(code: XZKStakingErrorCode, message?: string): Promise<any> {
+  switch (code) {
+    case XZKStakingErrorCode.PROVIDER_ERROR: {
+      return createError(message || 'Provider error', code);
+    }
+    case XZKStakingErrorCode.NOT_INITIALIZED_ERROR: {
+      return createError(message || 'Not initialized', code);
+    }
+    case XZKStakingErrorCode.PARAMETER_ERROR: {
+      return createError(message || 'Parameter error', code);
+    }
+    case XZKStakingErrorCode.BALANCE_ERROR: {
+      return createError(message || 'Balance error', code);
+    }
+    case XZKStakingErrorCode.APPROVE_AMOUNT_ERROR: {
+      return createError(message || 'Approve amount error', code);
+    }
+    case XZKStakingErrorCode.UNSTAKE_AMOUNT_TOO_LARGE_ERROR: {
+      return createError(message || 'Unstake amount too large', code);
+    }
+    case XZKStakingErrorCode.NO_CLAIMABLE_AMOUNT_ERROR: {
+      return createError(message || 'No claimable amount', code);
+    }
+    default: {
+      return createError(message || 'Unknown error', code);
+    }
+  }
 }

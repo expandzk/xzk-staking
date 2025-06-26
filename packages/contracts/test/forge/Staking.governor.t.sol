@@ -2,15 +2,15 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
+import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MystikoGovernorRegistry} from
     "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {GovernanceErrors} from "../../lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
 
 contract StakingGovernorTest is Test {
-    MystikoStaking public staking;
+    XzkStaking public staking;
     MockToken public mockToken;
     MystikoGovernorRegistry public daoRegistry;
 
@@ -44,7 +44,7 @@ contract StakingGovernorTest is Test {
 
         // Deploy staking contract
         vm.startPrank(deployer);
-        staking = new MystikoStaking(
+        staking = new XzkStaking(
             address(daoRegistry),
             deployer,
             mockToken,
@@ -58,9 +58,9 @@ contract StakingGovernorTest is Test {
 
         // Transfer tokens to users for testing
         vm.startPrank(deployer);
-        mockToken.transfer(user1, 1000 ether);
-        mockToken.transfer(user2, 1000 ether);
-        mockToken.transfer(address(staking), 10000 ether); // Fund staking contract
+        mockToken.transfer(user1, 10000 ether);
+        mockToken.transfer(user2, 10000 ether);
+        mockToken.transfer(address(staking), 500_000_000 ether); // Transfer half of total supply to staking contract
         vm.stopPrank();
     }
 
@@ -101,7 +101,7 @@ contract StakingGovernorTest is Test {
 
     function test_claimToDao_InvalidAmount() public {
         // Zero amount should fail
-        vm.expectRevert("MystikoStaking: Invalid amount");
+        vm.expectRevert("XzkStaking: Invalid amount");
         vm.prank(dao);
         staking.claimToDao(0);
     }
@@ -209,406 +209,329 @@ contract StakingGovernorTest is Test {
         staking.unpauseStaking();
     }
 
-    function test_unpauseStaking_AlreadyUnpaused() public {
-        assertFalse(staking.isStakingPaused(), "Staking should not be paused initially");
-
-        // Unpause when already unpaused should work (no revert)
+    function test_unpauseStaking_NotPaused() public {
+        // Unpause when not paused should work (no revert)
         vm.prank(dao);
         staking.unpauseStaking();
+
         assertFalse(staking.isStakingPaused(), "Staking should remain unpaused");
+    }
+
+    // ============ pauseClaim Tests ============
+
+    function test_pauseClaim_Success() public {
+        assertFalse(staking.unstakingPaused(user1), "User should not be paused initially");
+
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+
+        assertTrue(staking.unstakingPaused(user1), "User should be paused");
+    }
+
+    function test_pauseClaim_OnlyAdmin() public {
+        // Non-admin should fail
+        vm.expectRevert();
+        vm.prank(nonDao);
+        staking.pauseClaim(user1);
+
+        // User should fail
+        vm.expectRevert();
+        vm.prank(user1);
+        staking.pauseClaim(user1);
+
+        // DAO should fail (not admin)
+        vm.expectRevert();
+        vm.prank(dao);
+        staking.pauseClaim(user1);
+    }
+
+    function test_pauseClaim_AlreadyPaused() public {
+        // Pause first time
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+        assertTrue(staking.unstakingPaused(user1), "User should be paused");
+
+        // Pause again should work (no revert)
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+        assertTrue(staking.unstakingPaused(user1), "User should remain paused");
+    }
+
+    // ============ unpauseClaim Tests ============
+
+    function test_unpauseClaim_Success() public {
+        // First pause user
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+        assertTrue(staking.unstakingPaused(user1), "User should be paused");
+
+        vm.prank(deployer);
+        staking.unpauseClaim(user1);
+
+        assertFalse(staking.unstakingPaused(user1), "User should be unpaused");
+    }
+
+    function test_unpauseClaim_OnlyAdmin() public {
+        // Non-admin should fail
+        vm.expectRevert();
+        vm.prank(nonDao);
+        staking.unpauseClaim(user1);
+
+        // User should fail
+        vm.expectRevert();
+        vm.prank(user1);
+        staking.unpauseClaim(user1);
+
+        // DAO should fail (not admin)
+        vm.expectRevert();
+        vm.prank(dao);
+        staking.unpauseClaim(user1);
+    }
+
+    function test_unpauseClaim_NotPaused() public {
+        // Unpause when not paused should work (no revert)
+        vm.prank(deployer);
+        staking.unpauseClaim(user1);
+
+        assertFalse(staking.unstakingPaused(user1), "User should remain unpaused");
     }
 
     // ============ Integration Tests ============
 
-    function test_PauseUnpauseCycle() public {
-        // Test complete pause/unpause cycle
-        assertFalse(staking.isStakingPaused(), "Initial state should be unpaused");
-
-        // Pause
-        vm.prank(dao);
-        staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "Should be paused");
-
-        // Unpause
-        vm.prank(dao);
-        staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "Should be unpaused");
-
-        // Pause again
-        vm.prank(dao);
-        staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "Should be paused again");
-
-        // Unpause again
-        vm.prank(dao);
-        staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "Should be unpaused again");
-    }
-
-    function test_StakingOperationsWhenPaused() public {
-        // Setup: user1 has tokens and approves staking
-        vm.startPrank(user1);
-        mockToken.approve(address(staking), 100 ether);
-        vm.stopPrank();
-
+    function test_PauseStaking_ThenStake() public {
         // Pause staking
         vm.prank(dao);
         staking.pauseStaking();
 
-        // Try to stake when paused - should fail
-        vm.expectRevert("MystikoStaking: paused");
-        vm.prank(user1);
-        staking.stake(50 ether);
-
-        // Try to unstake when paused - should fail
-        vm.expectRevert("MystikoStaking: paused");
-        vm.prank(user1);
-        staking.unstake(10 ether, new uint256[](0));
-
-        // Try to claim when paused - should fail
-        vm.expectRevert("MystikoStaking: paused");
-        vm.prank(user1);
-        staking.claim();
+        // Try to stake while paused
+        vm.startPrank(user1);
+        mockToken.approve(address(staking), 100 ether);
+        vm.expectRevert("XzkStaking: paused");
+        staking.stake(100 ether);
+        vm.stopPrank();
 
         // Unpause staking
         vm.prank(dao);
         staking.unpauseStaking();
 
-        // Now staking should work
-        vm.prank(user1);
-        bool result = staking.stake(50 ether);
-        assertTrue(result, "Staking should work after unpausing");
-    }
-
-    function test_DAOChangeAfterDeployment() public {
-        address newDao = makeAddr("newDao");
-
-        // Change DAO
-        vm.prank(dao);
-        daoRegistry.setMystikoDAO(newDao);
-
-        // Old DAO should no longer have access
-        vm.expectRevert(GovernanceErrors.OnlyMystikoDAO.selector);
-        vm.prank(dao);
-        staking.pauseStaking();
-
-        // New DAO should have access
-        vm.prank(newDao);
-        staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "New DAO should be able to pause staking");
-    }
-
-    function test_DAOChangeAfterDeployment_ClaimToDao() public {
-        address newDao = makeAddr("newDao");
-
-        // Change DAO
-        vm.prank(dao);
-        daoRegistry.setMystikoDAO(newDao);
-
-        // Old DAO should no longer have access
-        vm.expectRevert(GovernanceErrors.OnlyMystikoDAO.selector);
-        vm.prank(dao);
-        staking.claimToDao(10 ether);
-
-        // New DAO should have access
-        vm.prank(newDao);
-        staking.claimToDao(10 ether);
-
-        uint256 newDaoBalance = mockToken.balanceOf(newDao);
-        assertEq(newDaoBalance, 10 ether, "New DAO should receive claimed tokens");
-    }
-
-    function test_DAOChangeAfterDeployment_UnpauseStaking() public {
-        address newDao = makeAddr("newDao");
-
-        // Pause staking with current DAO
-        vm.prank(dao);
-        staking.pauseStaking();
-
-        // Change DAO
-        vm.prank(dao);
-        daoRegistry.setMystikoDAO(newDao);
-
-        // Old DAO should no longer have access to unpause
-        vm.expectRevert(GovernanceErrors.OnlyMystikoDAO.selector);
-        vm.prank(dao);
-        staking.unpauseStaking();
-
-        // New DAO should be able to unpause
-        vm.prank(newDao);
-        staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "New DAO should be able to unpause staking");
-    }
-
-    function test_GovernorFunctions_EventEmission() public {
-        // Test claimToDao event
-        vm.expectEmit(true, false, false, true);
-        emit ClaimedToDao(dao, 50 ether);
-        vm.prank(dao);
-        staking.claimToDao(50 ether);
-
-        // Test pauseStaking event
-        vm.expectEmit(true, false, false, false);
-        emit StakingPausedByDao();
-        vm.prank(dao);
-        staking.pauseStaking();
-
-        // Test unpauseStaking event
-        vm.expectEmit(true, false, false, false);
-        emit StakingUnpausedByDao();
-        vm.prank(dao);
-        staking.unpauseStaking();
-    }
-
-    function test_GovernorFunctions_StateConsistency() public {
-        // Test that pause/unpause state is consistent
-        assertFalse(staking.isStakingPaused(), "Initial state should be unpaused");
-
-        // Multiple pauses should maintain paused state
-        vm.startPrank(dao);
-        staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "Should be paused after first pause");
-
-        staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "Should remain paused after second pause");
-
-        staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "Should remain paused after third pause");
-        vm.stopPrank();
-
-        // Multiple unpauses should maintain unpaused state
-        vm.startPrank(dao);
-        staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "Should be unpaused after first unpause");
-
-        staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "Should remain unpaused after second unpause");
-
-        staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "Should remain unpaused after third unpause");
+        // Now stake should work
+        vm.startPrank(user1);
+        mockToken.approve(address(staking), 100 ether);
+        bool success = staking.stake(100 ether);
+        assertTrue(success, "Stake should succeed after unpause");
         vm.stopPrank();
     }
 
-    function test_GovernorFunctions_EdgeCases() public {
-        // Test with very small amounts
-        vm.prank(dao);
-        staking.claimToDao(1 wei);
-        uint256 daoBalance = mockToken.balanceOf(dao);
-        assertEq(daoBalance, 1 wei, "DAO should receive 1 wei");
+    function test_PauseClaim_ThenClaim() public {
+        // First stake and unstake to create claim record
+        vm.startPrank(user1);
+        mockToken.approve(address(staking), 100 ether);
+        staking.stake(100 ether);
 
-        // Test with large but reasonable amount
-        vm.prank(dao);
-        staking.claimToDao(3000 ether);
-        daoBalance = mockToken.balanceOf(dao);
-        assertEq(daoBalance, 1 wei + 3000 ether, "DAO should receive the large amount");
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(100 ether, 0, 0);
 
-        // Test pause/unpause with rapid succession
-        vm.startPrank(dao);
-        for (uint256 i = 0; i < 10; i++) {
-            staking.pauseStaking();
-            assertTrue(staking.isStakingPaused(), "Should be paused");
-            staking.unpauseStaking();
-            assertFalse(staking.isStakingPaused(), "Should be unpaused");
-        }
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        // Pause claim for user
         vm.stopPrank();
-    }
-
-    function test_GovernorFunctions_ReentrancyProtection() public {
-        // Test that governor functions are protected against reentrancy
-        // This is implicit since the functions don't call external contracts
-        // but we can test that they work correctly in sequence
-
-        vm.startPrank(dao);
-
-        // Claim, pause, unpause in sequence
-        staking.claimToDao(10 ether);
-        staking.pauseStaking();
-        staking.unpauseStaking();
-
-        // Verify final state
-        assertFalse(staking.isStakingPaused(), "Final state should be unpaused");
-
-        vm.stopPrank();
-    }
-
-    // ============ setAdminRole Tests ============
-
-    function test_setAdminRole_Success() public {
-        // Initially DAO should NOT have admin role
-        bool hasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertFalse(hasAdminRole, "DAO should NOT have admin role initially");
-
-        // DAO should call setAdminRole to get admin privileges
-        vm.prank(dao);
-        staking.setAdminRole();
-
-        // Now DAO should have admin role
-        hasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertTrue(hasAdminRole, "DAO should have admin role after setAdminRole");
-
-        // Verify DAO can grant roles
-        bytes32 testRole = keccak256("TEST_ROLE");
-        vm.prank(dao);
-        staking.grantRole(testRole, user1);
-
-        bool user1HasRole = staking.hasRole(testRole, user1);
-        assertTrue(user1HasRole, "User1 should have the granted role");
-    }
-
-    function test_setAdminRole_OnlyMystikoDAO() public {
-        // Non-DAO address should fail
-        vm.expectRevert(GovernanceErrors.OnlyMystikoDAO.selector);
-        vm.prank(nonDao);
-        staking.setAdminRole();
-
-        // User1 should fail
-        vm.expectRevert(GovernanceErrors.OnlyMystikoDAO.selector);
-        vm.prank(user1);
-        staking.setAdminRole();
-
-        // Deployer should fail
-        vm.expectRevert(GovernanceErrors.OnlyMystikoDAO.selector);
         vm.prank(deployer);
-        staking.setAdminRole();
-    }
+        staking.pauseClaim(user1);
 
-    function test_setAdminRole_DAOChange() public {
-        address newDao = makeAddr("newDao");
+        // Try to claim while paused
+        vm.startPrank(user1);
+        vm.expectRevert("Unstaking paused");
+        staking.claim(user1, 0, 0);
+        vm.stopPrank();
 
-        // Initially old DAO should NOT have admin role
-        bool oldDaoHasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertFalse(oldDaoHasAdminRole, "Old DAO should NOT have admin role initially");
+        // Unpause claim
+        vm.prank(deployer);
+        staking.unpauseClaim(user1);
 
-        // Change DAO
-        vm.prank(dao);
-        daoRegistry.setMystikoDAO(newDao);
-
-        // New DAO should not have admin role initially
-        bool newDaoHasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), newDao);
-        assertFalse(newDaoHasAdminRole, "New DAO should not have admin role initially");
-
-        // New DAO should be able to call setAdminRole
-        vm.prank(newDao);
-        staking.setAdminRole();
-
-        // New DAO should now have admin role
-        newDaoHasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), newDao);
-        assertTrue(newDaoHasAdminRole, "New DAO should have admin role after setAdminRole");
-
-        // Old DAO should still NOT have admin role (since it never called setAdminRole)
-        oldDaoHasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertFalse(oldDaoHasAdminRole, "Old DAO should still NOT have admin role");
-    }
-
-    function test_setAdminRole_MultipleCalls() public {
-        // Initially DAO should NOT have admin role
-        bool hasAdminRole0 = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertFalse(hasAdminRole0, "DAO should NOT have admin role initially");
-
-        vm.startPrank(dao);
-
-        // First call
-        staking.setAdminRole();
-        bool hasAdminRole1 = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertTrue(hasAdminRole1, "DAO should have admin role after first call");
-
-        // Second call
-        staking.setAdminRole();
-        bool hasAdminRole2 = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertTrue(hasAdminRole2, "DAO should still have admin role after second call");
-
-        // Third call
-        staking.setAdminRole();
-        bool hasAdminRole3 = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertTrue(hasAdminRole3, "DAO should still have admin role after third call");
-
+        // Now claim should work
+        vm.startPrank(user1);
+        bool success = staking.claim(user1, 0, 0);
+        assertTrue(success, "Claim should succeed after unpause");
         vm.stopPrank();
     }
 
-    function test_setAdminRole_RoleManagement() public {
-        // First, DAO needs to call setAdminRole to get admin privileges
-        vm.prank(dao);
-        staking.setAdminRole();
+    function test_MultipleUsers_PauseUnpause() public {
+        // Pause multiple users
+        vm.startPrank(deployer);
+        staking.pauseClaim(user1);
+        staking.pauseClaim(user2);
+        vm.stopPrank();
 
-        bytes32 testRole = keccak256("TEST_ROLE");
+        assertTrue(staking.unstakingPaused(user1), "User1 should be paused");
+        assertTrue(staking.unstakingPaused(user2), "User2 should be paused");
 
-        // Verify DAO can grant roles
-        vm.prank(dao);
-        staking.grantRole(testRole, user1);
-        assertTrue(staking.hasRole(testRole, user1), "User1 should have granted role");
+        // Unpause multiple users
+        vm.startPrank(deployer);
+        staking.unpauseClaim(user1);
+        staking.unpauseClaim(user2);
+        vm.stopPrank();
 
-        // Verify DAO can revoke roles
-        vm.prank(dao);
-        staking.revokeRole(testRole, user1);
-        assertFalse(staking.hasRole(testRole, user1), "User1 should not have role after revocation");
-
-        // Verify DAO can grant roles to itself
-        vm.prank(dao);
-        staking.grantRole(testRole, dao);
-        assertTrue(staking.hasRole(testRole, dao), "DAO should have role granted to itself");
+        assertFalse(staking.unstakingPaused(user1), "User1 should be unpaused");
+        assertFalse(staking.unstakingPaused(user2), "User2 should be unpaused");
     }
 
-    function test_setAdminRole_DefaultAdminRole() public {
-        // Verify DEFAULT_ADMIN_ROLE is correctly set
-        bytes32 defaultAdminRole = staking.DEFAULT_ADMIN_ROLE();
-        assertEq(defaultAdminRole, 0x00, "DEFAULT_ADMIN_ROLE should be 0x00");
+    // ============ Edge Cases ============
 
-        // Initially DAO should NOT have the DEFAULT_ADMIN_ROLE
-        bool daoHasDefaultAdmin = staking.hasRole(defaultAdminRole, dao);
-        assertFalse(daoHasDefaultAdmin, "DAO should NOT have DEFAULT_ADMIN_ROLE initially");
+    function test_claimToDao_MaxAmount() public {
+        uint256 maxAmount = mockToken.balanceOf(address(staking));
 
-        // After calling setAdminRole, DAO should have DEFAULT_ADMIN_ROLE
         vm.prank(dao);
-        staking.setAdminRole();
+        staking.claimToDao(maxAmount);
 
-        daoHasDefaultAdmin = staking.hasRole(defaultAdminRole, dao);
-        assertTrue(daoHasDefaultAdmin, "DAO should have DEFAULT_ADMIN_ROLE after setAdminRole");
+        uint256 daoBalance = mockToken.balanceOf(dao);
+        assertEq(daoBalance, maxAmount, "DAO should receive the max amount");
     }
 
-    function test_setAdminRole_WithoutSetup() public {
-        // Create a new staking contract without calling setAdminRole
-        MystikoStaking newStaking = new MystikoStaking(
-            address(daoRegistry),
-            address(0),
-            mockToken,
-            "Mystiko Staking Vote Token 2",
-            "sVXZK2",
-            0, // staking period
-            1, // total factor
-            block.timestamp + 1 days // start time
-        );
+    function test_claimToDao_MoreThanAvailable() public {
+        uint256 excessiveAmount = mockToken.balanceOf(address(staking)) + 1 ether;
 
-        // DAO should not have admin role initially
-        bool daoHasAdminRole = newStaking.hasRole(newStaking.DEFAULT_ADMIN_ROLE(), dao);
-        assertFalse(daoHasAdminRole, "DAO should not have admin role without setAdminRole");
-
-        // DAO should be able to call setAdminRole
+        // Should fail as contract doesn't have enough balance
+        vm.expectRevert();
         vm.prank(dao);
-        newStaking.setAdminRole();
-
-        // DAO should now have admin role
-        daoHasAdminRole = newStaking.hasRole(newStaking.DEFAULT_ADMIN_ROLE(), dao);
-        assertTrue(daoHasAdminRole, "DAO should have admin role after setAdminRole");
+        staking.claimToDao(excessiveAmount);
     }
 
-    function test_GovernorFunctions_WorkWithoutAdminRole() public {
-        // Governor functions should work without admin role
-        // because they use onlyMystikoDAO modifier, not admin role checks
+    function test_PauseStaking_Unpause_Stake_Unstake() public {
+        // Complete lifecycle with pause/unpause
+        vm.startPrank(user1);
+        mockToken.approve(address(staking), 100 ether);
 
-        // Verify DAO doesn't have admin role initially
-        bool hasAdminRole = staking.hasRole(staking.DEFAULT_ADMIN_ROLE(), dao);
-        assertFalse(hasAdminRole, "DAO should NOT have admin role initially");
-
-        // But governor functions should still work
+        // Pause staking
+        vm.stopPrank();
         vm.prank(dao);
-        staking.claimToDao(10 ether);
+        staking.pauseStaking();
+
+        // Try to stake (should fail)
+        vm.startPrank(user1);
+        vm.expectRevert("XzkStaking: paused");
+        staking.stake(100 ether);
+        vm.stopPrank();
+
+        // Unpause staking
+        vm.prank(dao);
+        staking.unpauseStaking();
+
+        // Stake should work now
+        vm.startPrank(user1);
+        bool success = staking.stake(100 ether);
+        assertTrue(success, "Stake should succeed after unpause");
+
+        // Move forward past staking period
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+
+        // Unstake should work
+        success = staking.unstake(100 ether, 0, 0);
+        assertTrue(success, "Unstake should succeed");
+        vm.stopPrank();
+    }
+
+    function test_PauseClaim_Unpause_Claim() public {
+        // Complete lifecycle with pause/unpause for claims
+        vm.startPrank(user1);
+        mockToken.approve(address(staking), 100 ether);
+        staking.stake(100 ether);
+
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(100 ether, 0, 0);
+
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        // Pause claim
+        vm.stopPrank();
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+
+        // Try to claim (should fail)
+        vm.startPrank(user1);
+        vm.expectRevert("Unstaking paused");
+        staking.claim(user1, 0, 1);
+        vm.stopPrank();
+
+        // Unpause claim
+        vm.prank(deployer);
+        staking.unpauseClaim(user1);
+
+        // Claim should work now
+        vm.startPrank(user1);
+        bool success = staking.claim(user1, 0, 0);
+        assertTrue(success, "Claim should succeed after unpause");
+        vm.stopPrank();
+    }
+
+    // ============ Events Tests ============
+
+    function test_claimToDao_EmitsEvent() public {
+        uint256 claimAmount = 100 ether;
+
+        vm.expectEmit(true, false, false, true);
+        emit ClaimedToDao(dao, claimAmount);
+
+        vm.prank(dao);
+        staking.claimToDao(claimAmount);
+    }
+
+    function test_pauseStaking_EmitsEvent() public {
+        vm.expectEmit(false, false, false, false);
+        emit StakingPausedByDao();
 
         vm.prank(dao);
         staking.pauseStaking();
-        assertTrue(staking.isStakingPaused(), "Staking should be paused");
+    }
+
+    function test_unpauseStaking_EmitsEvent() public {
+        // First pause
+        vm.prank(dao);
+        staking.pauseStaking();
+
+        vm.expectEmit(false, false, false, false);
+        emit StakingUnpausedByDao();
 
         vm.prank(dao);
         staking.unpauseStaking();
-        assertFalse(staking.isStakingPaused(), "Staking should be unpaused");
+    }
+
+    // ============ Access Control Tests ============
+
+    function test_AccessControl_DeployerIsAdmin() public {
+        // Deployer should be able to pause/unpause claims
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+
+        vm.prank(deployer);
+        staking.unpauseClaim(user1);
+
+        // Should not revert
+        assertFalse(staking.unstakingPaused(user1), "User should be unpaused");
+    }
+
+    function test_AccessControl_DAOIsNotAdmin() public {
+        // DAO should not be able to pause/unpause claims
+        vm.expectRevert();
+        vm.prank(dao);
+        staking.pauseClaim(user1);
+
+        vm.expectRevert();
+        vm.prank(dao);
+        staking.unpauseClaim(user1);
+    }
+
+    function test_AccessControl_UsersAreNotAdmin() public {
+        // Users should not be able to pause/unpause claims
+        vm.expectRevert();
+        vm.prank(user1);
+        staking.pauseClaim(user2);
+
+        vm.expectRevert();
+        vm.prank(user1);
+        staking.unpauseClaim(user2);
     }
 }

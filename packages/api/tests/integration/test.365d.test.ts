@@ -94,32 +94,20 @@ describe('Sepolia Integration Tests - 365 Day Staking', () => {
   describe('Staking Summary Tests', () => {
     it('should get staking summary for test account', async () => {
       const summary = await stakingApiClient.stakingSummary(testOptions, TEST_ACCOUNT);
-
-      expect(summary).toHaveProperty('nonce');
-      expect(summary).toHaveProperty('totalStaked');
-      expect(summary).toHaveProperty('totalCanUnstake');
-      expect(summary).toHaveProperty('records');
-
-      expect(typeof summary.nonce).toBe('number');
-      expect(typeof summary.totalStaked).toBe('number');
-      expect(typeof summary.totalCanUnstake).toBe('number');
+      expect(summary).toHaveProperty('totalTokenAmount');
+      expect(summary).toHaveProperty('totalStakingTokenAmount');
+      expect(summary).toHaveProperty('totalStakingTokenRemaining');
+      expect(summary).toHaveProperty('totalCanUnstakeAmount');
       expect(Array.isArray(summary.records)).toBe(true);
     });
-  });
 
-  describe('Claim Summary Tests', () => {
-    it('should get claim summary for test account', async () => {
-      const claimSummary = await stakingApiClient.claimSummary(testOptions, TEST_ACCOUNT);
-
-      expect(claimSummary).toHaveProperty('unstakeTime');
-      expect(claimSummary).toHaveProperty('amount');
-      expect(claimSummary).toHaveProperty('claimable');
-      expect(claimSummary).toHaveProperty('paused');
-
-      expect(typeof claimSummary.unstakeTime).toBe('number');
-      expect(typeof claimSummary.amount).toBe('number');
-      expect(typeof claimSummary.claimable).toBe('boolean');
-      expect(typeof claimSummary.paused).toBe('boolean');
+    it('should get unstaking summary for test account', async () => {
+      const unstakingSummary = await stakingApiClient.unstakingSummary(testOptions, TEST_ACCOUNT);
+      expect(unstakingSummary).toHaveProperty('totalTokenAmount');
+      expect(unstakingSummary).toHaveProperty('totalStakingTokenAmount');
+      expect(unstakingSummary).toHaveProperty('totalTokenRemaining');
+      expect(unstakingSummary).toHaveProperty('totalCanClaimAmount');
+      expect(Array.isArray(unstakingSummary.records)).toBe(true);
     });
   });
 
@@ -150,10 +138,9 @@ describe('Sepolia Integration Tests - 365 Day Staking', () => {
 
     it('should handle insufficient balance for unstake transaction', async () => {
       const unstakeAmount = 1000000; // Large amount to trigger insufficient balance
-      const nonces = [0];
 
       try {
-        await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, unstakeAmount, nonces);
+        await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, unstakeAmount);
         // If we reach here, the test should fail
         expect(true).toBe(false);
       } catch (error: any) {
@@ -174,11 +161,10 @@ describe('Sepolia Integration Tests - 365 Day Staking', () => {
     });
 
     it('should build claim transaction successfully', async () => {
-      const claimTx = await stakingApiClient.claim(testOptions);
+      const claimTx = await stakingApiClient.claim(testOptions, TEST_ACCOUNT);
 
       expect(claimTx).toHaveProperty('to');
       expect(claimTx).toHaveProperty('data');
-      // Claim transactions don't have a value property
     });
   });
 

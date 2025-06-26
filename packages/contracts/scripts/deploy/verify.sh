@@ -87,7 +87,7 @@ function verify_contract() {
     forge verify-contract --chain-id $chain_id -e $ETHERSCAN_API_KEY \
             --constructor-args $(cast abi-encode "constructor(address,address,address,string,string,uint256,uint256,uint256)" $DAO_REGISTRY $PAUSE_ADMIN $token_address "$token_name" "$symbol" $period $total_factor $start_timestamp) \
             $contract \
-            MystikoStaking --watch
+            XzkStaking --watch
 }
 
 total_factor_365=20

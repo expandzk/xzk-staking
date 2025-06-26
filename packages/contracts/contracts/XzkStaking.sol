@@ -4,11 +4,11 @@ pragma solidity 0.8.26;
 import {SafeERC20, IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {MystikoDAOAccessControl} from "lib/mystiko-governance/packages/contracts/contracts/MystikoDAOAccessControl.sol";
-import {MystikoStakingToken} from "./token/MystikoStakingToken.sol";
+import {XzkStakingToken} from "./token/XzkStakingToken.sol";
 import {RewardsLibrary} from "./libs/Reward.sol";
-import {MystikoStakingRecord} from "./MystikoStakingRecord.sol";
+import {XzkStakingRecord} from "./XzkStakingRecord.sol";
 
-contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAOAccessControl, ReentrancyGuard {
+contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessControl, ReentrancyGuard {
     // Total reward amount (50 million tokens) of underlying token
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
@@ -55,8 +55,8 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
         uint256 _totalFactor,
         uint256 _startTime
     )
-        MystikoStakingToken(_underlyingToken, _stakingTokenName, _stakingTokenSymbol)
-        MystikoStakingRecord(_pauseAdmin, _stakingPeriodSeconds)
+        XzkStakingToken(_underlyingToken, _stakingTokenName, _stakingTokenSymbol)
+        XzkStakingRecord(_pauseAdmin, _stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
         require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must one day after deployment");
@@ -70,53 +70,56 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
     }
 
     function stake(uint256 _amount) external nonReentrant returns (bool) {
-        require(!isStakingPaused, "MystikoStaking: paused");
+        require(!isStakingPaused, "XzkStaking: paused");
         address account = _msgSender();
-        require(account != address(this), "MystikoStaking: Invalid receiver");
-        require(_amount > 0, "MystikoStaking: Invalid amount");
+        require(account != address(this), "XzkStaking: Invalid receiver");
+        require(_amount > 0, "XzkStaking: Invalid amount");
         uint256 stakingAmount = swapToStakingToken(_amount);
         SafeERC20.safeTransferFrom(UNDERLYING_TOKEN, account, address(this), _amount);
         _mint(account, stakingAmount);
         if (STAKING_PERIOD_SECONDS > 0) {
-            require(_stakeRecord(account, stakingAmount), "MystikoStaking: Stake record failed");
+            require(_stakeRecord(account, _amount, stakingAmount), "XzkStaking: Stake record failed");
         }
         totalStaked += _amount;
         emit Staked(account, _amount, stakingAmount);
         return true;
     }
 
-    function unstake(uint256 _stakingAmount, uint256[] calldata _nonces) external nonReentrant returns (bool) {
-        require(!isStakingPaused, "MystikoStaking: paused");
+    function unstake(uint256 _stakingAmount, uint256 _startNonce, uint256 _endNonce)
+        external
+        nonReentrant
+        returns (bool)
+    {
+        require(!isStakingPaused, "Staking paused");
         address account = _msgSender();
-        require(account != address(this), "MystikoStaking: Invalid receiver");
-        require(_stakingAmount > 0, "MystikoStaking: Invalid amount");
-        require(_stakingAmount <= balanceOf(account), "MystikoStaking: Insufficient staking balance");
-        if (STAKING_PERIOD_SECONDS > 0) {
-            require(_nonces.length > 0, "MystikoClaim: Invalid parameter");
-            require(_unstakeRecord(account, _stakingAmount, _nonces), "MystikoStaking: Unstake record failed");
-        } else {
-            require(_nonces.length == 0, "MystikoStaking: Invalid parameter");
-        }
+        require(account != address(this), "Invalid receiver");
+        require(_stakingAmount > 0, "Invalid amount");
+        require(_stakingAmount <= balanceOf(account), "Insufficient staking balance");
+        require(_startNonce <= _endNonce, "Invalid parameter");
         uint256 amount = swapToUnderlyingToken(_stakingAmount);
+        if (STAKING_PERIOD_SECONDS > 0) {
+            require(_unstakeVerify(account, _stakingAmount, _startNonce, _endNonce), "Unstake record failed");
+        }
+        _unstakeRecord(account, amount, _stakingAmount);
         _burn(account, _stakingAmount);
-        require(_claimRecord(account, amount), "MystikoStaking: Claim record failed");
         totalUnstaked += amount;
         emit Unstaked(account, _stakingAmount, amount);
         return true;
     }
 
-    function claim() external nonReentrant returns (bool) {
-        require(!isStakingPaused, "MystikoStaking: paused");
+    function claim(address _to, uint256 _startNonce, uint256 _endNonce) external nonReentrant returns (bool) {
+        require(!isStakingPaused, "Staking paused");
         address account = _msgSender();
-        require(account != address(this), "MystikoStaking: Invalid receiver");
-        uint256 amount = _consumeClaim(account);
-        SafeERC20.safeTransfer(UNDERLYING_TOKEN, account, amount);
-        emit Claimed(account, amount);
+        require(account != address(this), "Invalid receiver");
+        uint256 amount = _claimRecord(account, _startNonce, _endNonce);
+        require(amount > 0, "No amount to claim");
+        SafeERC20.safeTransfer(UNDERLYING_TOKEN, _to, amount);
+        emit Claimed(_to, amount);
         return true;
     }
 
     function claimToDao(uint256 _amount) external onlyMystikoDAO {
-        require(_amount > 0, "MystikoStaking: Invalid amount");
+        require(_amount > 0, "XzkStaking: Invalid amount");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _msgSender(), _amount);
         emit ClaimedToDao(_msgSender(), _amount);
     }
@@ -149,7 +152,7 @@ contract MystikoStaking is MystikoStakingRecord, MystikoStakingToken, MystikoDAO
             return _stakedAmount;
         }
         uint256 totalSupply = totalSupply();
-        require(totalSupply > 0, "MystikoStaking: Total supply is zero");
+        require(totalSupply > 0, "XzkStaking: Total supply is zero");
         uint256 swapAmount = (_stakedAmount * total) / totalSupply;
         return swapAmount;
     }

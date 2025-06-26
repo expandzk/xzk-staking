@@ -1,7 +1,7 @@
 import { providers, Signer } from 'ethers';
-import { ERC20, ERC20__factory, MystikoStaking, MystikoStaking__factory } from './typechain/staking-rewards';
+import { ERC20, ERC20__factory, XzkStaking, XzkStaking__factory } from './typechain/staking-rewards';
 
-export type SupportedContractType = MystikoStaking;
+export type SupportedContractType = XzkStaking;
 
 export class MystikoStakingContractFactory {
   public static connect<T extends SupportedContractType>(
@@ -9,8 +9,8 @@ export class MystikoStakingContractFactory {
     address: string,
     signerOrProvider: Signer | providers.Provider,
   ): T {
-    if (contractName === 'MystikoStaking') {
-      return MystikoStaking__factory.connect(address, signerOrProvider) as T;
+    if (contractName === 'XzkStaking') {
+      return XzkStaking__factory.connect(address, signerOrProvider) as T;
     }
     throw new Error(`unsupported contract name ${contractName}`);
   }

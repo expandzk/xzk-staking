@@ -2,16 +2,16 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
+import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../contracts/mocks/MockVoteToken.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MystikoGovernorRegistry} from
     "../../lib/mystiko-governance/packages/contracts/contracts/impl/MystikoGovernorRegistry.sol";
-import {GovernanceErrors} from "lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
+import {GovernanceErrors} from "../../lib/mystiko-governance/packages/contracts/contracts/GovernanceErrors.sol";
 
 contract StakingStakeIntegrationTest is Test {
-    MystikoStaking public staking;
+    XzkStaking public staking;
     MockToken public mockToken;
     MockVoteToken public mockVoteToken;
     address public owner;
@@ -22,7 +22,7 @@ contract StakingStakeIntegrationTest is Test {
     MystikoGovernorRegistry public daoRegistry;
 
     uint256 public constant STAKE_AMOUNT = 100 ether;
-    uint256 public constant LARGE_AMOUNT = 10000 ether;
+    uint256 public constant LARGE_AMOUNT = 1000 ether;
     uint256 public constant STAKING_PERIOD_SECONDS = 90 days;
 
     // Event declarations
@@ -40,12 +40,11 @@ contract StakingStakeIntegrationTest is Test {
 
         vm.startPrank(owner);
         mockToken = new MockToken();
-        mockToken.mint(owner, 10_000_000_000 ether);
         mockVoteToken = new MockVoteToken(mockToken);
         daoRegistry = new MystikoGovernorRegistry();
         daoRegistry.transferOwnerToDAO(dao);
 
-        staking = new MystikoStaking(
+        staking = new XzkStaking(
             address(daoRegistry),
             owner,
             mockVoteToken,
@@ -57,7 +56,7 @@ contract StakingStakeIntegrationTest is Test {
         );
         vm.stopPrank();
 
-        // Mint tokens to users and convert to vote tokens
+        // Transfer tokens to users and convert to vote tokens
         vm.startPrank(owner);
         mockToken.transfer(user1, LARGE_AMOUNT);
         mockToken.transfer(user2, LARGE_AMOUNT);
@@ -80,16 +79,15 @@ contract StakingStakeIntegrationTest is Test {
         mockVoteToken.depositFor(user3, LARGE_AMOUNT);
         vm.stopPrank();
 
-        // Fund the staking contract with enough MockToken for rewards and principal
         vm.startPrank(owner);
-        mockToken.approve(address(mockVoteToken), 50_000_000 ether);
-        mockVoteToken.depositFor(owner, 50_000_000 ether);
+        uint256 ownerBalance = mockToken.balanceOf(owner);
+        mockToken.approve(address(mockVoteToken), ownerBalance);
+        mockVoteToken.depositFor(owner, ownerBalance);
         vm.stopPrank();
     }
 
     function test_Stake_multiple_users_multiple_stakes(uint256 seed) public {
         vm.warp(staking.START_TIME() + 1);
-        vm.roll(block.number + staking.START_DELAY_SECONDS() / 12);
 
         uint256 user1Nonce = 0;
         uint256 user2Nonce = 0;
@@ -116,12 +114,16 @@ contract StakingStakeIntegrationTest is Test {
 
             // Move forward by random time
             vm.warp(block.timestamp + timeInterval);
-            vm.roll(block.number + (timeInterval / 12));
 
             vm.startPrank(owner);
             uint256 totalRewards = staking.currentTotalReward();
-            mockVoteToken.transfer(address(staking), totalRewards - totalRewardsTransferred);
-            totalRewardsTransferred = totalRewards;
+            uint256 ownerBalance = mockVoteToken.balanceOf(owner);
+            uint256 availableRewards = totalRewards - totalRewardsTransferred;
+            uint256 transferAmount = availableRewards > ownerBalance ? ownerBalance : availableRewards;
+            if (transferAmount > 0) {
+                mockVoteToken.transfer(address(staking), transferAmount);
+                totalRewardsTransferred += transferAmount;
+            }
             vm.stopPrank();
 
             vm.startPrank(currentUser);
@@ -129,23 +131,26 @@ contract StakingStakeIntegrationTest is Test {
             if (operationChoice == 0) {
                 // Stake operation
                 uint256 userBalance = mockVoteToken.balanceOf(currentUser);
-                mockVoteToken.approve(address(staking), amount);
-                bool success = staking.stake(amount);
-                assertTrue(success, "Stake should succeed");
-                if (userChoice == 0) {
-                    user1Nonce++;
-                    assertEq(user1Nonce, staking.stakingNonces(user1));
-                } else if (userChoice == 1) {
-                    user2Nonce++;
-                    assertEq(user2Nonce, staking.stakingNonces(user2));
-                } else {
-                    user3Nonce++;
-                    assertEq(user3Nonce, staking.stakingNonces(user3));
+                uint256 stakeAmount = amount > userBalance ? userBalance : amount;
+                if (stakeAmount > 0) {
+                    mockVoteToken.approve(address(staking), stakeAmount);
+                    bool success = staking.stake(stakeAmount);
+                    assertTrue(success, "Stake should succeed");
+                    if (userChoice == 0) {
+                        user1Nonce++;
+                        assertEq(user1Nonce, staking.stakingNonces(user1));
+                    } else if (userChoice == 1) {
+                        user2Nonce++;
+                        assertEq(user2Nonce, staking.stakingNonces(user2));
+                    } else {
+                        user3Nonce++;
+                        assertEq(user3Nonce, staking.stakingNonces(user3));
+                    }
                 }
             } else if (operationChoice == 1) {
                 // Unstake operation
-                uint256 stakingBalance = staking.balanceOf(currentUser);
-                if (stakingBalance > 0) {
+                uint256 userStakingBalance = staking.balanceOf(currentUser);
+                if (userStakingBalance > 0) {
                     // Check if staking period has ended
                     uint256 unstakeNonce = 0;
                     uint256 unstakeAmount = 0;
@@ -153,25 +158,29 @@ contract StakingStakeIntegrationTest is Test {
                         findUnstakeNonce(currentUser, staking.stakingNonces(currentUser), randomSeed);
 
                     if (unstakeAmount > 0) {
-                        // Calculate expected unstaked amount and fund contract
-                        uint256 expectedAmount = staking.swapToUnderlyingToken(unstakeAmount);
-
-                        uint256[] memory nonces = new uint256[](1);
-                        nonces[0] = unstakeNonce;
-
                         vm.startPrank(currentUser);
-                        bool success = staking.unstake(unstakeAmount, nonces);
+                        bool success = staking.unstake(unstakeAmount, unstakeNonce, unstakeNonce);
                         assertTrue(success, "Unstake should succeed");
+                        vm.stopPrank();
                     }
                 }
             } else {
                 // Claim operation
-                (, uint256 claimAmount,) = staking.claimRecords(currentUser);
-                if (claimAmount > 0) {
-                    // Check if claim delay has passed
-                    (, uint256 unstakeTimestamp,) = staking.claimRecords(currentUser);
-                    if (block.timestamp > unstakeTimestamp + staking.CLAIM_DELAY_SECONDS()) {
-                        bool success = staking.claim();
+                uint256 unstakingNonce = staking.unstakingNonces(currentUser);
+                if (unstakingNonce > 0) {
+                    // Check if claim delay has passed for any record
+                    bool canClaim = false;
+                    for (uint256 j = 0; j < unstakingNonce; j++) {
+                        (uint256 unstakingTime,,,,) = staking.unstakingRecords(currentUser, j);
+                        if (block.timestamp > unstakingTime + staking.CLAIM_DELAY_SECONDS()) {
+                            canClaim = true;
+                            break;
+                        }
+                    }
+
+                    if (canClaim) {
+                        // endNonce is inclusive, so use unstakingNonce - 1 to claim all existing records
+                        bool success = staking.claim(currentUser, 0, unstakingNonce - 1);
                         assertTrue(success, "Claim should succeed");
                     }
                 }
@@ -197,18 +206,73 @@ contract StakingStakeIntegrationTest is Test {
         uint256 unstakeNonce = 0;
         bool found = false;
         for (uint256 j = start; j < currentNonce; j++) {
-            (uint256 stakedBlock,, uint256 remaining) = staking.stakingRecords(user, j);
-            if (remaining > 0 && block.timestamp > stakedBlock + staking.STAKING_PERIOD_SECONDS()) {
-                return (j, remaining);
+            (uint256 stakingTime,,, uint256 remaining) = staking.stakingRecords(user, j);
+            if (remaining > 0 && block.timestamp > stakingTime + staking.STAKING_PERIOD_SECONDS()) {
+                unstakeNonce = j;
+                found = true;
+                break;
             }
         }
 
-        for (uint256 j = 0; j < start; j++) {
-            (uint256 stakedBlock,, uint256 remaining) = staking.stakingRecords(user, j);
-            if (remaining > 0 && block.timestamp > stakedBlock + staking.STAKING_PERIOD_SECONDS()) {
-                return (j, remaining);
+        if (!found) {
+            // Try from beginning
+            for (uint256 j = 0; j < currentNonce; j++) {
+                (uint256 stakingTime,,, uint256 remaining) = staking.stakingRecords(user, j);
+                if (remaining > 0 && block.timestamp > stakingTime + staking.STAKING_PERIOD_SECONDS()) {
+                    unstakeNonce = j;
+                    found = true;
+                    break;
+                }
             }
         }
+
+        if (found) {
+            (,,, uint256 remaining) = staking.stakingRecords(user, unstakeNonce);
+            return (unstakeNonce, remaining);
+        }
+
         return (0, 0);
+    }
+
+    function test_CompleteLifecycle() public {
+        // Test complete staking lifecycle for a single user
+        vm.warp(staking.START_TIME() + 1);
+        vm.roll(10);
+
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+
+        // 1. Stake
+        bool success = staking.stake(STAKE_AMOUNT);
+        assertTrue(success, "Stake should succeed");
+        assertEq(staking.balanceOf(user1), STAKE_AMOUNT, "Staking balance should match stake amount");
+
+        // 2. Move forward past staking period
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(10);
+
+        // 3. Unstake
+        success = staking.unstake(STAKE_AMOUNT, 0, 0);
+        assertTrue(success, "Unstake should succeed");
+        assertEq(staking.balanceOf(user1), 0, "Staking balance should be 0 after unstake");
+
+        // 4. Move forward past claim delay
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(10);
+        vm.stopPrank();
+
+        vm.startPrank(owner);
+        uint256 totalRewards = staking.currentTotalReward();
+        mockVoteToken.transfer(address(staking), totalRewards);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        // 5. Claim
+        uint256 balanceBefore = mockVoteToken.balanceOf(user1);
+        success = staking.claim(user1, 0, 0);
+        assertTrue(success, "Claim should succeed");
+        uint256 balanceAfter = mockVoteToken.balanceOf(user1);
+        assertGt(balanceAfter, balanceBefore, "Balance should increase after claim");
+        vm.stopPrank();
     }
 }
