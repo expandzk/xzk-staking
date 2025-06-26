@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { writeFileSync } from 'fs';
 
-describe('MystikoStaking', function () {
+describe('XzkStaking', function () {
   let staking360: any;
   let staking180: any;
   let staking90: any;
@@ -35,9 +35,9 @@ describe('MystikoStaking', function () {
       throw new Error('Latest block not found');
     }
     const startTimestamp = latestBlock.timestamp + 24 * 3600 + 3600;
-    const MystikoStaking = await ethers.getContractFactory('MystikoStaking');
+    const XzkStaking = await ethers.getContractFactory('XzkStaking');
 
-    staking360 = await MystikoStaking.deploy(
+    staking360 = await XzkStaking.deploy(
       dao.address,
       owner.address,
       mockVoteTokenAddress,
@@ -49,7 +49,7 @@ describe('MystikoStaking', function () {
     );
     await staking360.waitForDeployment();
 
-    staking180 = await MystikoStaking.deploy(
+    staking180 = await XzkStaking.deploy(
       dao.address,
       owner.address,
       mockVoteTokenAddress,
@@ -61,7 +61,7 @@ describe('MystikoStaking', function () {
     );
     await staking180.waitForDeployment();
 
-    staking90 = await MystikoStaking.deploy(
+    staking90 = await XzkStaking.deploy(
       dao.address,
       owner.address,
       mockVoteTokenAddress,
@@ -73,7 +73,7 @@ describe('MystikoStaking', function () {
     );
     await staking90.waitForDeployment();
 
-    stakingFlexible = await MystikoStaking.deploy(
+    stakingFlexible = await XzkStaking.deploy(
       dao.address,
       owner.address,
       mockVoteTokenAddress,

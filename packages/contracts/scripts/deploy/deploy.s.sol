@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
-import {MystikoStaking} from "../../contracts/MystikoStaking.sol";
+import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {console} from "forge-std/console.sol";
 import {SEPOLIA_DAO_REGISTRY, SEPOLIA_PAUSE_ADMIN, SEPOLIA_XZK_TOKEN, SEPOLIA_VXZK_TOKEN} from "./const.sol";
 import {ETHEREUM_DAO_REGISTRY, ETHEREUM_PAUSE_ADMIN, ETHEREUM_XZK_TOKEN, ETHEREUM_VXZK_TOKEN} from "./const.sol";
@@ -39,7 +39,7 @@ contract DeployStaking is Script {
             console.log("");
 
             if (envEthereumXZK365d == address(0)) {
-                MystikoStaking sXZK365 = new MystikoStaking(
+                XzkStaking sXZK365 = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_XZK_TOKEN,
@@ -53,7 +53,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumXZK180d == address(0)) {
-                MystikoStaking sXZK180 = new MystikoStaking(
+                XzkStaking sXZK180 = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_XZK_TOKEN,
@@ -67,7 +67,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumXZK90d == address(0)) {
-                MystikoStaking sXZK90 = new MystikoStaking(
+                XzkStaking sXZK90 = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_XZK_TOKEN,
@@ -81,7 +81,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumXZKFlex == address(0)) {
-                MystikoStaking sXZKFlexible = new MystikoStaking(
+                XzkStaking sXZKFlexible = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_XZK_TOKEN,
@@ -95,7 +95,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumVXZK365d == address(0)) {
-                MystikoStaking sVXZK365 = new MystikoStaking(
+                XzkStaking sVXZK365 = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_VXZK_TOKEN,
@@ -109,7 +109,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumVXZK180d == address(0)) {
-                MystikoStaking sVXZK180 = new MystikoStaking(
+                XzkStaking sVXZK180 = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_VXZK_TOKEN,
@@ -123,7 +123,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumVXZK90d == address(0)) {
-                MystikoStaking sVXZK90 = new MystikoStaking(
+                XzkStaking sVXZK90 = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_VXZK_TOKEN,
@@ -137,7 +137,7 @@ contract DeployStaking is Script {
             }
 
             if (envEthereumVXZKFlex == address(0)) {
-                MystikoStaking sVXZKFlexible = new MystikoStaking(
+                XzkStaking sVXZKFlexible = new XzkStaking(
                     ETHEREUM_DAO_REGISTRY,
                     ETHEREUM_PAUSE_ADMIN,
                     ETHEREUM_VXZK_TOKEN,
@@ -154,7 +154,7 @@ contract DeployStaking is Script {
             console.log("");
 
             if (envSepoliasXZK365d == address(0)) {
-                MystikoStaking sXZK365 = new MystikoStaking(
+                XzkStaking sXZK365 = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_XZK_TOKEN,
@@ -168,7 +168,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasXZK180d == address(0)) {
-                MystikoStaking sXZK180 = new MystikoStaking(
+                XzkStaking sXZK180 = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_XZK_TOKEN,
@@ -182,7 +182,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasXZK90d == address(0)) {
-                MystikoStaking sXZK90 = new MystikoStaking(
+                XzkStaking sXZK90 = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_XZK_TOKEN,
@@ -196,7 +196,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasXZKFlex == address(0)) {
-                MystikoStaking sXZKFlexible = new MystikoStaking(
+                XzkStaking sXZKFlexible = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_XZK_TOKEN,
@@ -210,7 +210,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasVXZK365d == address(0)) {
-                MystikoStaking sVXZK365 = new MystikoStaking(
+                XzkStaking sVXZK365 = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_VXZK_TOKEN,
@@ -224,7 +224,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasVXZK180d == address(0)) {
-                MystikoStaking sVXZK180 = new MystikoStaking(
+                XzkStaking sVXZK180 = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_VXZK_TOKEN,
@@ -238,7 +238,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasVXZK90d == address(0)) {
-                MystikoStaking sVXZK90 = new MystikoStaking(
+                XzkStaking sVXZK90 = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_VXZK_TOKEN,
@@ -252,7 +252,7 @@ contract DeployStaking is Script {
             }
 
             if (envSepoliasVXZKFlex == address(0)) {
-                MystikoStaking sVXZKFlexible = new MystikoStaking(
+                XzkStaking sVXZKFlexible = new XzkStaking(
                     SEPOLIA_DAO_REGISTRY,
                     SEPOLIA_PAUSE_ADMIN,
                     SEPOLIA_VXZK_TOKEN,

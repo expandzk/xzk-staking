@@ -17,6 +17,7 @@ jest.mock('@expandzk/xzk-staking-abi', () => ({
       swapToStakingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
       swapToUnderlyingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
       stakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 2 })),
+      unstakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 1 })),
       stakingRecords: jest.fn(() =>
         Promise.resolve({
           stakedTime: { toNumber: () => 1 },
@@ -24,11 +25,13 @@ jest.mock('@expandzk/xzk-staking-abi', () => ({
           remaining: { toString: () => '3000000000000000000' },
         }),
       ),
-      claimRecords: jest.fn(() =>
+      unstakingRecords: jest.fn(() =>
         Promise.resolve({
-          unstakeTime: { toNumber: () => 1 },
-          amount: { toString: () => '2000000000000000000' },
-          claimPaused: false,
+          unstakedTime: { toNumber: () => 1 },
+          claimTime: { toNumber: () => 2 },
+          stakingTokenAmount: { toString: () => '2000000000000000000' },
+          tokenAmount: { toString: () => '2000000000000000000' },
+          tokenRemaining: { toString: () => '2000000000000000000' },
         }),
       ),
       populateTransaction: {
@@ -128,18 +131,20 @@ describe('StakingApiClient', () => {
 
     // Test stakingSummary returns the expected structure
     const stakingSummary = await stakingApiClient.stakingSummary(testOptions, '0x');
-    expect(stakingSummary).toHaveProperty('nonce');
-    expect(stakingSummary).toHaveProperty('totalStaked');
-    expect(stakingSummary).toHaveProperty('totalCanUnstake');
+    expect(stakingSummary).toHaveProperty('totalTokenAmount');
+    expect(stakingSummary).toHaveProperty('totalStakingTokenAmount');
+    expect(stakingSummary).toHaveProperty('totalStakingTokenRemaining');
+    expect(stakingSummary).toHaveProperty('totalCanUnstakeAmount');
     expect(stakingSummary).toHaveProperty('records');
     expect(Array.isArray(stakingSummary.records)).toBe(true);
 
     // Test claimSummary returns the expected structure
-    const claimSummary = await stakingApiClient.claimSummary(testOptions, '0x');
-    expect(claimSummary).toHaveProperty('unstakeTime');
-    expect(claimSummary).toHaveProperty('amount');
-    expect(claimSummary).toHaveProperty('claimable');
-    expect(claimSummary).toHaveProperty('paused');
+    const unstakingSummary = await stakingApiClient.unstakingSummary(testOptions, '0x');
+    expect(unstakingSummary).toHaveProperty('totalTokenAmount');
+    expect(unstakingSummary).toHaveProperty('totalStakingTokenAmount');
+    expect(unstakingSummary).toHaveProperty('totalCanClaimAmount');
+    expect(unstakingSummary).toHaveProperty('records');
+    expect(Array.isArray(unstakingSummary.records)).toBe(true);
 
     // Test transaction methods return PopulatedTransaction objects
     const approveTx = await stakingApiClient.tokenApprove(testOptions, '0x', 1);
@@ -148,10 +153,10 @@ describe('StakingApiClient', () => {
     const stakeTx = await stakingApiClient.stake(testOptions, '0x', 1);
     expect(stakeTx).toBeDefined();
 
-    const unstakeTx = await stakingApiClient.unstake(testOptions, '0x', 1, [1]);
+    const unstakeTx = await stakingApiClient.unstake(testOptions, '0x', 1);
     expect(unstakeTx).toBeDefined();
 
-    const claimTx = await stakingApiClient.claim(testOptions);
+    const claimTx = await stakingApiClient.claim(testOptions, '0x');
     expect(claimTx).toBeDefined();
   });
 
@@ -173,7 +178,7 @@ describe('StakingApiClient', () => {
       // If we reach here, the test should fail
       expect(true).toBe(false);
     } catch (error: any) {
-      expect(error.message).toContain('Client not found for options');
+      expect(error.message).toContain('Not initialized');
     }
   });
 });

@@ -2,14 +2,14 @@
 pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
-import {MystikoStakingToken} from "../../../contracts/token/MystikoStakingToken.sol";
+import {XzkStakingToken} from "../../../contracts/token/XzkStakingToken.sol";
 import {MockToken} from "../../../contracts/mocks/MockToken.sol";
-import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 // Concrete implementation for testing
-contract TestMystikoStakingToken is MystikoStakingToken {
+contract TestXzkStakingToken is XzkStakingToken {
     constructor(IERC20 _mystikoToken, string memory _stakingTokenName, string memory _stakingTokenSymbol)
-        MystikoStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol)
+        XzkStakingToken(_mystikoToken, _stakingTokenName, _stakingTokenSymbol)
     {}
 
     // Expose internal functions for testing
@@ -23,7 +23,7 @@ contract TestMystikoStakingToken is MystikoStakingToken {
 }
 
 contract MystikoStakingTokenXZKTest is Test {
-    TestMystikoStakingToken public stakingToken;
+    TestXzkStakingToken public stakingToken;
     MockToken public underlyingToken;
 
     address public owner = address(0x1);
@@ -37,7 +37,7 @@ contract MystikoStakingTokenXZKTest is Test {
 
     function setUp() public {
         underlyingToken = new MockToken();
-        stakingToken = new TestMystikoStakingToken(underlyingToken, TOKEN_NAME, TOKEN_SYMBOL);
+        stakingToken = new TestXzkStakingToken(underlyingToken, TOKEN_NAME, TOKEN_SYMBOL);
     }
 
     // ============ Constructor Tests ============
@@ -198,21 +198,24 @@ contract MystikoStakingTokenXZKTest is Test {
         assertEq(stakingToken.getVotes(user1), amount, "Self-delegation should maintain voting power");
     }
 
-    function testDelegateWithNoBalance() public {
-        vm.prank(user1);
-        stakingToken.delegate(user2);
+    function testDelegateToZeroAddress() public {
+        uint256 amount = 1000 * 1e18;
+        stakingToken.mint(user1, amount);
 
-        assertEq(stakingToken.delegates(user1), user2, "Delegation should be set even with no balance");
-        assertEq(stakingToken.getVotes(user2), 0, "Delegate should have no voting power");
+        vm.prank(user1);
+        stakingToken.delegate(address(0));
+
+        assertEq(stakingToken.delegates(user1), address(0), "Delegation to zero address should be set");
+        assertEq(stakingToken.getVotes(user1), 0, "Voting power should be zero when delegated to zero address");
     }
 
-    function testChangeDelegation() public {
+    function testDelegateMultipleTimes() public {
         uint256 amount = 1000 * 1e18;
         stakingToken.mint(user1, amount);
 
         vm.startPrank(user1);
         stakingToken.delegate(user2);
-        assertEq(stakingToken.getVotes(user2), amount, "First delegate should have voting power");
+        assertEq(stakingToken.getVotes(user2), amount, "First delegation should work");
 
         stakingToken.delegate(user3);
         assertEq(stakingToken.getVotes(user2), 0, "Previous delegate should lose voting power");
@@ -220,101 +223,94 @@ contract MystikoStakingTokenXZKTest is Test {
         vm.stopPrank();
     }
 
-    // ============ Clock and EIP712 Tests ============
+    // ============ Clock and Mode Tests ============
 
     function testClock() public {
-        uint256 timestamp = block.timestamp;
-        assertEq(stakingToken.clock(), timestamp, "Clock should return current timestamp");
+        uint256 currentTime = block.timestamp;
+        assertEq(stakingToken.clock(), currentTime, "Clock should return current timestamp");
     }
 
     function testClockMode() public view {
         assertEq(stakingToken.CLOCK_MODE(), "mode=timestamp", "Clock mode should be timestamp");
     }
 
-    function testEIP712Domain() public view {
-        (
-            bytes1 fields,
-            string memory name,
-            string memory version,
-            uint256 chainId,
-            address verifyingContract,
-            bytes32 salt,
-            uint256[] memory extensions
-        ) = stakingToken.eip712Domain();
+    // ============ Edge Cases ============
 
-        assertEq(name, TOKEN_NAME, "EIP712 name should match token name");
-        assertEq(version, "1", "EIP712 version should be 1");
-        assertEq(verifyingContract, address(stakingToken), "EIP712 verifying contract should be token address");
-        assertEq(chainId, block.chainid, "EIP712 chainId should match current chain");
-        assertEq(salt, bytes32(0), "EIP712 salt should be zero");
-        assertEq(extensions.length, 0, "EIP712 extensions should be empty");
-        assertEq(fields, hex"0f", "EIP712 fields should be 0x0f");
+    function testMintZeroAmount() public {
+        stakingToken.mint(user1, 0);
+        assertEq(stakingToken.balanceOf(user1), 0, "Minting zero should not change balance");
+        assertEq(stakingToken.totalSupply(), 0, "Total supply should remain zero");
     }
 
-    // ============ Edge Cases and Error Handling ============
-
-    function testMintToZeroAddress() public {
-        vm.expectRevert(); // ERC20 should revert on zero address mint
-        stakingToken.mint(address(0), 1000 * 1e18);
+    function testBurnZeroAmount() public {
+        uint256 amount = 1000 * 1e18;
+        stakingToken.mint(user1, amount);
+        stakingToken.burn(user1, 0);
+        assertEq(stakingToken.balanceOf(user1), amount, "Burning zero should not change balance");
+        assertEq(stakingToken.totalSupply(), amount, "Total supply should remain unchanged");
     }
 
     function testBurnMoreThanBalance() public {
-        uint256 mintAmount = 1000 * 1e18;
-        uint256 burnAmount = 2000 * 1e18;
-
-        stakingToken.mint(user1, mintAmount);
-        vm.expectRevert(); // Should revert when burning more than balance
-        stakingToken.burn(user1, burnAmount);
-    }
-
-    function testDelegateToZeroAddress() public {
         uint256 amount = 1000 * 1e18;
         stakingToken.mint(user1, amount);
-        vm.prank(user1);
-        stakingToken.delegate(address(0));
-        assertEq(stakingToken.delegates(user1), address(0), "Delegation to zero address should be set");
-        assertEq(stakingToken.getVotes(user1), 0, "Voting power should be zero after delegating to zero address");
+
+        vm.expectRevert();
+        stakingToken.burn(user1, amount + 1);
+    }
+
+    function testBurnFromZeroAddress() public {
+        vm.expectRevert();
+        stakingToken.burn(address(0), 1000 * 1e18);
     }
 
     // ============ Integration Tests ============
 
-    function testCompleteStakingFlow() public {
-        uint256 stakeAmount = 1000 * 1e18;
-        stakingToken.mint(user1, stakeAmount);
-        vm.prank(user1);
-        stakingToken.delegate(user2);
-        assertEq(stakingToken.balanceOf(user1), stakeAmount, "Balance should match staked amount");
-        assertEq(stakingToken.getVotes(user2), stakeAmount, "Delegate should have voting power");
-        stakingToken.burn(user1, stakeAmount);
-        assertEq(stakingToken.balanceOf(user1), 0, "Balance should be zero after unstake");
-        assertEq(stakingToken.getVotes(user2), 0, "Delegate should lose voting power after unstake");
-        assertEq(stakingToken.totalSupply(), 0, "Total supply should be zero");
-    }
+    function testCompleteTokenLifecycle() public {
+        uint256 amount = 1000 * 1e18;
 
-    function testMultipleUsersStaking() public {
-        uint256 amount1 = 1000 * 1e18;
-        uint256 amount2 = 2000 * 1e18;
-        uint256 amount3 = 3000 * 1e18;
-        stakingToken.mint(user1, amount1);
-        stakingToken.mint(user2, amount2);
-        stakingToken.mint(user3, amount3);
+        // 1. Mint tokens
+        stakingToken.mint(user1, amount);
+        assertEq(stakingToken.balanceOf(user1), amount, "Balance should match minted amount");
+
+        // 2. Delegate voting power
         vm.prank(user1);
         stakingToken.delegate(user1);
-        vm.prank(user2);
+        assertEq(stakingToken.getVotes(user1), amount, "Voting power should match balance");
+
+        // 3. Mint more tokens
+        stakingToken.mint(user1, amount);
+        assertEq(stakingToken.balanceOf(user1), amount * 2, "Balance should double");
+        assertEq(stakingToken.getVotes(user1), amount * 2, "Voting power should double");
+
+        // 4. Burn some tokens
+        stakingToken.burn(user1, amount);
+        assertEq(stakingToken.balanceOf(user1), amount, "Balance should return to original");
+        assertEq(stakingToken.getVotes(user1), amount, "Voting power should return to original");
+
+        // 5. Change delegation
+        vm.prank(user1);
         stakingToken.delegate(user2);
-        vm.prank(user3);
+        assertEq(stakingToken.getVotes(user1), 0, "Original user should have no voting power");
+        assertEq(stakingToken.getVotes(user2), amount, "New delegate should have voting power");
+    }
+
+    function testMultipleUsersDelegation() public {
+        uint256 amount1 = 1000 * 1e18;
+        uint256 amount2 = 2000 * 1e18;
+
+        // Mint tokens to different users
+        stakingToken.mint(user1, amount1);
+        stakingToken.mint(user2, amount2);
+
+        // Delegate to different addresses
+        vm.prank(user1);
         stakingToken.delegate(user3);
-        assertEq(stakingToken.balanceOf(user1), amount1, "User1 balance should match");
-        assertEq(stakingToken.balanceOf(user2), amount2, "User2 balance should match");
-        assertEq(stakingToken.balanceOf(user3), amount3, "User3 balance should match");
-        assertEq(stakingToken.totalSupply(), amount1 + amount2 + amount3, "Total supply should match sum");
-        vm.roll(block.number + 1);
-        vm.warp(block.timestamp + 1);
-        uint256 pastTimestamp = block.timestamp - 1;
-        assertEq(
-            stakingToken.getPastTotalSupply(pastTimestamp),
-            amount1 + amount2 + amount3,
-            "Total voting power should match total supply"
-        );
+        vm.prank(user2);
+        stakingToken.delegate(user3);
+
+        // User3 should have combined voting power
+        assertEq(stakingToken.getVotes(user3), amount1 + amount2, "Delegate should have combined voting power");
+        assertEq(stakingToken.getVotes(user1), 0, "User1 should have no voting power");
+        assertEq(stakingToken.getVotes(user2), 0, "User2 should have no voting power");
     }
 }

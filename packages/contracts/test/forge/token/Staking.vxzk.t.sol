@@ -2,14 +2,14 @@
 pragma solidity 0.8.26;
 
 import {Test} from "forge-std/Test.sol";
-import {MystikoStakingToken} from "../../../contracts/token/MystikoStakingToken.sol";
+import {XzkStakingToken} from "../../../contracts/token/XzkStakingToken.sol";
 import {MockToken} from "../../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../../contracts/mocks/MockVoteToken.sol";
-import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "../../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract TestMystikoStakingToken is MystikoStakingToken {
+contract TestXzkStakingToken is XzkStakingToken {
     constructor(IERC20 _underlying, string memory _name, string memory _symbol)
-        MystikoStakingToken(_underlying, _name, _symbol)
+        XzkStakingToken(_underlying, _name, _symbol)
     {}
 
     function mint(address to, uint256 amount) public {
@@ -21,8 +21,8 @@ contract TestMystikoStakingToken is MystikoStakingToken {
     }
 }
 
-contract MystikoStakingTokenVXZKTest is Test {
-    TestMystikoStakingToken public stakingToken;
+contract XzkStakingTokenVXZKTest is Test {
+    TestXzkStakingToken public stakingToken;
     MockVoteToken public voteToken;
     MockToken public underlyingToken;
 
@@ -38,7 +38,7 @@ contract MystikoStakingTokenVXZKTest is Test {
     function setUp() public {
         underlyingToken = new MockToken();
         voteToken = new MockVoteToken(underlyingToken);
-        stakingToken = new TestMystikoStakingToken(voteToken, TOKEN_NAME, TOKEN_SYMBOL);
+        stakingToken = new TestXzkStakingToken(voteToken, TOKEN_NAME, TOKEN_SYMBOL);
     }
 
     function testConstructor() public view {
@@ -123,5 +123,43 @@ contract MystikoStakingTokenVXZKTest is Test {
         // user1 burn stakingToken
         stakingToken.burn(user1, baseAmount);
         assertEq(stakingToken.balanceOf(user1), 0, "StakingToken balance should be zero after burn");
+    }
+
+    function testClock() public {
+        uint256 currentTime = block.timestamp;
+        assertEq(stakingToken.clock(), currentTime, "Clock should return current timestamp");
+    }
+
+    function testClockMode() public view {
+        assertEq(stakingToken.CLOCK_MODE(), "mode=timestamp", "Clock mode should be timestamp");
+    }
+
+    function testDelegation() public {
+        uint256 amount = 1000 * 1e18;
+        stakingToken.mint(user1, amount);
+
+        vm.prank(user1);
+        stakingToken.delegate(user2);
+
+        assertEq(stakingToken.delegates(user1), user2, "Delegation should be set");
+        assertEq(stakingToken.getVotes(user2), amount, "Delegate should have voting power");
+        assertEq(stakingToken.getVotes(user1), 0, "Delegator should have no voting power");
+    }
+
+    function testMultipleUsers() public {
+        uint256 amount1 = 1000 * 1e18;
+        uint256 amount2 = 2000 * 1e18;
+
+        stakingToken.mint(user1, amount1);
+        stakingToken.mint(user2, amount2);
+
+        vm.prank(user1);
+        stakingToken.delegate(user1);
+        vm.prank(user2);
+        stakingToken.delegate(user2);
+
+        assertEq(stakingToken.getVotes(user1), amount1, "User1 should have correct voting power");
+        assertEq(stakingToken.getVotes(user2), amount2, "User2 should have correct voting power");
+        assertEq(stakingToken.totalSupply(), amount1 + amount2, "Total supply should match sum");
     }
 }

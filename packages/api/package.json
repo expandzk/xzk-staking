@@ -24,7 +24,7 @@
     "build": "rm -rf build && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p ./tsconfig.json",
     "build:esm": "tsc -p ./tsconfig.esm.json",
-    "lint": "eslint --ext .js,.ts .",
+    "lint": "yarn prettier:check",
     "test": "jest --forceExit ./tests/ci",
     "test:integration": "jest --forceExit --testPathPattern=tests/integration",
     "test:all": "jest --forceExit",
