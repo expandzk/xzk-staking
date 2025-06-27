@@ -2,7 +2,7 @@ import { ERC20, ERC20ContractFactory } from '@expandzk/xzk-staking-abi';
 import { DefaultProviderFactory } from '@mystikonetwork/utils';
 import { providers } from 'ethers';
 import { Config } from '../config';
-import type { ClientOptions, InitOptions } from '../api';
+import type { ClientOptions, InitOptions, Network } from '../api';
 
 export class ClientContext {
   public config: Config;
@@ -14,7 +14,7 @@ export class ClientContext {
   public provider: providers.Provider;
 
   constructor(options: InitOptions) {
-    this.config = new Config(options.chainId || 1);
+    this.config = new Config(options.network || 'ethereum');
     const factory = new DefaultProviderFactory();
     this.provider = factory.createProvider(this.config.providers);
     this.xzkContract = ERC20ContractFactory.connect('ERC20', this.config.xzkContract, this.provider);

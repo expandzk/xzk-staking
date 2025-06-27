@@ -16,7 +16,13 @@ IERC20 constant ETHEREUM_VXZK_TOKEN = IERC20(0x16aFFA80C65Fd7003d40B24eDb96f77b3
 address constant ETHEREUM_PAUSE_ADMIN = address(0x0000000000000000000000000000000000000000);
 
 // Total factors
-uint256 constant TOTAL_FACTOR_365 = 20;
-uint256 constant TOTAL_FACTOR_180 = 15;
-uint256 constant TOTAL_FACTOR_90 = 10;
-uint256 constant TOTAL_FACTOR_FLEXIBLE = 5;
+uint256 constant TOTAL_FACTOR_365 = 2000;
+uint256 constant TOTAL_FACTOR_180 = 1500;
+uint256 constant TOTAL_FACTOR_90 = 1000;
+uint256 constant TOTAL_FACTOR_FLEXIBLE = 500;
+
+// Total factors
+uint256 constant TOTAL_FACTOR_DEV_3 = 4;
+uint256 constant TOTAL_FACTOR_DEV_2 = 3;
+uint256 constant TOTAL_FACTOR_DEV_1 = 2;
+uint256 constant TOTAL_FACTOR_DEV_FLEXIBLE = 1;

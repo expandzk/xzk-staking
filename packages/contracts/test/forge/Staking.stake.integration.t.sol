@@ -51,7 +51,7 @@ contract StakingStakeIntegrationTest is Test {
             "Mystiko Staking Vote Token 90D",
             "sVXZK-90D",
             STAKING_PERIOD_SECONDS,
-            15, // total factor
+            1500, // total factor
             block.timestamp + 1 days // start time
         );
         vm.stopPrank();

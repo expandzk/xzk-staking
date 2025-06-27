@@ -53,7 +53,7 @@ contract StakingStake365DayTest is Test {
             "Mystiko Staking Vote Token 360D",
             "sVXZK-360D",
             STAKING_PERIOD_SECONDS, // 360-day staking period
-            20, // total factor
+            2000, // total factor
             block.timestamp + 1 days // start time
         );
         vm.stopPrank();
@@ -353,7 +353,7 @@ contract StakingStake365DayTest is Test {
 
         // Try to claim while paused
         vm.startPrank(user1);
-        vm.expectRevert("Unstaking paused");
+        vm.expectRevert("Claim paused");
         staking.claim(user1, 0, 0);
         vm.stopPrank();
     }
@@ -641,5 +641,249 @@ contract StakingStake365DayTest is Test {
         bool success = staking.claim(user1, 0, 0);
         assertTrue(success, "Claim should succeed");
         vm.stopPrank();
+    }
+
+    // ============ TOTAL CLAIMED TESTS ============
+
+    function test_TotalClaimed_Initial() public {
+        // Initially totalClaimed should be 0
+        assertEq(staking.totalClaimed(), 0, "Initial totalClaimed should be 0");
+    }
+
+    function test_TotalClaimed_AfterSingleClaim() public {
+        // Setup: stake and unstake
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        // Record totalClaimed before claim
+        uint256 totalClaimedBefore = staking.totalClaimed();
+
+        // Claim
+        staking.claim(user1, 0, 0);
+
+        // Check that totalClaimed increased
+        uint256 totalClaimedAfter = staking.totalClaimed();
+        assertGt(totalClaimedAfter, totalClaimedBefore, "totalClaimed should increase after claim");
+        vm.stopPrank();
+    }
+
+    function test_TotalClaimed_AfterMultipleClaims() public {
+        // Setup: multiple stakes and unstakes
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT * 3);
+
+        // First stake and claim cycle
+        staking.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        uint256 totalClaimedAfterFirst = staking.totalClaimed();
+        staking.claim(user1, 0, 0);
+        uint256 totalClaimedAfterFirstClaim = staking.totalClaimed();
+        assertGt(totalClaimedAfterFirstClaim, totalClaimedAfterFirst, "totalClaimed should increase after first claim");
+
+        // Second stake and claim cycle
+        staking.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 1, 1);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        uint256 totalClaimedAfterSecond = staking.totalClaimed();
+        staking.claim(user1, 1, 1);
+        uint256 totalClaimedAfterSecondClaim = staking.totalClaimed();
+        assertGt(
+            totalClaimedAfterSecondClaim, totalClaimedAfterSecond, "totalClaimed should increase after second claim"
+        );
+
+        // Third stake and claim cycle
+        staking.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 2, 2);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        uint256 totalClaimedAfterThird = staking.totalClaimed();
+        staking.claim(user1, 2, 2);
+        uint256 totalClaimedAfterThirdClaim = staking.totalClaimed();
+        assertGt(totalClaimedAfterThirdClaim, totalClaimedAfterThird, "totalClaimed should increase after third claim");
+
+        // Verify cumulative increase
+        assertGt(totalClaimedAfterThirdClaim, totalClaimedAfterFirstClaim, "totalClaimed should be cumulative");
+        vm.stopPrank();
+    }
+
+    function test_TotalClaimed_AfterDaoClaim() public {
+        // Setup: fund the contract
+        uint256 contractBalance = mockToken.balanceOf(address(staking));
+        uint256 claimAmount = 1000 ether;
+
+        // Record totalClaimed before DAO claim
+        uint256 totalClaimedBefore = staking.totalClaimed();
+
+        // DAO claims
+        vm.prank(dao);
+        staking.claimToDao(claimAmount);
+
+        // Check that totalClaimed increased
+        uint256 totalClaimedAfter = staking.totalClaimed();
+        assertEq(totalClaimedAfter, totalClaimedBefore + claimAmount, "totalClaimed should increase by claim amount");
+    }
+
+    function test_TotalClaimed_MultipleUsers() public {
+        // Setup: multiple users stake and claim
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+        vm.stopPrank();
+
+        // User1 claims
+        uint256 totalClaimedBeforeUser1 = staking.totalClaimed();
+        vm.prank(user1);
+        staking.claim(user1, 0, 0);
+        uint256 totalClaimedAfterUser1 = staking.totalClaimed();
+        assertGt(totalClaimedAfterUser1, totalClaimedBeforeUser1, "totalClaimed should increase after user1 claim");
+
+        // User2 claims
+        uint256 totalClaimedBeforeUser2 = staking.totalClaimed();
+        vm.prank(user2);
+        staking.claim(user2, 0, 0);
+        uint256 totalClaimedAfterUser2 = staking.totalClaimed();
+        assertGt(totalClaimedAfterUser2, totalClaimedBeforeUser2, "totalClaimed should increase after user2 claim");
+
+        // Verify both claims contributed to totalClaimed
+        assertGt(totalClaimedAfterUser2, totalClaimedBeforeUser1, "totalClaimed should include both users' claims");
+    }
+
+    function test_TotalClaimed_NotAffectedByStake() public {
+        // Record initial totalClaimed
+        uint256 initialTotalClaimed = staking.totalClaimed();
+
+        // Stake should not affect totalClaimed
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+        vm.stopPrank();
+
+        uint256 totalClaimedAfterStake = staking.totalClaimed();
+        assertEq(totalClaimedAfterStake, initialTotalClaimed, "totalClaimed should not change after stake");
+    }
+
+    function test_TotalClaimed_NotAffectedByUnstake() public {
+        // Setup: stake first
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+        vm.stopPrank();
+
+        uint256 totalClaimedBeforeUnstake = staking.totalClaimed();
+
+        // Unstake should not affect totalClaimed
+        vm.startPrank(user1);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+        vm.stopPrank();
+
+        uint256 totalClaimedAfterUnstake = staking.totalClaimed();
+        assertEq(totalClaimedAfterUnstake, totalClaimedBeforeUnstake, "totalClaimed should not change after unstake");
+    }
+
+    function test_TotalClaimed_AccurateTracking() public {
+        // Setup: stake and prepare for claim
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+        vm.stopPrank();
+
+        // Record balance before claim to calculate exact amount claimed
+        uint256 balanceBeforeClaim = mockVoteToken.balanceOf(user1);
+        uint256 totalClaimedBefore = staking.totalClaimed();
+
+        // Claim
+        vm.prank(user1);
+        staking.claim(user1, 0, 0);
+
+        // Calculate actual amount claimed
+        uint256 balanceAfterClaim = mockVoteToken.balanceOf(user1);
+        uint256 actualAmountClaimed = balanceAfterClaim - balanceBeforeClaim;
+
+        // Verify totalClaimed increased by exactly the claimed amount
+        uint256 totalClaimedAfter = staking.totalClaimed();
+        assertEq(
+            totalClaimedAfter,
+            totalClaimedBefore + actualAmountClaimed,
+            "totalClaimed should increase by exact claimed amount"
+        );
+    }
+
+    function test_TotalClaimed_WithRewards() public {
+        // Setup: stake and wait for rewards to accumulate
+        vm.startPrank(user1);
+        mockVoteToken.approve(address(staking), STAKE_AMOUNT);
+        staking.stake(STAKE_AMOUNT);
+
+        // Move forward to accumulate rewards
+        vm.warp(staking.START_TIME() + 365 days);
+        vm.roll(block.number + 365 days / 12);
+
+        vm.warp(block.timestamp + staking.STAKING_PERIOD_SECONDS() + 1);
+        vm.roll(block.number + (staking.STAKING_PERIOD_SECONDS() + 1) / 12);
+        staking.unstake(STAKE_AMOUNT, 0, 0);
+        vm.warp(block.timestamp + staking.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (staking.CLAIM_DELAY_SECONDS() + 1) / 12);
+        vm.stopPrank();
+
+        // Record balance before claim
+        uint256 balanceBeforeClaim = mockVoteToken.balanceOf(user1);
+        uint256 totalClaimedBefore = staking.totalClaimed();
+
+        // Claim (should include rewards)
+        vm.prank(user1);
+        staking.claim(user1, 0, 0);
+
+        // Calculate actual amount claimed (should be more than original stake due to rewards)
+        uint256 balanceAfterClaim = mockVoteToken.balanceOf(user1);
+        uint256 actualAmountClaimed = balanceAfterClaim - balanceBeforeClaim;
+
+        // Verify totalClaimed increased by the claimed amount (including rewards)
+        uint256 totalClaimedAfter = staking.totalClaimed();
+        assertEq(totalClaimedAfter, totalClaimedBefore + actualAmountClaimed, "totalClaimed should include rewards");
+        assertGt(
+            actualAmountClaimed, STAKE_AMOUNT, "Claimed amount should be greater than original stake due to rewards"
+        );
     }
 }

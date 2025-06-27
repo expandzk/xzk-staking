@@ -13,7 +13,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
     // Total shares for the underlying token
-    uint256 public constant ALL_SHARES = 100;
+    uint256 public constant ALL_SHARES = 10000;
 
     // Total duration 3 years)
     uint256 public constant TOTAL_DURATION_SECONDS = 3 * 365 days;
@@ -34,6 +34,9 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
 
     // total unstaked amount of underlying token
     uint256 public totalUnstaked;
+
+    // total claimed amount of underlying token
+    uint256 public totalClaimed;
 
     // Whether the staking is paused
     bool public isStakingPaused;
@@ -59,13 +62,17 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         XzkStakingRecord(_pauseAdmin, _stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
-        require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must one day after deployment");
+        require(
+            _startTime >= block.timestamp + START_DELAY_SECONDS,
+            "Start time must one day after deployment"
+        );
         require(TOTAL_DURATION_SECONDS < 10 * 365 days, "Total duration must be less than 10 years");
         START_TIME = _startTime;
         TOTAL_FACTOR = _totalFactor;
         TOTAL_REWARD = (ALL_REWARD * TOTAL_FACTOR) / ALL_SHARES;
         totalStaked = 0;
         totalUnstaked = 0;
+        totalClaimed = 0;
         isStakingPaused = false;
     }
 
@@ -85,11 +92,11 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         return true;
     }
 
-    function unstake(uint256 _stakingAmount, uint256 _startNonce, uint256 _endNonce)
-        external
-        nonReentrant
-        returns (bool)
-    {
+    function unstake(
+        uint256 _stakingAmount,
+        uint256 _startNonce,
+        uint256 _endNonce
+    ) external nonReentrant returns (bool) {
         require(!isStakingPaused, "Staking paused");
         address account = _msgSender();
         require(account != address(this), "Invalid receiver");
@@ -100,8 +107,8 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         if (STAKING_PERIOD_SECONDS > 0) {
             require(_unstakeVerify(account, _stakingAmount, _startNonce, _endNonce), "Unstake record failed");
         }
-        _unstakeRecord(account, amount, _stakingAmount);
         _burn(account, _stakingAmount);
+        _unstakeRecord(account, amount, _stakingAmount);
         totalUnstaked += amount;
         emit Unstaked(account, _stakingAmount, amount);
         return true;
@@ -114,6 +121,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         uint256 amount = _claimRecord(account, _startNonce, _endNonce);
         require(amount > 0, "No amount to claim");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _to, amount);
+        totalClaimed += amount;
         emit Claimed(_to, amount);
         return true;
     }
@@ -121,6 +129,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     function claimToDao(uint256 _amount) external onlyMystikoDAO {
         require(_amount > 0, "XzkStaking: Invalid amount");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _msgSender(), _amount);
+        totalClaimed += _amount;
         emit ClaimedToDao(_msgSender(), _amount);
     }
 

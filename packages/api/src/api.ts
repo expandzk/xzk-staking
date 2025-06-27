@@ -5,6 +5,7 @@ import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise, XZKStakingErrorCode } from './error';
 
 // Import types directly to avoid circular dependency
+export type Network = 'ethereum' | 'sepolia' | 'dev';
 export type TokenName = 'XZK' | 'VXZK';
 export type StakingPeriod = '365d' | '180d' | '90d' | 'Flex';
 
@@ -14,7 +15,7 @@ export interface ClientOptions {
 }
 
 export interface InitOptions {
-  chainId?: number;
+  network?: Network;
   scanApiBaseUrl?: string;
 }
 

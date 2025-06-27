@@ -1,4 +1,4 @@
-import type { ClientOptions, StakingPeriod } from '../index';
+import type { ClientOptions, StakingPeriod, Network } from '../api';
 
 export type ChainConfig = {
   chainId: number;
@@ -21,8 +21,8 @@ export function clientOptionToKey(options: ClientOptions): string {
 }
 
 export class Config {
-  private static chainConfigs: { [chainId: number]: ChainConfig } = {
-    1: {
+  private static chainConfigs: { [network: string]: ChainConfig } = {
+    'ethereum': {
       chainId: 1,
       decimals: 18,
       providers: [
@@ -44,29 +44,44 @@ export class Config {
       sVXZK90d: '0x0000000000000000000000000000000000000000',
       sVXZKFlex: '0x0000000000000000000000000000000000000000',
     },
-    11155111: {
+    'sepolia': {
       chainId: 11155111,
       decimals: 18,
       xzkContract: '0x932161e47821c6F5AE69ef329aAC84be1E547e53',
       vXZkContract: '0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587',
       providers: ['https://eth-sepolia.public.blastapi.io', 'https://1rpc.io/sepolia	'],
-      sXZK365d: '0x9cC6b3fE97c1F03eF74f369e61A2e87DD83B2EDF',
-      sXZK180d: '0xe4D932b62783953FE693069a09308f27DA8140c9',
-      sXZK90d: '0x1C91E9b6A81F92FEab337e206Bf218a30Bf581E2',
-      sXZKFlex: '0x59bAe9b5c007Cb0e06bad64E4DD69788A51321BA',
-      sVXZK365d: '0xb5971b52775735CcfD361251FF3982b0a71CD971',
-      sVXZK180d: '0x97DFa99097C5b8A359B947c63b131022ac33606d',
-      sVXZK90d: '0xd72627C7168434DC4a8f9Fa9e3E09951814bDeaE',
-      sVXZKFlex: '0x5958D56dB3ED16471989359005beB9bE5d430AAd',
+      sXZK365d: '0x0000000000000000000000000000000000000000',
+      sXZK180d: '0x0000000000000000000000000000000000000000',
+      sXZK90d: '0x0000000000000000000000000000000000000000',
+      sXZKFlex: '0x0000000000000000000000000000000000000000',
+      sVXZK365d: '0x0000000000000000000000000000000000000000',
+      sVXZK180d: '0x0000000000000000000000000000000000000000',
+      sVXZK90d: '0x0000000000000000000000000000000000000000',
+      sVXZKFlex: '0x0000000000000000000000000000000000000000',
+    },
+    'dev': {
+      chainId: 11155111,
+      decimals: 18,
+      xzkContract: '0x932161e47821c6F5AE69ef329aAC84be1E547e53',
+      vXZkContract: '0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587',
+      providers: ['https://eth-sepolia.public.blastapi.io', 'https://1rpc.io/sepolia	'],
+      sXZK365d: '0x9215aa5a101A53fa409ab675a36129732c948564',
+      sXZK180d: '0xF2050F78eCcfffcB2E6a6190d6E7c6E488fDF98d',
+      sXZK90d: '0x25D950feA1179561d542827cE0EeDEC4ea959F11',
+      sXZKFlex: '0x40fe37cCBd2d0c97e0b0360359eD47C412e2e260',
+      sVXZK365d: '0xf14e2B92Ab22E5c549a75A568c1D76107bB244Fd',
+      sVXZK180d: '0xBd9BB6b7680202b0a48b4C34Bcae5C226975abaB',
+      sVXZK90d: '0xcE3347535bc4481D974C582E3f3b6e83bF4fEd45',
+      sVXZKFlex: '0x51E157E834575Fff9B145b20F470B1E6555f2D1c',
     },
   };
 
   private readonly config: ChainConfig;
 
-  public constructor(chainId: number) {
-    const config = Config.chainConfigs[chainId];
+  public constructor(network: string) {
+    const config = Config.chainConfigs[network];
     if (!config) {
-      throw new Error(`Unsupported chain ID: ${chainId}`);
+      throw new Error(`Unsupported network: ${network}`);
     }
     this.config = config;
   }

@@ -36,7 +36,7 @@ contract StakingSwapTest is Test {
             "Mystiko Staking Vote Token 180D",
             "sVXZK-180D",
             180 days,
-            15,
+            1500,
             block.timestamp + 1 days
         );
         vm.stopPrank();
@@ -205,11 +205,12 @@ contract StakingSwapTest is Test {
         mockToken.approve(address(stakingFlexible), amount);
         stakingFlexible.stake(amount);
 
+        uint256 totalDuration = stakingFlexible.TOTAL_DURATION_SECONDS();
         // Test swap at different reward levels
         uint256[] memory timestamps = new uint256[](3);
-        timestamps[0] = stakingFlexible.START_TIME() + 30 days;
-        timestamps[1] = stakingFlexible.START_TIME() + 180 days;
-        timestamps[2] = stakingFlexible.START_TIME() + 365 days;
+        timestamps[0] = stakingFlexible.START_TIME() + totalDuration / 4;
+        timestamps[1] = stakingFlexible.START_TIME() + totalDuration / 2;
+        timestamps[2] = stakingFlexible.START_TIME() + totalDuration;
 
         uint256[] memory stakingAmounts = new uint256[](3);
         uint256[] memory unstakingAmounts = new uint256[](3);

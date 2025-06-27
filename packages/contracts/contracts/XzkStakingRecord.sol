@@ -28,8 +28,8 @@ abstract contract XzkStakingRecord is AccessControl {
     mapping(address => mapping(uint256 => UnstakingRecord)) public unstakingRecords;
     mapping(address => bool) public unstakingPaused;
 
-    event AccountPaused(address indexed account);
-    event AccountUnpaused(address indexed account);
+    event ClaimPaused(address indexed account);
+    event ClaimUnpaused(address indexed account);
 
     constructor(address _pauseAdmin, uint256 _stakingPeriodSeconds) {
         STAKING_PERIOD_SECONDS = _stakingPeriodSeconds;
@@ -93,7 +93,7 @@ abstract contract XzkStakingRecord is AccessControl {
     }
 
     function _claimRecord(address _account, uint256 _startNonce, uint256 _endNonce) internal returns (uint256) {
-        require(!unstakingPaused[_account], "Unstaking paused");
+        require(!unstakingPaused[_account], "Claim paused");
         uint256 totalCanClaim = 0;
         for (uint256 i = _startNonce; i <= _endNonce; i++) {
             UnstakingRecord storage record = unstakingRecords[_account][i];
@@ -112,11 +112,11 @@ abstract contract XzkStakingRecord is AccessControl {
 
     function pauseClaim(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         unstakingPaused[_account] = true;
-        emit AccountPaused(_account);
+        emit ClaimPaused(_account);
     }
 
     function unpauseClaim(address _account) public virtual onlyRole(DEFAULT_ADMIN_ROLE) {
         unstakingPaused[_account] = false;
-        emit AccountUnpaused(_account);
+        emit ClaimUnpaused(_account);
     }
 }

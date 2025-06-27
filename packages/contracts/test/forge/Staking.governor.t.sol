@@ -51,7 +51,7 @@ contract StakingGovernorTest is Test {
             "Mystiko Staking Vote Token 90D",
             "sVXZK-90D",
             90 days, // staking period
-            15, // total factor
+            1500, // total factor
             block.timestamp + 1 days // start time
         );
         vm.stopPrank();
@@ -342,7 +342,7 @@ contract StakingGovernorTest is Test {
 
         // Try to claim while paused
         vm.startPrank(user1);
-        vm.expectRevert("Unstaking paused");
+        vm.expectRevert("Claim paused");
         staking.claim(user1, 0, 0);
         vm.stopPrank();
 
@@ -452,7 +452,7 @@ contract StakingGovernorTest is Test {
 
         // Try to claim (should fail)
         vm.startPrank(user1);
-        vm.expectRevert("Unstaking paused");
+        vm.expectRevert("Claim paused");
         staking.claim(user1, 0, 1);
         vm.stopPrank();
 
@@ -533,5 +533,146 @@ contract StakingGovernorTest is Test {
         vm.expectRevert();
         vm.prank(user1);
         staking.unpauseClaim(user2);
+    }
+
+    // ============ TOTAL CLAIMED TESTS ============
+
+    function test_TotalClaimed_Initial() public {
+        // Initially totalClaimed should be 0
+        assertEq(staking.totalClaimed(), 0, "Initial totalClaimed should be 0");
+    }
+
+    function test_TotalClaimed_AfterDaoClaim() public {
+        // Setup: fund the contract
+        uint256 claimAmount = 1000 ether;
+
+        // Record totalClaimed before DAO claim
+        uint256 totalClaimedBefore = staking.totalClaimed();
+
+        // DAO claims
+        vm.prank(dao);
+        staking.claimToDao(claimAmount);
+
+        // Check that totalClaimed increased
+        uint256 totalClaimedAfter = staking.totalClaimed();
+        assertEq(totalClaimedAfter, totalClaimedBefore + claimAmount, "totalClaimed should increase by claim amount");
+    }
+
+    function test_TotalClaimed_MultipleDaoClaims() public {
+        // Setup: multiple DAO claims
+        uint256 claimAmount1 = 500 ether;
+        uint256 claimAmount2 = 750 ether;
+        uint256 claimAmount3 = 1000 ether;
+
+        // First DAO claim
+        uint256 totalClaimedBefore1 = staking.totalClaimed();
+        vm.prank(dao);
+        staking.claimToDao(claimAmount1);
+        uint256 totalClaimedAfter1 = staking.totalClaimed();
+        assertEq(
+            totalClaimedAfter1, totalClaimedBefore1 + claimAmount1, "totalClaimed should increase after first DAO claim"
+        );
+
+        // Second DAO claim
+        uint256 totalClaimedBefore2 = staking.totalClaimed();
+        vm.prank(dao);
+        staking.claimToDao(claimAmount2);
+        uint256 totalClaimedAfter2 = staking.totalClaimed();
+        assertEq(
+            totalClaimedAfter2,
+            totalClaimedBefore2 + claimAmount2,
+            "totalClaimed should increase after second DAO claim"
+        );
+
+        // Third DAO claim
+        uint256 totalClaimedBefore3 = staking.totalClaimed();
+        vm.prank(dao);
+        staking.claimToDao(claimAmount3);
+        uint256 totalClaimedAfter3 = staking.totalClaimed();
+        assertEq(
+            totalClaimedAfter3, totalClaimedBefore3 + claimAmount3, "totalClaimed should increase after third DAO claim"
+        );
+
+        // Verify cumulative total
+        assertEq(
+            totalClaimedAfter3,
+            claimAmount1 + claimAmount2 + claimAmount3,
+            "totalClaimed should be cumulative sum of all DAO claims"
+        );
+    }
+
+    function test_TotalClaimed_NotAffectedByPauseUnpause() public {
+        // Record initial totalClaimed
+        uint256 initialTotalClaimed = staking.totalClaimed();
+
+        // Pause staking
+        vm.prank(dao);
+        staking.pauseStaking();
+        uint256 totalClaimedAfterPause = staking.totalClaimed();
+        assertEq(totalClaimedAfterPause, initialTotalClaimed, "totalClaimed should not change after pause");
+
+        // Unpause staking
+        vm.prank(dao);
+        staking.unpauseStaking();
+        uint256 totalClaimedAfterUnpause = staking.totalClaimed();
+        assertEq(totalClaimedAfterUnpause, initialTotalClaimed, "totalClaimed should not change after unpause");
+    }
+
+    function test_TotalClaimed_NotAffectedByClaimPause() public {
+        // Record initial totalClaimed
+        uint256 initialTotalClaimed = staking.totalClaimed();
+
+        // Pause claim for user
+        vm.prank(deployer);
+        staking.pauseClaim(user1);
+        uint256 totalClaimedAfterPause = staking.totalClaimed();
+        assertEq(totalClaimedAfterPause, initialTotalClaimed, "totalClaimed should not change after claim pause");
+
+        // Unpause claim for user
+        vm.prank(deployer);
+        staking.unpauseClaim(user1);
+        uint256 totalClaimedAfterUnpause = staking.totalClaimed();
+        assertEq(totalClaimedAfterUnpause, initialTotalClaimed, "totalClaimed should not change after claim unpause");
+    }
+
+    function test_TotalClaimed_MaxDaoClaim() public {
+        // Setup: get maximum available amount
+        uint256 maxAmount = mockToken.balanceOf(address(staking));
+
+        // Record totalClaimed before DAO claim
+        uint256 totalClaimedBefore = staking.totalClaimed();
+
+        // DAO claims maximum amount
+        vm.prank(dao);
+        staking.claimToDao(maxAmount);
+
+        // Check that totalClaimed increased by maximum amount
+        uint256 totalClaimedAfter = staking.totalClaimed();
+        assertEq(
+            totalClaimedAfter, totalClaimedBefore + maxAmount, "totalClaimed should increase by maximum claim amount"
+        );
+    }
+
+    function test_TotalClaimed_AccurateDaoTracking() public {
+        // Setup: multiple DAO claims with different amounts
+        uint256[] memory claimAmounts = new uint256[](5);
+        claimAmounts[0] = 100 ether;
+        claimAmounts[1] = 250 ether;
+        claimAmounts[2] = 500 ether;
+        claimAmounts[3] = 750 ether;
+        claimAmounts[4] = 1000 ether;
+
+        uint256 expectedTotal = 0;
+
+        for (uint256 i = 0; i < claimAmounts.length; i++) {
+            uint256 totalClaimedBefore = staking.totalClaimed();
+            expectedTotal += claimAmounts[i];
+
+            vm.prank(dao);
+            staking.claimToDao(claimAmounts[i]);
+
+            uint256 totalClaimedAfter = staking.totalClaimed();
+            assertEq(totalClaimedAfter, expectedTotal, "totalClaimed should be cumulative sum of all DAO claims");
+        }
     }
 }
