@@ -22,7 +22,7 @@ export function clientOptionToKey(options: ClientOptions): string {
 
 export class Config {
   private static chainConfigs: { [network: string]: ChainConfig } = {
-    'ethereum': {
+    ethereum: {
       chainId: 1,
       decimals: 18,
       providers: [
@@ -44,7 +44,7 @@ export class Config {
       sVXZK90d: '0x0000000000000000000000000000000000000000',
       sVXZKFlex: '0x0000000000000000000000000000000000000000',
     },
-    'sepolia': {
+    sepolia: {
       chainId: 11155111,
       decimals: 18,
       xzkContract: '0x932161e47821c6F5AE69ef329aAC84be1E547e53',
@@ -59,7 +59,7 @@ export class Config {
       sVXZK90d: '0x0000000000000000000000000000000000000000',
       sVXZKFlex: '0x0000000000000000000000000000000000000000',
     },
-    'dev': {
+    dev: {
       chainId: 11155111,
       decimals: 18,
       xzkContract: '0x932161e47821c6F5AE69ef329aAC84be1E547e53',
