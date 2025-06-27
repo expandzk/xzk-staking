@@ -13,7 +13,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
 
     // Total shares for the underlying token
-    uint256 public constant ALL_SHARES = 100;
+    uint256 public constant ALL_SHARES = 10000;
 
     // Total duration 3 years)
     uint256 public constant TOTAL_DURATION_SECONDS = 3 * 365 days;
@@ -34,6 +34,9 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
 
     // total unstaked amount of underlying token
     uint256 public totalUnstaked;
+
+    // total claimed amount of underlying token
+    uint256 public totalClaimed;
 
     // Whether the staking is paused
     bool public isStakingPaused;
@@ -66,6 +69,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         TOTAL_REWARD = (ALL_REWARD * TOTAL_FACTOR) / ALL_SHARES;
         totalStaked = 0;
         totalUnstaked = 0;
+        totalClaimed = 0;
         isStakingPaused = false;
     }
 
@@ -100,8 +104,8 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         if (STAKING_PERIOD_SECONDS > 0) {
             require(_unstakeVerify(account, _stakingAmount, _startNonce, _endNonce), "Unstake record failed");
         }
-        _unstakeRecord(account, amount, _stakingAmount);
         _burn(account, _stakingAmount);
+        _unstakeRecord(account, amount, _stakingAmount);
         totalUnstaked += amount;
         emit Unstaked(account, _stakingAmount, amount);
         return true;
@@ -114,6 +118,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         uint256 amount = _claimRecord(account, _startNonce, _endNonce);
         require(amount > 0, "No amount to claim");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _to, amount);
+        totalClaimed += amount;
         emit Claimed(_to, amount);
         return true;
     }
@@ -121,6 +126,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     function claimToDao(uint256 _amount) external onlyMystikoDAO {
         require(_amount > 0, "XzkStaking: Invalid amount");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _msgSender(), _amount);
+        totalClaimed += _amount;
         emit ClaimedToDao(_msgSender(), _amount);
     }
 

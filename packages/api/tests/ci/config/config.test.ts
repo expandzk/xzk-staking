@@ -4,8 +4,8 @@ import type { ClientOptions, StakingPeriod } from '../../../src/index';
 
 describe('Config', () => {
   describe('constructor', () => {
-    it('should create config for supported chain ID 1 (Ethereum mainnet)', () => {
-      const config = new Config(1);
+    it('should create config for ethereum network', () => {
+      const config = new Config('ethereum');
       expect(config.chainId).toBe(1);
       expect(config.decimals).toBe(18);
       expect(config.xzkContract).toBe('0xe8fC52b1bb3a40fd8889C0f8f75879676310dDf0');
@@ -13,8 +13,8 @@ describe('Config', () => {
       expect(config.providers).toHaveLength(6);
     });
 
-    it('should create config for supported chain ID 11155111 (Sepolia testnet)', () => {
-      const config = new Config(11155111);
+    it('should create config for sepolia network', () => {
+      const config = new Config('sepolia');
       expect(config.chainId).toBe(11155111);
       expect(config.decimals).toBe(18);
       expect(config.xzkContract).toBe('0x932161e47821c6F5AE69ef329aAC84be1E547e53');
@@ -22,8 +22,8 @@ describe('Config', () => {
       expect(config.providers).toHaveLength(2);
     });
 
-    it('should throw error for unsupported chain ID', () => {
-      expect(() => new Config(999)).toThrow('Unsupported chain ID: 999');
+    it('should throw error for unsupported network', () => {
+      expect(() => new Config('unsupported')).toThrow('Unsupported network: unsupported');
     });
   });
 
@@ -31,7 +31,7 @@ describe('Config', () => {
     let config: Config;
 
     beforeEach(() => {
-      config = new Config(1);
+      config = new Config('ethereum');
     });
 
     it('should return xzkContract for XZK token', () => {
@@ -49,19 +49,19 @@ describe('Config', () => {
     let config: Config;
 
     beforeEach(() => {
-      config = new Config(11155111); // Using Sepolia for non-zero addresses
+      config = new Config('dev'); // Using dev for non-zero addresses
     });
 
-    it('should return correct staking contract addresses for Sepolia', () => {
+    it('should return correct staking contract addresses for dev network', () => {
       const expectedAddresses = {
-        'XZK-365d': '0x9cC6b3fE97c1F03eF74f369e61A2e87DD83B2EDF',
-        'XZK-180d': '0xe4D932b62783953FE693069a09308f27DA8140c9',
-        'XZK-90d': '0x1C91E9b6A81F92FEab337e206Bf218a30Bf581E2',
-        'XZK-Flex': '0x59bAe9b5c007Cb0e06bad64E4DD69788A51321BA',
-        'VXZK-365d': '0xb5971b52775735CcfD361251FF3982b0a71CD971',
-        'VXZK-180d': '0x97DFa99097C5b8A359B947c63b131022ac33606d',
-        'VXZK-90d': '0xd72627C7168434DC4a8f9Fa9e3E09951814bDeaE',
-        'VXZK-Flex': '0x5958D56dB3ED16471989359005beB9bE5d430AAd',
+        'XZK-365d': '0x9215aa5a101A53fa409ab675a36129732c948564',
+        'XZK-180d': '0xF2050F78eCcfffcB2E6a6190d6E7c6E488fDF98d',
+        'XZK-90d': '0x25D950feA1179561d542827cE0EeDEC4ea959F11',
+        'XZK-Flex': '0x40fe37cCBd2d0c97e0b0360359eD47C412e2e260',
+        'VXZK-365d': '0xf14e2B92Ab22E5c549a75A568c1D76107bB244Fd',
+        'VXZK-180d': '0xBd9BB6b7680202b0a48b4C34Bcae5C226975abaB',
+        'VXZK-90d': '0xcE3347535bc4481D974C582E3f3b6e83bF4fEd45',
+        'VXZK-Flex': '0x51E157E834575Fff9B145b20F470B1E6555f2D1c',
       };
 
       Object.entries(expectedAddresses).forEach(([key, expectedAddress]) => {
@@ -72,7 +72,7 @@ describe('Config', () => {
     });
 
     it('should return zero addresses for Ethereum mainnet (not deployed)', () => {
-      const mainnetConfig = new Config(1);
+      const mainnetConfig = new Config('ethereum');
       const testCases: ClientOptions[] = [
         { tokenName: 'XZK', stakingPeriod: '365d' },
         { tokenName: 'XZK', stakingPeriod: '180d' },
@@ -94,7 +94,7 @@ describe('Config', () => {
 
   describe('totalDurationSeconds', () => {
     it('should return 3 years in seconds', () => {
-      const config = new Config(1);
+      const config = new Config('ethereum');
       const expectedSeconds = 3 * 365 * 24 * 60 * 60; // 3 years
       expect(config.totalDurationSeconds()).toBe(expectedSeconds);
     });
@@ -102,7 +102,7 @@ describe('Config', () => {
 
   describe('claimDelaySeconds', () => {
     it('should return 1 day in seconds', () => {
-      const config = new Config(1);
+      const config = new Config('ethereum');
       const expectedSeconds = 24 * 60 * 60; // 1 day
       expect(config.claimDelaySeconds()).toBe(expectedSeconds);
     });
@@ -112,7 +112,7 @@ describe('Config', () => {
     let config: Config;
 
     beforeEach(() => {
-      config = new Config(1);
+      config = new Config('ethereum');
     });
 
     it('should return 365 days for 365d period', () => {
@@ -143,7 +143,7 @@ describe('Config', () => {
 
   describe('getters', () => {
     it('should return correct values for all getters', () => {
-      const config = new Config(11155111);
+      const config = new Config('sepolia');
 
       expect(config.chainId).toBe(11155111);
       expect(config.decimals).toBe(18);

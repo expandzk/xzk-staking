@@ -177,7 +177,7 @@ contract XzkStakingRecordTest is Test {
         vm.roll(block.number + (mockContract.CLAIM_DELAY_SECONDS() + 1) / 12);
 
         // Try to claim
-        vm.expectRevert("Unstaking paused");
+        vm.expectRevert("Claim paused");
         mockContract.claimRecord(user, 0, 0);
 
         // Admin unpauses

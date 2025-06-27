@@ -82,7 +82,7 @@ describe('StakingApiClient', () => {
   // Use the actual options from GlobalClientOptions
   const testOptions: ClientOptions = GlobalClientOptions[0]; // { tokenName: 'XZK', stakingPeriod: '365d' }
   const vxzkOptions: ClientOptions = GlobalClientOptions[3]; // { tokenName: 'VXZK', stakingPeriod: '180d' }
-  const testInitOptions: InitOptions = { chainId: 1 };
+  const testInitOptions: InitOptions = { network: 'ethereum' };
 
   beforeEach(() => {
     // Reset the client before each test

@@ -5,6 +5,7 @@ import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise, XZKStakingErrorCode } from './error';
 
 // Import types directly to avoid circular dependency
+export type Network = 'ethereum' | 'sepolia' | 'dev';
 export type TokenName = 'XZK' | 'VXZK';
 export type StakingPeriod = '365d' | '180d' | '90d' | 'Flex';
 
@@ -14,7 +15,7 @@ export interface ClientOptions {
 }
 
 export interface InitOptions {
-  chainId?: number;
+  network?: Network;
   scanApiBaseUrl?: string;
 }
 
@@ -64,6 +65,7 @@ export interface IStakingClient {
   poolTokenAmount(options: ClientOptions): Promise<number>;
   totalStaked(options: ClientOptions): Promise<number>;
   totalUnstaked(options: ClientOptions): Promise<number>;
+  totalClaimed(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
   currentTotalReward(options: ClientOptions): Promise<number>;
   tokenBalance(options: ClientOptions, account: string): Promise<number>;
@@ -156,6 +158,10 @@ class StakingApiClient implements StakingApiClient {
 
   public totalUnstaked(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.totalUnstaked());
+  }
+
+  public totalClaimed(options: ClientOptions): Promise<number> {
+    return this.getClient(options).then((client) => client.totalClaimed());
   }
 
   public stakingTotalSupply(options: ClientOptions): Promise<number> {

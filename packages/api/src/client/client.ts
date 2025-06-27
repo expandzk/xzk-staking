@@ -84,6 +84,13 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
+  public totalClaimed(): Promise<number> {
+    return this.stakingInstance
+      .totalClaimed()
+      .then((totalClaimed: any) => fromDecimals(totalClaimed, this.context.config.decimals))
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+  }
+
   public currentTotalReward(): Promise<number> {
     return this.stakingInstance
       .currentTotalReward()

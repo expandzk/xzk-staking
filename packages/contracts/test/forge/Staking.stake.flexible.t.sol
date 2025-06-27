@@ -48,7 +48,7 @@ contract StakingStakeFlexibleTest is Test {
             "Mystiko Staking Token",
             "sXZK",
             0, // flexible staking period
-            1, // total factor
+            100, // total factor
             block.timestamp + 1 days // start time
         );
         vm.stopPrank();
@@ -58,6 +58,9 @@ contract StakingStakeFlexibleTest is Test {
         mockToken.transfer(user1, LARGE_AMOUNT);
         mockToken.transfer(user2, LARGE_AMOUNT);
         mockToken.transfer(user3, LARGE_AMOUNT);
+
+        // Fund the staking contract with enough underlying tokens for rewards and DAO claims
+        mockToken.transfer(address(stakingFlexible), 50_000_000 ether);
         vm.stopPrank();
     }
 
@@ -299,7 +302,7 @@ contract StakingStakeFlexibleTest is Test {
 
         // Try to claim while paused
         vm.startPrank(user1);
-        vm.expectRevert("Unstaking paused");
+        vm.expectRevert("Claim paused");
         stakingFlexible.claim(user1, 0, 1);
         vm.stopPrank();
     }
@@ -522,5 +525,215 @@ contract StakingStakeFlexibleTest is Test {
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         assertEq(stakingFlexible.unstakingNonces(user1), 1, "Unstaking records should be created for flexible staking");
         vm.stopPrank();
+    }
+
+    // ============ TOTAL CLAIMED TESTS ============
+
+    function test_TotalClaimed_Initial() public {
+        // Initially totalClaimed should be 0
+        assertEq(stakingFlexible.totalClaimed(), 0, "Initial totalClaimed should be 0");
+    }
+
+    function test_TotalClaimed_AfterDaoClaim() public {
+        // Setup: fund the contract
+        uint256 claimAmount = 1000 ether;
+
+        // Record totalClaimed before DAO claim
+        uint256 totalClaimedBefore = stakingFlexible.totalClaimed();
+
+        // DAO claims
+        vm.prank(dao);
+        stakingFlexible.claimToDao(claimAmount);
+
+        // Check that totalClaimed increased
+        uint256 totalClaimedAfter = stakingFlexible.totalClaimed();
+        assertEq(totalClaimedAfter, totalClaimedBefore + claimAmount, "totalClaimed should increase by claim amount");
+    }
+
+    function test_TotalClaimed_NotAffectedByStake() public {
+        // Record initial totalClaimed
+        uint256 initialTotalClaimed = stakingFlexible.totalClaimed();
+
+        // Stake should not affect totalClaimed
+        vm.startPrank(user1);
+        mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
+        stakingFlexible.stake(STAKE_AMOUNT);
+        vm.stopPrank();
+
+        uint256 totalClaimedAfterStake = stakingFlexible.totalClaimed();
+        assertEq(totalClaimedAfterStake, initialTotalClaimed, "totalClaimed should not change after stake");
+    }
+
+    function test_TotalClaimed_NotAffectedByUnstake() public {
+        // Setup: stake first
+        vm.startPrank(user1);
+        mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
+        stakingFlexible.stake(STAKE_AMOUNT);
+        vm.stopPrank();
+
+        uint256 totalClaimedBeforeUnstake = stakingFlexible.totalClaimed();
+
+        // Unstake should not affect totalClaimed
+        vm.startPrank(user1);
+        stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
+        vm.stopPrank();
+
+        uint256 totalClaimedAfterUnstake = stakingFlexible.totalClaimed();
+        assertEq(totalClaimedAfterUnstake, totalClaimedBeforeUnstake, "totalClaimed should not change after unstake");
+    }
+
+    function test_TotalClaimed_MultipleDaoClaims() public {
+        // Setup: multiple DAO claims
+        uint256 claimAmount1 = 500 ether;
+        uint256 claimAmount2 = 750 ether;
+        uint256 claimAmount3 = 1000 ether;
+
+        // First DAO claim
+        uint256 totalClaimedBefore1 = stakingFlexible.totalClaimed();
+        vm.prank(dao);
+        stakingFlexible.claimToDao(claimAmount1);
+        uint256 totalClaimedAfter1 = stakingFlexible.totalClaimed();
+        assertEq(
+            totalClaimedAfter1, totalClaimedBefore1 + claimAmount1, "totalClaimed should increase after first DAO claim"
+        );
+
+        // Second DAO claim
+        uint256 totalClaimedBefore2 = stakingFlexible.totalClaimed();
+        vm.prank(dao);
+        stakingFlexible.claimToDao(claimAmount2);
+        uint256 totalClaimedAfter2 = stakingFlexible.totalClaimed();
+        assertEq(
+            totalClaimedAfter2,
+            totalClaimedBefore2 + claimAmount2,
+            "totalClaimed should increase after second DAO claim"
+        );
+
+        // Third DAO claim
+        uint256 totalClaimedBefore3 = stakingFlexible.totalClaimed();
+        vm.prank(dao);
+        stakingFlexible.claimToDao(claimAmount3);
+        uint256 totalClaimedAfter3 = stakingFlexible.totalClaimed();
+        assertEq(
+            totalClaimedAfter3, totalClaimedBefore3 + claimAmount3, "totalClaimed should increase after third DAO claim"
+        );
+
+        // Verify cumulative total
+        assertEq(
+            totalClaimedAfter3,
+            claimAmount1 + claimAmount2 + claimAmount3,
+            "totalClaimed should be cumulative sum of all DAO claims"
+        );
+    }
+
+    function test_TotalClaimed_WithRewards() public {
+        // Setup: stake and wait for rewards to accumulate
+        vm.startPrank(user1);
+        mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
+        stakingFlexible.stake(STAKE_AMOUNT);
+
+        // Move forward to accumulate rewards
+        vm.warp(stakingFlexible.START_TIME() + 365 days);
+        vm.roll(block.number + 365 days / 12);
+
+        stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
+        vm.stopPrank();
+
+        // Move forward past claim delay
+        vm.warp(block.timestamp + stakingFlexible.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (stakingFlexible.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        // Record balance before claim
+        uint256 balanceBeforeClaim = mockToken.balanceOf(user1);
+        uint256 totalClaimedBefore = stakingFlexible.totalClaimed();
+
+        // Claim (should include rewards)
+        vm.prank(user1);
+        stakingFlexible.claim(user1, 0, 0);
+
+        // Calculate actual amount claimed (should be more than original stake due to rewards)
+        uint256 balanceAfterClaim = mockToken.balanceOf(user1);
+        uint256 actualAmountClaimed = balanceAfterClaim - balanceBeforeClaim;
+
+        // Verify totalClaimed increased by the claimed amount (including rewards)
+        uint256 totalClaimedAfter = stakingFlexible.totalClaimed();
+        assertEq(totalClaimedAfter, totalClaimedBefore + actualAmountClaimed, "totalClaimed should include rewards");
+        assertGt(
+            actualAmountClaimed, STAKE_AMOUNT, "Claimed amount should be greater than original stake due to rewards"
+        );
+    }
+
+    function test_TotalClaimed_AccurateTracking() public {
+        // Setup: stake and unstake
+        vm.startPrank(user1);
+        mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
+        stakingFlexible.stake(STAKE_AMOUNT);
+        stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
+        vm.stopPrank();
+
+        // Move forward past claim delay
+        vm.warp(block.timestamp + stakingFlexible.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (stakingFlexible.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        // Record balance before claim to calculate exact amount claimed
+        uint256 balanceBeforeClaim = mockToken.balanceOf(user1);
+        uint256 totalClaimedBefore = stakingFlexible.totalClaimed();
+
+        // Claim
+        vm.prank(user1);
+        stakingFlexible.claim(user1, 0, 0);
+
+        // Calculate actual amount claimed
+        uint256 balanceAfterClaim = mockToken.balanceOf(user1);
+        uint256 actualAmountClaimed = balanceAfterClaim - balanceBeforeClaim;
+
+        // Verify totalClaimed increased by exactly the claimed amount
+        uint256 totalClaimedAfter = stakingFlexible.totalClaimed();
+        assertEq(
+            totalClaimedAfter,
+            totalClaimedBefore + actualAmountClaimed,
+            "totalClaimed should increase by exact claimed amount"
+        );
+    }
+
+    function test_TotalClaimed_MixedOperations() public {
+        // Setup: stake and unstake
+        vm.startPrank(user1);
+        mockToken.approve(address(stakingFlexible), STAKE_AMOUNT * 2);
+        stakingFlexible.stake(STAKE_AMOUNT);
+        stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
+        vm.stopPrank();
+
+        // Move forward past claim delay
+        vm.warp(block.timestamp + stakingFlexible.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(block.number + (stakingFlexible.CLAIM_DELAY_SECONDS() + 1) / 12);
+
+        // Record initial totalClaimed
+        uint256 initialTotalClaimed = stakingFlexible.totalClaimed();
+
+        // User claim
+        vm.prank(user1);
+        stakingFlexible.claim(user1, 0, 0);
+        uint256 totalClaimedAfterUserClaim = stakingFlexible.totalClaimed();
+        assertGt(totalClaimedAfterUserClaim, initialTotalClaimed, "totalClaimed should increase after user claim");
+
+        // DAO claim
+        uint256 daoClaimAmount = 500 ether;
+        vm.prank(dao);
+        stakingFlexible.claimToDao(daoClaimAmount);
+        uint256 totalClaimedAfterDaoClaim = stakingFlexible.totalClaimed();
+        assertEq(
+            totalClaimedAfterDaoClaim,
+            totalClaimedAfterUserClaim + daoClaimAmount,
+            "totalClaimed should increase after DAO claim"
+        );
+
+        // Additional stake should not affect totalClaimed
+        vm.startPrank(user1);
+        stakingFlexible.stake(STAKE_AMOUNT);
+        vm.stopPrank();
+        uint256 totalClaimedAfterStake = stakingFlexible.totalClaimed();
+        assertEq(
+            totalClaimedAfterStake, totalClaimedAfterDaoClaim, "totalClaimed should not change after additional stake"
+        );
     }
 }
