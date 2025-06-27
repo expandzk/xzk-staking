@@ -62,10 +62,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         XzkStakingRecord(_pauseAdmin, _stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
-        require(
-            _startTime >= block.timestamp + START_DELAY_SECONDS,
-            "Start time must one day after deployment"
-        );
+        require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must one day after deployment");
         require(TOTAL_DURATION_SECONDS < 10 * 365 days, "Total duration must be less than 10 years");
         START_TIME = _startTime;
         TOTAL_FACTOR = _totalFactor;
@@ -92,11 +89,11 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         return true;
     }
 
-    function unstake(
-        uint256 _stakingAmount,
-        uint256 _startNonce,
-        uint256 _endNonce
-    ) external nonReentrant returns (bool) {
+    function unstake(uint256 _stakingAmount, uint256 _startNonce, uint256 _endNonce)
+        external
+        nonReentrant
+        returns (bool)
+    {
         require(!isStakingPaused, "Staking paused");
         address account = _msgSender();
         require(account != address(this), "Invalid receiver");
