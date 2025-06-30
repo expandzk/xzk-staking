@@ -91,9 +91,25 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
-  public currentTotalReward(): Promise<number> {
+  public apy(amount?: number): Promise<number> {
+    const amountBN = toDecimals(amount || 1e18, this.context.config.decimals);
+    return this.stakingInstance.apy(amountBN.toString()).then((apy: any) => {
+      const apyValue = fromDecimals(apy, 18);
+      return Math.round(apyValue * 100 * 1000) / 1000;
+    });
+  }
+
+  public apy_staker(): Promise<number> {
+    return this.stakingInstance.apy_staker().then((apy: any) => {
+      const apyValue = fromDecimals(apy, 18);
+      return Math.round(apyValue * 100 * 1000) / 1000;
+    });
+  }
+
+  public totalRewardAt(timestamp_seconds?: number): Promise<number> {
+    const timestamp = timestamp_seconds || Date.now() / 1000;
     return this.stakingInstance
-      .currentTotalReward()
+      .totalRewardAt(timestamp.toString())
       .then((balance: any) => fromDecimals(balance, this.context.config.decimals))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }

@@ -11,11 +11,12 @@ jest.mock('@expandzk/xzk-staking-abi', () => ({
       isStakingPaused: jest.fn(() => Promise.resolve({ toNumber: () => 0 })),
       totalStaked: jest.fn(() => Promise.resolve({ toString: () => '100000000000000000000' })),
       totalUnstaked: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
-      currentTotalReward: jest.fn(() => Promise.resolve({ toString: () => '5000000000000000000' })),
+      totalRewardAt: jest.fn(() => Promise.resolve({ toString: () => '5000000000000000000' })),
       totalSupply: jest.fn(() => Promise.resolve({ toString: () => '100000000000000000000' })),
       balanceOf: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000000' })),
       swapToStakingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
       swapToUnderlyingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
+      apy: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000' })), // 5% APY in wei
       stakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 2 })),
       unstakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 1 })),
       stakingRecords: jest.fn(() =>
@@ -87,7 +88,7 @@ describe('StakingApiClient', () => {
   beforeEach(() => {
     // Reset the client before each test
     stakingApiClient.resetInitStatus();
-    // Clear all mocks
+    // Clear all mocks (do not reset implementation)
     jest.clearAllMocks();
   });
 
@@ -123,7 +124,7 @@ describe('StakingApiClient', () => {
     expect(await stakingApiClient.totalStaked(testOptions)).toBeDefined();
     expect(await stakingApiClient.totalUnstaked(testOptions)).toBeDefined();
     expect(await stakingApiClient.stakingTotalSupply(testOptions)).toBeDefined();
-    expect(await stakingApiClient.currentTotalReward(testOptions)).toBeDefined();
+    expect(await stakingApiClient.totalRewardAt(testOptions)).toBeDefined();
     expect(await stakingApiClient.tokenBalance(testOptions, '0x')).toBeDefined();
     expect(await stakingApiClient.stakingBalance(testOptions, '0x')).toBeDefined();
     expect(await stakingApiClient.swapToStakingToken(testOptions, 1)).toBeDefined();
@@ -166,6 +167,65 @@ describe('StakingApiClient', () => {
     expect(await stakingApiClient.getChainId(vxzkOptions)).toBe(1);
     expect(await stakingApiClient.tokenContractAddress(vxzkOptions)).toBeDefined();
     expect(await stakingApiClient.stakingContractAddress(vxzkOptions)).toBeDefined();
+  });
+
+  it('should convert percentage APY correctly', async () => {
+    // Test various percentage APY values
+    const testCases = [
+      { percentage: 15.23, wei: '152300000000000000', expected: 15.23 },
+      { percentage: 8.5, wei: '85000000000000000', expected: 8.5 },
+      { percentage: 25.0, wei: '250000000000000000', expected: 25.0 },
+      { percentage: 3.141, wei: '31410000000000000', expected: 3.141 },
+    ];
+
+    for (const testCase of testCases) {
+      // Reset the client before each test case
+      stakingApiClient.resetInitStatus();
+
+      // Mock the MystikoStakingContractFactory.connect to return a contract with the specific APY value
+      const mockContract = {
+        apy: jest.fn(() => Promise.resolve({ toString: () => testCase.wei })),
+      };
+
+      require('@expandzk/xzk-staking-abi').MystikoStakingContractFactory.connect = jest.fn(
+        () => mockContract,
+      );
+
+      // Initialize the client after setting the mock
+      stakingApiClient.initialize(testInitOptions);
+
+      const apy = await stakingApiClient.apy(testOptions);
+      expect(apy).toBe(testCase.expected);
+      expect(typeof apy).toBe('number');
+    }
+  });
+
+  it('should convert percentage APY staker correctly', async () => {
+    // Test various percentage APY values
+    const testCases = [
+      { percentage: 15.23, wei: '152300000000000000', expected: 15.23 },
+      { percentage: 8.5, wei: '85000000000000000', expected: 8.5 },
+    ];
+
+    for (const testCase of testCases) {
+      // Reset the client before each test case
+      stakingApiClient.resetInitStatus();
+
+      const mockContract = {
+        apy_staker: jest.fn(() => Promise.resolve({ toString: () => testCase.wei })),
+      };
+
+      require('@expandzk/xzk-staking-abi').MystikoStakingContractFactory.connect = jest.fn(
+        () => mockContract,
+      );
+
+      // Initialize the client after setting the mock
+      stakingApiClient.initialize(testInitOptions);
+
+      const apy = await stakingApiClient.apy_staker(testOptions);
+      expect(apy).toBe(testCase.expected);
+      expect(typeof apy).toBe('number');
+    }
   });
 
   it('should throw error for unsupported client options', async () => {

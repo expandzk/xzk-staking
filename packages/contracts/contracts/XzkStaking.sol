@@ -123,6 +123,27 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         return true;
     }
 
+    function apy(uint256 baseAmount) external view returns (uint256) {
+        require(baseAmount <= UNDERLYING_TOKEN.totalSupply());
+        uint256 stakingAmount = swapToStakingToken(baseAmount);
+        uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
+        uint256 stakingTotalSupply = totalSupply() + stakingAmount;
+        uint256 totalAmountAfterYear = totalStaked + totalRewardAfterYear - totalUnstaked + baseAmount;
+        uint256 swapAmountAfterYear = (stakingAmount * totalAmountAfterYear) / stakingTotalSupply;
+        if (swapAmountAfterYear >= baseAmount) {
+            return ((swapAmountAfterYear - baseAmount) * 1e18) / baseAmount;
+        } else {
+            return 0;
+        }
+    }
+
+    function apy_staker() external view returns (uint256) {
+        uint256 currentTotalAmount = totalStaked - totalUnstaked;
+        require(currentTotalAmount > 0, "No staked amount");
+        uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
+        return ((totalRewardAfterYear) * 1e18) / currentTotalAmount;
+    }
+
     function claimToDao(uint256 _amount) external onlyMystikoDAO {
         require(_amount > 0, "XzkStaking: Invalid amount");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _msgSender(), _amount);
@@ -141,34 +162,34 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     }
 
     function swapToStakingToken(uint256 _amount) public view returns (uint256) {
-        uint256 totalReward = currentTotalReward();
+        uint256 totalReward = totalRewardAt(block.timestamp);
         uint256 total = totalStaked + totalReward - totalUnstaked;
-        uint256 totalSupply = totalSupply();
-        if (total == 0 || totalSupply == 0) {
+        uint256 totalStakingSupply = totalSupply();
+        if (total == 0 || totalStakingSupply == 0) {
             return _amount;
         }
-        uint256 swapAmount = (_amount * totalSupply) / total;
+        uint256 swapAmount = (_amount * totalStakingSupply) / total;
         return swapAmount;
     }
 
     function swapToUnderlyingToken(uint256 _stakedAmount) public view returns (uint256) {
-        uint256 totalReward = currentTotalReward();
-        uint256 total = totalStaked + totalReward - totalUnstaked;
+        uint256 currentTotalReward = totalRewardAt(block.timestamp);
+        uint256 total = totalStaked + currentTotalReward - totalUnstaked;
         if (total == 0) {
             return _stakedAmount;
         }
-        uint256 totalSupply = totalSupply();
-        require(totalSupply > 0, "XzkStaking: Total supply is zero");
-        uint256 swapAmount = (_stakedAmount * total) / totalSupply;
+        uint256 totalStakingSupply = totalSupply();
+        require(totalStakingSupply > 0, "XzkStaking: Total supply is zero");
+        uint256 swapAmount = (_stakedAmount * total) / totalStakingSupply;
         return swapAmount;
     }
 
-    function currentTotalReward() public view returns (uint256) {
-        if (block.timestamp <= START_TIME) {
+    function totalRewardAt(uint256 _time) public view returns (uint256) {
+        if (_time <= START_TIME) {
             return 0;
         }
 
-        uint256 timePassed = block.timestamp - START_TIME;
+        uint256 timePassed = _time - START_TIME;
         if (timePassed >= TOTAL_DURATION_SECONDS) {
             return TOTAL_REWARD;
         }
