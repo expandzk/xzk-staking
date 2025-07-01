@@ -116,7 +116,7 @@ contract StakingStakeIntegrationTest is Test {
             vm.warp(block.timestamp + timeInterval);
 
             vm.startPrank(owner);
-            uint256 totalRewards = staking.currentTotalReward();
+            uint256 totalRewards = staking.totalRewardAt(block.timestamp);
             uint256 ownerBalance = mockVoteToken.balanceOf(owner);
             uint256 availableRewards = totalRewards - totalRewardsTransferred;
             uint256 transferAmount = availableRewards > ownerBalance ? ownerBalance : availableRewards;
@@ -262,7 +262,7 @@ contract StakingStakeIntegrationTest is Test {
         vm.stopPrank();
 
         vm.startPrank(owner);
-        uint256 totalRewards = staking.currentTotalReward();
+        uint256 totalRewards = staking.totalRewardAt(block.timestamp);
         mockVoteToken.transfer(address(staking), totalRewards);
         vm.stopPrank();
 

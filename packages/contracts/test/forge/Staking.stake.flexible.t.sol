@@ -311,14 +311,14 @@ contract StakingStakeFlexibleTest is Test {
 
     function test_CurrentTotalReward_BeforeStart() public {
         // Before start time, reward should be 0
-        assertEq(stakingFlexible.currentTotalReward(), 0, "Reward should be 0 before start time");
+        assertEq(stakingFlexible.totalRewardAt(block.timestamp), 0, "Reward should be 0 before start time");
     }
 
     function test_CurrentTotalReward_AfterStart() public {
         // Move forward past start time
         vm.warp(stakingFlexible.START_TIME() + 1);
 
-        uint256 reward = stakingFlexible.currentTotalReward();
+        uint256 reward = stakingFlexible.totalRewardAt(block.timestamp);
         assertGt(reward, 0, "Reward should be greater than 0 after start time");
     }
 
@@ -326,7 +326,7 @@ contract StakingStakeFlexibleTest is Test {
         // Move forward to max duration
         vm.warp(stakingFlexible.START_TIME() + stakingFlexible.TOTAL_DURATION_SECONDS());
 
-        uint256 reward = stakingFlexible.currentTotalReward();
+        uint256 reward = stakingFlexible.totalRewardAt(block.timestamp);
         assertEq(reward, stakingFlexible.TOTAL_REWARD(), "Reward should equal total reward at max duration");
     }
 
@@ -378,6 +378,36 @@ contract StakingStakeFlexibleTest is Test {
 
         // With rewards, underlying amount should be greater than staking amount
         assertGt(amount, stakingAmount, "Underlying amount should be greater than staking amount with rewards");
+    }
+
+    function test_swap_by_StakeAllTokenSupply() public {
+        vm.startPrank(owner);
+        uint256 startTime = stakingFlexible.START_TIME();
+        vm.warp(startTime - 2 hours);
+        vm.roll(10);
+        uint256 balance = mockToken.balanceOf(owner);
+        mockToken.approve(address(stakingFlexible), balance);
+        stakingFlexible.stake(balance);
+        assertEq(stakingFlexible.totalSupply(), balance);
+        assertEq(stakingFlexible.totalStaked(), balance);
+        assertEq(stakingFlexible.totalUnstaked(), 0);
+
+        vm.warp(startTime - 1 hours);
+        vm.roll(10);
+        stakingFlexible.unstake(balance, 0, 0);
+        assertEq(stakingFlexible.totalSupply(), 0);
+        assertEq(stakingFlexible.totalStaked(), balance);
+        assertEq(stakingFlexible.totalUnstaked(), balance);
+
+        uint256 delay = stakingFlexible.CLAIM_DELAY_SECONDS();
+        vm.warp(startTime + delay + 1);
+        vm.roll(10);
+        stakingFlexible.claim(owner, 0, 0);
+        assertEq(stakingFlexible.totalSupply(), 0);
+        assertEq(stakingFlexible.totalStaked(), balance);
+        assertEq(stakingFlexible.totalUnstaked(), balance);
+        assertEq(stakingFlexible.totalClaimed(), balance);
+        vm.stopPrank();
     }
 
     // ============ INTEGRATION TESTS ============

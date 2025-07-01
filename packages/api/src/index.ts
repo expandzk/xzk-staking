@@ -2,6 +2,7 @@ import { XZKStakingErrorCode, XZKStakingError } from './error';
 
 // Re-export types from api to maintain backward compatibility
 export type {
+  Network,
   TokenName,
   StakingPeriod,
   InitOptions,

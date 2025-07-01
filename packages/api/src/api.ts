@@ -66,8 +66,10 @@ export interface IStakingClient {
   totalStaked(options: ClientOptions): Promise<number>;
   totalUnstaked(options: ClientOptions): Promise<number>;
   totalClaimed(options: ClientOptions): Promise<number>;
+  apy(options: ClientOptions, amount?: number): Promise<number>;
+  apy_staker(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
-  currentTotalReward(options: ClientOptions): Promise<number>;
+  totalRewardAt(options: ClientOptions, timestamp_seconds?: number): Promise<number>;
   tokenBalance(options: ClientOptions, account: string): Promise<number>;
   stakingBalance(options: ClientOptions, account: string): Promise<number>;
   swapToStakingToken(options: ClientOptions, amount: number): Promise<number>;
@@ -164,12 +166,20 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => client.totalClaimed());
   }
 
+  public apy(options: ClientOptions, amount?: number): Promise<number> {
+    return this.getClient(options).then((client) => client.apy(amount));
+  }
+
+  public apy_staker(options: ClientOptions): Promise<number> {
+    return this.getClient(options).then((client) => client.apy_staker());
+  }
+
   public stakingTotalSupply(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.stakingTotalSupply());
   }
 
-  public currentTotalReward(options: ClientOptions): Promise<number> {
-    return this.getClient(options).then((client) => client.currentTotalReward());
+  public totalRewardAt(options: ClientOptions, timestamp_seconds?: number): Promise<number> {
+    return this.getClient(options).then((client) => client.totalRewardAt(timestamp_seconds));
   }
 
   public tokenBalance(options: ClientOptions, account: string): Promise<number> {

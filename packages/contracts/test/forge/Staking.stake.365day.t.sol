@@ -391,14 +391,14 @@ contract StakingStake365DayTest is Test {
 
     function test_CurrentTotalReward_BeforeStart() public view {
         // Before start time, reward should be 0
-        assertEq(staking.currentTotalReward(), 0, "Reward should be 0 before start time");
+        assertEq(staking.totalRewardAt(block.timestamp), 0, "Reward should be 0 before start time");
     }
 
     function test_CurrentTotalReward_AfterStart() public {
         // Move forward past start time
         vm.warp(staking.START_TIME() + 1);
 
-        uint256 reward = staking.currentTotalReward();
+        uint256 reward = staking.totalRewardAt(block.timestamp);
         assertGt(reward, 0, "Reward should be greater than 0 after start time");
     }
 
@@ -406,7 +406,7 @@ contract StakingStake365DayTest is Test {
         // Move forward to max duration
         vm.warp(staking.START_TIME() + staking.TOTAL_DURATION_SECONDS());
 
-        uint256 reward = staking.currentTotalReward();
+        uint256 reward = staking.totalRewardAt(block.timestamp);
         assertEq(reward, staking.TOTAL_REWARD(), "Reward should equal total reward at max duration");
     }
 
@@ -414,7 +414,7 @@ contract StakingStake365DayTest is Test {
         // Move forward past max duration
         vm.warp(staking.START_TIME() + staking.TOTAL_DURATION_SECONDS() + 1);
 
-        uint256 reward = staking.currentTotalReward();
+        uint256 reward = staking.totalRewardAt(block.timestamp);
         assertEq(reward, staking.TOTAL_REWARD(), "Reward should equal total reward after max duration");
     }
 
