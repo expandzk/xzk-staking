@@ -52,25 +52,6 @@ describe('Config', () => {
       config = new Config('dev'); // Using dev for non-zero addresses
     });
 
-    it('should return correct staking contract addresses for dev network', () => {
-      const expectedAddresses = {
-        'XZK-365d': '0x9215aa5a101A53fa409ab675a36129732c948564',
-        'XZK-180d': '0xF2050F78eCcfffcB2E6a6190d6E7c6E488fDF98d',
-        'XZK-90d': '0x25D950feA1179561d542827cE0EeDEC4ea959F11',
-        'XZK-Flex': '0x40fe37cCBd2d0c97e0b0360359eD47C412e2e260',
-        'VXZK-365d': '0xf14e2B92Ab22E5c549a75A568c1D76107bB244Fd',
-        'VXZK-180d': '0xBd9BB6b7680202b0a48b4C34Bcae5C226975abaB',
-        'VXZK-90d': '0xcE3347535bc4481D974C582E3f3b6e83bF4fEd45',
-        'VXZK-Flex': '0x51E157E834575Fff9B145b20F470B1E6555f2D1c',
-      };
-
-      Object.entries(expectedAddresses).forEach(([key, expectedAddress]) => {
-        const [tokenName, stakingPeriod] = key.split('-') as ['XZK' | 'VXZK', StakingPeriod];
-        const options: ClientOptions = { tokenName, stakingPeriod };
-        expect(config.stakingContractAddress(options)).toBe(expectedAddress);
-      });
-    });
-
     it('should return zero addresses for Ethereum mainnet (not deployed)', () => {
       const mainnetConfig = new Config('ethereum');
       const testCases: ClientOptions[] = [

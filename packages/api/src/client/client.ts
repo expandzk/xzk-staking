@@ -3,7 +3,14 @@ import { fromDecimals, toBN, toDecimals } from '@mystikonetwork/utils';
 import { BigNumber, PopulatedTransaction } from 'ethers';
 import BN from 'bn.js';
 import { createErrorPromise, XZKStakingErrorCode } from '../error';
-import type { StakingSummary, StakingRecord, UnstakingSummary, UnstakingRecord, ClientOptions } from '../api';
+import type {
+  StakingSummary,
+  StakingRecord,
+  UnstakingSummary,
+  UnstakingRecord,
+  ClientOptions,
+  ClaimSummary,
+} from '../api';
 import { ClientContext } from './context';
 
 export class ContractClient {
@@ -26,6 +33,10 @@ export class ContractClient {
 
   public getChainId(): Promise<number> {
     return Promise.resolve(this.context.config.chainId);
+  }
+
+  public getDecimals(): number {
+    return this.context.config.decimals;
   }
 
   public tokenContractAddress(): Promise<string> {
@@ -91,16 +102,16 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
-  public apy(amount?: number): Promise<number> {
+  public estimatedApy(amount?: number): Promise<number> {
     const amountBN = toDecimals(amount || 1e18, this.context.config.decimals);
-    return this.stakingInstance.apy(amountBN.toString()).then((apy: any) => {
+    return this.stakingInstance.estimatedApy(amountBN.toString()).then((apy: any) => {
       const apyValue = fromDecimals(apy, 18);
       return Math.round(apyValue * 100 * 1000) / 1000;
     });
   }
 
-  public apy_staker(): Promise<number> {
-    return this.stakingInstance.apy_staker().then((apy: any) => {
+  public stakerApy(): Promise<number> {
+    return this.stakingInstance.stakerApy().then((apy: any) => {
       const apyValue = fromDecimals(apy, 18);
       return Math.round(apyValue * 100 * 1000) / 1000;
     });
@@ -122,6 +133,14 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
+  public tokenBalanceBN(account: string): Promise<BN> {
+    const tokenContract = this.context.tokenContractInstance(this.options);
+    return tokenContract
+      .balanceOf(account)
+      .then((balance: any) => toBN(balance.toString()))
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+  }
+
   public stakingTotalSupply(): Promise<number> {
     return this.stakingInstance
       .totalSupply()
@@ -133,6 +152,13 @@ export class ContractClient {
     return this.stakingInstance
       .balanceOf(account)
       .then((balance: any) => fromDecimals(balance, this.context.config.decimals))
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+  }
+
+  public stakingBalanceBN(account: string): Promise<BN> {
+    return this.stakingInstance
+      .balanceOf(account)
+      .then((balance: any) => toBN(balance.toString()))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -161,11 +187,13 @@ export class ContractClient {
             0,
           );
           let totalCanUnstakeAmount = 0;
+          let totalCanUnstakeAmountBN = new BN(0);
           const currentTimestamp = Date.now() / 1000;
           const stakingPeriodSeconds = this.context.config.stakingPeriodSeconds(this.options.stakingPeriod);
           for (let i = 0; i < records.length; i += 1) {
             if (currentTimestamp > records[i].stakedTime + stakingPeriodSeconds) {
               totalCanUnstakeAmount += records[i].stakingTokenRemaining;
+              totalCanUnstakeAmountBN = totalCanUnstakeAmountBN.add(records[i].stakingTokenRemainingBN);
             }
           }
           return {
@@ -173,6 +201,7 @@ export class ContractClient {
             totalStakingTokenAmount,
             totalStakingTokenRemaining,
             totalCanUnstakeAmount,
+            totalCanUnstakeAmountBN,
             records,
           };
         }),
@@ -190,10 +219,12 @@ export class ContractClient {
 
         const claimDelaySeconds = this.context.config.claimDelaySeconds();
         let totalCanClaimAmount = 0;
+        let totalCanClaimAmountBN = new BN(0);
         const currentTimestamp = Date.now() / 1000;
         for (let i = 0; i < records.length; i += 1) {
           if (currentTimestamp > records[i].unstakedTime + claimDelaySeconds) {
             totalCanClaimAmount += records[i].tokenRemaining;
+            totalCanClaimAmountBN = totalCanClaimAmountBN.add(records[i].tokenRemainingBN);
           }
         }
         return {
@@ -201,29 +232,57 @@ export class ContractClient {
           totalStakingTokenAmount,
           totalTokenRemaining,
           totalCanClaimAmount,
+          totalCanClaimAmountBN,
           records,
         };
       })
       .catch((error: any) => createErrorPromise(error.toString()));
   }
 
-  public tokenApprove(account: string, amount: number): Promise<PopulatedTransaction | undefined> {
-    return this.tokenBalance(account).then((balance) => {
-      const amountBN = toDecimals(amount, this.context.config.decimals);
-      const balanceBN = toDecimals(balance, this.context.config.decimals);
-      if (amountBN.gt(balanceBN)) {
-        return createErrorPromise(XZKStakingErrorCode.BALANCE_ERROR);
+  public claimSummary(account: string): Promise<ClaimSummary> {
+    // TODO: implement
+    return Promise.resolve({
+      totalClaimedAmount: 0,
+      totalTokenRemaining: 0,
+      records: [],
+    });
+  }
+
+  public tokenApprove(
+    account: string,
+    isMax?: boolean,
+    amount?: number,
+  ): Promise<PopulatedTransaction | undefined> {
+    return this.tokenBalanceBN(account).then((balance) => {
+      let amountBN: BN;
+      if (isMax) {
+        amountBN = balance;
+      } else {
+        if (amount === undefined) {
+          return createErrorPromise(XZKStakingErrorCode.AMOUNT_NOT_SPECIFIED_ERROR);
+        }
+        amountBN = toDecimals(amount, this.context.config.decimals);
+        if (amountBN.gt(balance)) {
+          return createErrorPromise(XZKStakingErrorCode.AMOUNT_TOO_LARGE_ERROR);
+        }
       }
       return this.buildApproveTransaction(account, amountBN);
     });
   }
 
-  public stake(account: string, amount: number): Promise<PopulatedTransaction> {
-    return this.tokenBalance(account).then((balance) => {
-      const amountBN = toDecimals(amount, this.context.config.decimals);
-      const balanceBN = toDecimals(balance, this.context.config.decimals);
-      if (amountBN.gt(balanceBN)) {
-        return createErrorPromise(XZKStakingErrorCode.BALANCE_ERROR);
+  public stake(account: string, isMax?: boolean, amount?: number): Promise<PopulatedTransaction> {
+    return this.tokenBalanceBN(account).then((balance) => {
+      let amountBN: BN;
+      if (isMax) {
+        amountBN = balance;
+      } else {
+        if (amount === undefined) {
+          return createErrorPromise(XZKStakingErrorCode.AMOUNT_NOT_SPECIFIED_ERROR);
+        }
+        amountBN = toDecimals(amount, this.context.config.decimals);
+        if (amountBN.gt(balance)) {
+          return createErrorPromise(XZKStakingErrorCode.AMOUNT_TOO_LARGE_ERROR);
+        }
       }
       return this.buildStakeTransaction(account, amountBN);
     });
@@ -231,15 +290,13 @@ export class ContractClient {
 
   public unstake(
     account: string,
-    amount: number,
+    amountBN: BN,
     startNonce: number,
     endNonce: number,
   ): Promise<PopulatedTransaction> {
-    return this.stakingBalance(account).then((balance) => {
-      const amountBN = toDecimals(amount, this.context.config.decimals);
-      const balanceBN = toDecimals(balance, this.context.config.decimals);
-      if (amountBN.gt(balanceBN)) {
-        return createErrorPromise(XZKStakingErrorCode.BALANCE_ERROR);
+    return this.stakingBalanceBN(account).then((balance) => {
+      if (amountBN.gt(balance)) {
+        return createErrorPromise(XZKStakingErrorCode.AMOUNT_TOO_LARGE_ERROR);
       }
       return this.buildUnstakeTransaction(amountBN, startNonce, endNonce);
     });
@@ -351,8 +408,10 @@ export class ContractClient {
       .stakingRecords(account, index)
       .then((record: any) => ({
         stakedTime: record.stakedTime.toNumber(),
-        amount: fromDecimals(record.amount, this.context.config.decimals),
-        remaining: fromDecimals(record.remaining, this.context.config.decimals),
+        tokenAmount: fromDecimals(record.tokenAmount, this.context.config.decimals),
+        stakingTokenAmount: fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
+        stakingTokenRemaining: fromDecimals(record.stakingTokenRemaining, this.context.config.decimals),
+        stakingTokenRemainingBN: toBN(record.stakingTokenRemaining.toString()),
       }))
       .catch((error: any) => createErrorPromise(error.toString()));
   }
@@ -366,6 +425,7 @@ export class ContractClient {
         stakingTokenAmount: fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
         tokenAmount: fromDecimals(record.tokenAmount, this.context.config.decimals),
         tokenRemaining: fromDecimals(record.tokenRemaining, this.context.config.decimals),
+        tokenRemainingBN: toBN(record.tokenRemaining.toString()),
       }))
       .catch((error: any) => createErrorPromise(error.toString()));
   }

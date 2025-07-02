@@ -645,7 +645,7 @@ contract CheckStaking is Script {
     function check_staking_contract(XzkStaking staking, bool is_dev) public view {
         uint256 totalDuration = staking.TOTAL_DURATION_SECONDS();
         if (is_dev) {
-            assert(totalDuration == 7 days);
+            assert(totalDuration == 14 days);
         } else {
             assert(totalDuration == 3 * 365 days);
         }
@@ -660,7 +660,11 @@ contract CheckStaking is Script {
         assert(totalUnstaked == 0);
 
         uint256 claimDelay = staking.CLAIM_DELAY_SECONDS();
-        assert(claimDelay == 1 days);
+        if (is_dev) {
+            assert(claimDelay == 10 minutes);
+        } else {
+            assert(claimDelay == 1 days);
+        }
 
         uint256 startDelay = staking.START_DELAY_SECONDS();
         if (is_dev) {

@@ -62,7 +62,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         XzkStakingRecord(_pauseAdmin, _stakingPeriodSeconds)
         MystikoDAOAccessControl(_daoRegistry)
     {
-        require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must one day after deployment");
+        require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must be after start delay");
         require(TOTAL_DURATION_SECONDS < 10 * 365 days, "Total duration must be less than 10 years");
         START_TIME = _startTime;
         TOTAL_FACTOR = _totalFactor;
@@ -123,7 +123,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         return true;
     }
 
-    function apy(uint256 baseAmount) external view returns (uint256) {
+    function estimatedApy(uint256 baseAmount) external view returns (uint256) {
         require(baseAmount <= UNDERLYING_TOKEN.totalSupply());
         uint256 stakingAmount = swapToStakingToken(baseAmount);
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
@@ -137,7 +137,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         }
     }
 
-    function apy_staker() external view returns (uint256) {
+    function stakerApy() external view returns (uint256) {
         uint256 currentTotalAmount = totalStaked - totalUnstaked;
         require(currentTotalAmount > 0, "No staked amount");
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
