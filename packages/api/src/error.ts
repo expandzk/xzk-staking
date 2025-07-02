@@ -5,8 +5,9 @@ export enum XZKStakingErrorCode {
   PARAMETER_ERROR = 3,
   BALANCE_ERROR = 4,
   APPROVE_AMOUNT_ERROR = 5,
-  UNSTAKE_AMOUNT_TOO_LARGE_ERROR = 6,
-  NO_CLAIMABLE_AMOUNT_ERROR = 7,
+  AMOUNT_NOT_SPECIFIED_ERROR = 6,
+  AMOUNT_TOO_LARGE_ERROR = 7,
+  NO_CLAIMABLE_AMOUNT_ERROR = 8,
 }
 
 export class XZKStakingError extends Error {
@@ -39,11 +40,14 @@ export function createErrorPromise(code: XZKStakingErrorCode, message?: string):
     case XZKStakingErrorCode.APPROVE_AMOUNT_ERROR: {
       return createError(message || 'Approve amount error', code);
     }
-    case XZKStakingErrorCode.UNSTAKE_AMOUNT_TOO_LARGE_ERROR: {
-      return createError(message || 'Unstake amount too large', code);
+    case XZKStakingErrorCode.AMOUNT_NOT_SPECIFIED_ERROR: {
+      return createError(message || 'Amount not specified error', code);
+    }
+    case XZKStakingErrorCode.AMOUNT_TOO_LARGE_ERROR: {
+      return createError(message || 'Unstake amount too large error', code);
     }
     case XZKStakingErrorCode.NO_CLAIMABLE_AMOUNT_ERROR: {
-      return createError(message || 'No claimable amount', code);
+      return createError(message || 'No claimable amount error', code);
     }
     default: {
       return createError(message || 'Unknown error', code);

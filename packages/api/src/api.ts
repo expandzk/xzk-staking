@@ -3,6 +3,8 @@ import { ContractClient } from './client';
 import { ClientContext } from './client/context';
 import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise, XZKStakingErrorCode } from './error';
+import BN from 'bn.js';
+import { toDecimals } from '@mystikonetwork/utils';
 
 // Import types directly to avoid circular dependency
 export type Network = 'ethereum' | 'sepolia' | 'dev';
@@ -24,6 +26,7 @@ export interface StakingSummary {
   totalStakingTokenAmount: number;
   totalStakingTokenRemaining: number;
   totalCanUnstakeAmount: number;
+  totalCanUnstakeAmountBN: BN;
   records: StakingRecord[];
 }
 
@@ -32,6 +35,7 @@ export interface StakingRecord {
   tokenAmount: number;
   stakingTokenAmount: number;
   stakingTokenRemaining: number;
+  stakingTokenRemainingBN: BN;
 }
 
 export interface UnstakingSummary {
@@ -39,6 +43,7 @@ export interface UnstakingSummary {
   totalStakingTokenAmount: number;
   totalTokenRemaining: number;
   totalCanClaimAmount: number;
+  totalCanClaimAmountBN: BN;
   records: UnstakingRecord[];
 }
 
@@ -48,12 +53,28 @@ export interface UnstakingRecord {
   stakingTokenAmount: number;
   tokenAmount: number;
   tokenRemaining: number;
+  tokenRemainingBN: BN;
+}
+
+export interface ClaimSummary {
+  totalClaimedAmount: number;
+  totalTokenRemaining: number;
+  records: ClaimRecord[];
+}
+
+export interface ClaimRecord {
+  claimedTime: number;
+  claimedAmount: number;
 }
 
 export interface IStakingClient {
   initialize(options: InitOptions): void;
   readonly isInitialized: boolean;
   resetInitStatus(): void;
+  totalXzkAmountSummary(): Promise<number>;
+  totalVxzkAmountSummary(): Promise<number>;
+  totalRewardXzkAmountSummary(): Promise<number>;
+  totalRewardVxzkAmountSummary(): Promise<number>;
   getChainId(options: ClientOptions): Promise<number>;
   tokenContractAddress(options: ClientOptions): Promise<string>;
   stakingContractAddress(options: ClientOptions): Promise<string>;
@@ -63,12 +84,12 @@ export interface IStakingClient {
   claimDelaySeconds(options: ClientOptions): Promise<number>;
   isStakingPaused(options: ClientOptions): Promise<boolean>;
   poolTokenAmount(options: ClientOptions): Promise<number>;
+  stakingTotalSupply(options: ClientOptions): Promise<number>;
   totalStaked(options: ClientOptions): Promise<number>;
   totalUnstaked(options: ClientOptions): Promise<number>;
   totalClaimed(options: ClientOptions): Promise<number>;
-  apy(options: ClientOptions, amount?: number): Promise<number>;
-  apy_staker(options: ClientOptions): Promise<number>;
-  stakingTotalSupply(options: ClientOptions): Promise<number>;
+  estimatedApy(options: ClientOptions, amount?: number): Promise<number>;
+  stakerApy(options: ClientOptions): Promise<number>;
   totalRewardAt(options: ClientOptions, timestamp_seconds?: number): Promise<number>;
   tokenBalance(options: ClientOptions, account: string): Promise<number>;
   stakingBalance(options: ClientOptions, account: string): Promise<number>;
@@ -76,13 +97,25 @@ export interface IStakingClient {
   swapToUnderlyingToken(options: ClientOptions, amount: number): Promise<number>;
   stakingSummary(options: ClientOptions, account: string): Promise<StakingSummary>;
   unstakingSummary(options: ClientOptions, account: string): Promise<UnstakingSummary>;
+  claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary>;
   tokenApprove(
     options: ClientOptions,
     account: string,
-    amount: number,
+    isMax?: boolean,
+    amount?: number,
   ): Promise<PopulatedTransaction | undefined>;
-  stake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction>;
-  unstake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction>;
+  stake(
+    options: ClientOptions,
+    account: string,
+    isMax?: boolean,
+    amount?: number,
+  ): Promise<PopulatedTransaction>;
+  unstake(
+    options: ClientOptions,
+    account: string,
+    isMax?: boolean,
+    amount?: number,
+  ): Promise<PopulatedTransaction>;
   claim(options: ClientOptions, account: string, toAccount?: string): Promise<PopulatedTransaction>;
 }
 
@@ -116,6 +149,54 @@ class StakingApiClient implements StakingApiClient {
   public resetInitStatus(): void {
     this.clients.clear();
     this.initStatus = false;
+  }
+
+  public totalXzkAmountSummary(): Promise<number> {
+    const promises: Promise<number>[] = [];
+    GlobalClientOptions.forEach((clientOption) => {
+      if (clientOption.tokenName === 'XZK') {
+        promises.push(this.getClient(clientOption).then((client) => client.poolTokenAmount()));
+      }
+    });
+    return Promise.all(promises).then((results) => {
+      return results.reduce((acc, curr) => acc + curr, 0);
+    });
+  }
+
+  public totalVxzkAmountSummary(): Promise<number> {
+    const promises: Promise<number>[] = [];
+    GlobalClientOptions.forEach((clientOption) => {
+      if (clientOption.tokenName === 'VXZK') {
+        promises.push(this.getClient(clientOption).then((client) => client.poolTokenAmount()));
+      }
+    });
+    return Promise.all(promises).then((results) => {
+      return results.reduce((acc, curr) => acc + curr, 0);
+    });
+  }
+
+  public totalRewardXzkAmountSummary(): Promise<number> {
+    const promises: Promise<number>[] = [];
+    GlobalClientOptions.forEach((clientOption) => {
+      if (clientOption.tokenName === 'XZK') {
+        promises.push(this.getClient(clientOption).then((client) => client.totalRewardAt()));
+      }
+    });
+    return Promise.all(promises).then((results) => {
+      return results.reduce((acc, curr) => acc + curr, 0);
+    });
+  }
+
+  public totalRewardVxzkAmountSummary(): Promise<number> {
+    const promises: Promise<number>[] = [];
+    GlobalClientOptions.forEach((clientOption) => {
+      if (clientOption.tokenName === 'VXZK') {
+        promises.push(this.getClient(clientOption).then((client) => client.totalRewardAt()));
+      }
+    });
+    return Promise.all(promises).then((results) => {
+      return results.reduce((acc, curr) => acc + curr, 0);
+    });
   }
 
   public getChainId(options: ClientOptions): Promise<number> {
@@ -166,12 +247,12 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => client.totalClaimed());
   }
 
-  public apy(options: ClientOptions, amount?: number): Promise<number> {
-    return this.getClient(options).then((client) => client.apy(amount));
+  public estimatedApy(options: ClientOptions, amount?: number): Promise<number> {
+    return this.getClient(options).then((client) => client.estimatedApy(amount));
   }
 
-  public apy_staker(options: ClientOptions): Promise<number> {
-    return this.getClient(options).then((client) => client.apy_staker());
+  public stakerApy(options: ClientOptions): Promise<number> {
+    return this.getClient(options).then((client) => client.stakerApy());
   }
 
   public stakingTotalSupply(options: ClientOptions): Promise<number> {
@@ -206,40 +287,61 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => client.unstakingSummary(account));
   }
 
+  public claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary> {
+    return this.getClient(options).then((client) => client.claimSummary(account));
+  }
+
   public tokenApprove(
     options: ClientOptions,
     account: string,
-    amount: number,
+    isMax?: boolean,
+    amount?: number,
   ): Promise<PopulatedTransaction | undefined> {
-    return this.getClient(options).then((client) => client.tokenApprove(account, amount));
+    return this.getClient(options).then((client) => client.tokenApprove(account, isMax, amount));
   }
 
-  public stake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction> {
-    return this.getClient(options).then((client) => client.stake(account, amount));
+  public stake(
+    options: ClientOptions,
+    account: string,
+    isMax?: boolean,
+    amount?: number,
+  ): Promise<PopulatedTransaction> {
+    return this.getClient(options).then((client) => client.stake(account, isMax, amount));
   }
 
-  public unstake(options: ClientOptions, account: string, amount: number): Promise<PopulatedTransaction> {
+  public unstake(
+    options: ClientOptions,
+    account: string,
+    isMax?: boolean,
+    amount?: number,
+  ): Promise<PopulatedTransaction> {
     return this.getClient(options).then((client: ContractClient) =>
       client.stakingSummary(account).then((summary: StakingSummary) => {
-        if (amount > summary.totalCanUnstakeAmount) {
-          return createErrorPromise(XZKStakingErrorCode.UNSTAKE_AMOUNT_TOO_LARGE_ERROR);
+        let unstakeAmountBN: BN;
+        if (isMax) {
+          unstakeAmountBN = summary.totalCanUnstakeAmountBN;
+        } else {
+          if (amount === undefined) {
+            return createErrorPromise(XZKStakingErrorCode.AMOUNT_NOT_SPECIFIED_ERROR);
+          }
+          unstakeAmountBN = toDecimals(amount, client.getDecimals());
         }
         let startNonce = 0;
         let endNonce = 0;
-        let totalCanUnstakeAmount = 0;
+        let totalCanUnstakeAmountBN = new BN(0);
         for (let i = 0; i < summary.records.length; i += 1) {
           if (summary.records[i].stakingTokenRemaining > 0) {
             if (startNonce === 0) {
               startNonce = i;
             }
-            totalCanUnstakeAmount += summary.records[i].stakingTokenRemaining;
-            if (totalCanUnstakeAmount >= amount) {
+            totalCanUnstakeAmountBN = totalCanUnstakeAmountBN.add(summary.records[i].stakingTokenRemainingBN);
+            if (totalCanUnstakeAmountBN.gte(unstakeAmountBN)) {
               endNonce = i;
               break;
             }
           }
         }
-        return client.unstake(account, amount, startNonce, endNonce);
+        return client.unstake(account, unstakeAmountBN, startNonce, endNonce);
       }),
     );
   }
@@ -252,14 +354,14 @@ class StakingApiClient implements StakingApiClient {
         }
         let startNonce = 0;
         let endNonce = 0;
-        let totalCanClaimAmount = 0;
+        let totalCanClaimAmountBN = new BN(0);
         for (let i = 0; i < summary.records.length; i += 1) {
-          if (summary.records[i].tokenRemaining > 0) {
+          if (summary.records[i].tokenRemainingBN.gt(new BN(0))) {
             if (startNonce === 0) {
               startNonce = i;
             }
-            totalCanClaimAmount += summary.records[i].tokenRemaining;
-            if (totalCanClaimAmount >= summary.totalCanClaimAmount) {
+            totalCanClaimAmountBN = totalCanClaimAmountBN.add(summary.records[i].tokenRemainingBN);
+            if (totalCanClaimAmountBN.gte(summary.totalCanClaimAmountBN)) {
               endNonce = i;
               break;
             }
