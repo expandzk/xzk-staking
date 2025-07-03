@@ -32,6 +32,8 @@ export interface StakingSummary {
 
 export interface StakingRecord {
   stakedTime: number;
+  canUnstakeTime: number;
+  canUnstake: boolean;
   tokenAmount: number;
   stakingTokenAmount: number;
   stakingTokenRemaining: number;
@@ -39,8 +41,8 @@ export interface StakingRecord {
 }
 
 export interface UnstakingSummary {
+  totalUnstakingTokenAmount: number;
   totalTokenAmount: number;
-  totalStakingTokenAmount: number;
   totalTokenRemaining: number;
   totalCanClaimAmount: number;
   totalCanClaimAmountBN: BN;
@@ -49,8 +51,9 @@ export interface UnstakingSummary {
 
 export interface UnstakingRecord {
   unstakedTime: number;
-  claimTime: number;
-  stakingTokenAmount: number;
+  canClaimTime: number;
+  canClaim: boolean;
+  unstakingTokenAmount: number;
   tokenAmount: number;
   tokenRemaining: number;
   tokenRemainingBN: BN;
@@ -58,7 +61,6 @@ export interface UnstakingRecord {
 
 export interface ClaimSummary {
   totalClaimedAmount: number;
-  totalTokenRemaining: number;
   records: ClaimRecord[];
 }
 
@@ -320,17 +322,27 @@ class StakingApiClient implements StakingApiClient {
         let unstakeAmountBN: BN;
         if (isMax) {
           unstakeAmountBN = summary.totalCanUnstakeAmountBN;
+          if (unstakeAmountBN.lte(new BN(0))) {
+            return createErrorPromise(XZKStakingErrorCode.INSUFFICIENT_BALANCE_ERROR);
+          }
         } else {
           if (amount === undefined) {
             return createErrorPromise(XZKStakingErrorCode.AMOUNT_NOT_SPECIFIED_ERROR);
           }
+          if (amount <= 0) {
+            return createErrorPromise(XZKStakingErrorCode.INSUFFICIENT_BALANCE_ERROR);
+          }
+          if (amount > summary.totalCanUnstakeAmount) {
+            return createErrorPromise(XZKStakingErrorCode.INSUFFICIENT_BALANCE_ERROR);
+          }
           unstakeAmountBN = toDecimals(amount, client.getDecimals());
         }
+
         let startNonce = 0;
         let endNonce = 0;
         let totalCanUnstakeAmountBN = new BN(0);
         for (let i = 0; i < summary.records.length; i += 1) {
-          if (summary.records[i].stakingTokenRemaining > 0) {
+          if (summary.records[i].stakingTokenRemainingBN.gt(new BN(0))) {
             if (startNonce === 0) {
               startNonce = i;
             }

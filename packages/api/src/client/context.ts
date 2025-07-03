@@ -5,6 +5,8 @@ import { Config } from '../config';
 import type { ClientOptions, InitOptions, Network } from '../api';
 
 export class ClientContext {
+  public network: Network;
+
   public config: Config;
 
   public xzkContract: ERC20;
@@ -14,7 +16,8 @@ export class ClientContext {
   public provider: providers.Provider;
 
   constructor(options: InitOptions) {
-    this.config = new Config(options.network || 'ethereum');
+    this.network = options.network || 'ethereum';
+    this.config = new Config(this.network);
     const factory = new DefaultProviderFactory();
     this.provider = factory.createProvider(this.config.providers);
     this.xzkContract = ERC20ContractFactory.connect('ERC20', this.config.xzkContract, this.provider);

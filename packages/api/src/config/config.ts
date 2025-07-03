@@ -76,6 +76,8 @@ export class Config {
     },
   };
 
+  private readonly network: string;
+
   private readonly config: ChainConfig;
 
   public constructor(network: string) {
@@ -83,6 +85,7 @@ export class Config {
     if (!config) {
       throw new Error(`Unsupported network: ${network}`);
     }
+    this.network = network;
     this.config = config;
   }
 
@@ -119,14 +122,36 @@ export class Config {
   }
 
   public totalDurationSeconds(): number {
+    if (this.network === 'dev') {
+      return 14 * 24 * 60 * 60;
+    }
     return 3 * 365 * 24 * 60 * 60;
   }
 
   public claimDelaySeconds(): number {
+    if (this.network === 'dev') {
+      return 10 * 60;
+    }
     return 24 * 60 * 60;
   }
 
   public stakingPeriodSeconds(period: StakingPeriod): number {
+    if (this.network === 'dev') {
+      if (period === '365d') {
+        return 3 * 24 * 60 * 60;
+      }
+      if (period === '180d') {
+        return 2 * 24 * 60 * 60;
+      }
+      if (period === '90d') {
+        return 1 * 24 * 60 * 60;
+      }
+      if (period === 'Flex') {
+        return 0;
+      }
+      throw new Error(`Unsupported staking period: ${period}`);
+    }
+
     if (period === '365d') {
       return 365 * 24 * 60 * 60;
     }
