@@ -24,7 +24,7 @@ jest.mock('@expandzk/xzk-staking-abi', () => {
     unstakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 1 })),
     stakingRecords: jest.fn((account, index) =>
       Promise.resolve({
-        stakedTime: { toNumber: () => 0 },
+        stakingTime: { toNumber: () => 0 },
         tokenAmount: { toString: () => '2000000000000000000' },
         stakingTokenAmount: { toString: () => '2000000000000000000' },
         stakingTokenRemaining: { toString: () => '3000000000000000000' },
@@ -32,7 +32,7 @@ jest.mock('@expandzk/xzk-staking-abi', () => {
     ),
     unstakingRecords: jest.fn((account, index) =>
       Promise.resolve({
-        unstakedTime: { toNumber: () => 0 },
+        unstakingTime: { toNumber: () => 0 },
         claimTime: { toNumber: () => 2 },
         stakingTokenAmount: { toString: () => '2000000000000000000' },
         tokenAmount: { toString: () => '2000000000000000000' },
@@ -198,12 +198,12 @@ describe('StakingApiClient', () => {
       // unstakingSummary
       const unstakingSummary = await stakingApiClient.unstakingSummary(testOptions, '0x');
       expect(unstakingSummary).toHaveProperty('totalTokenAmount');
-      expect(unstakingSummary).toHaveProperty('totalStakingTokenAmount');
+      expect(unstakingSummary).toHaveProperty('totalUnstakingTokenAmount');
       expect(unstakingSummary).toHaveProperty('totalCanClaimAmount');
       expect(unstakingSummary).toHaveProperty('records');
       expect(Array.isArray(unstakingSummary.records)).toBe(true);
       expect(typeof unstakingSummary.totalTokenAmount).toBe('number');
-      expect(typeof unstakingSummary.totalStakingTokenAmount).toBe('number');
+      expect(typeof unstakingSummary.totalUnstakingTokenAmount).toBe('number');
       expect(typeof unstakingSummary.totalCanClaimAmount).toBe('number');
     } catch (error: any) {
       console.error('Actual error:', error);
@@ -299,10 +299,8 @@ describe('StakingApiClient', () => {
 
     const claimSummary = await stakingApiClient.claimSummary(testOptions, '0x');
     expect(claimSummary).toHaveProperty('totalClaimedAmount');
-    expect(claimSummary).toHaveProperty('totalTokenRemaining');
     expect(claimSummary).toHaveProperty('records');
     expect(Array.isArray(claimSummary.records)).toBe(true);
     expect(typeof claimSummary.totalClaimedAmount).toBe('number');
-    expect(typeof claimSummary.totalTokenRemaining).toBe('number');
   });
 });

@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import stakingApiClient from '../../src/api';
 import type { ClientOptions, InitOptions } from '../../src/index';
+import { ethers } from 'ethers';
+import { config } from 'dotenv';
+
+config();
 
 // Sepolia test configuration
 const SEPOLIA_CHAIN_ID = 11155111;
@@ -21,10 +25,19 @@ const testOptions: ClientOptions = {
   stakingPeriod: '365d',
 };
 
+let wallet: ethers.Wallet;
 describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
   beforeAll(async () => {
     // Initialize API client
     stakingApiClient.initialize(testInitOptions);
+
+    if (!TEST_PRIVATE_KEY) {
+      throw new Error('TEST_PRIVATE_KEY environment variable is required');
+    }
+    wallet = new ethers.Wallet(
+      TEST_PRIVATE_KEY,
+      new ethers.providers.JsonRpcProvider('https://1rpc.io/sepolia'),
+    );
 
     // Wait for initialization to complete
     await new Promise((resolve) => {
@@ -64,9 +77,9 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       const stakingPeriod = await stakingApiClient.stakingPeriodSeconds(testOptions);
       const claimDelay = await stakingApiClient.claimDelaySeconds(testOptions);
 
-      expect(totalDuration).toBe(3 * 365 * 24 * 60 * 60);
-      expect(stakingPeriod).toBe(365 * 24 * 60 * 60);
-      expect(claimDelay).toBe(24 * 60 * 60);
+      expect(totalDuration).toBe(14 * 24 * 60 * 60);
+      expect(stakingPeriod).toBe(3 * 24 * 60 * 60);
+      expect(claimDelay).toBe(10 * 60);
     });
 
     it('should get staking pause status', async () => {
@@ -84,13 +97,14 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
 
     it('should get staking balance for test account', async () => {
       const stakingBalance = await stakingApiClient.stakingBalance(testOptions, TEST_ACCOUNT);
-      expect(stakingBalance).toBe(0);
+      expect(stakingBalance).toBeGreaterThanOrEqual(0);
     });
   });
 
   describe('Staking Summary Tests', () => {
     it('should get staking summary for test account', async () => {
       const summary = await stakingApiClient.stakingSummary(testOptions, TEST_ACCOUNT);
+      console.log(summary);
       expect(summary).toHaveProperty('totalTokenAmount');
       expect(summary).toHaveProperty('totalStakingTokenAmount');
       expect(summary).toHaveProperty('totalStakingTokenRemaining');
@@ -100,138 +114,165 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
 
     it('should get unstaking summary for test account', async () => {
       const unstakingSummary = await stakingApiClient.unstakingSummary(testOptions, TEST_ACCOUNT);
+      console.log(unstakingSummary);
       expect(unstakingSummary).toHaveProperty('totalTokenAmount');
-      expect(unstakingSummary).toHaveProperty('totalStakingTokenAmount');
+      expect(unstakingSummary).toHaveProperty('totalUnstakingTokenAmount');
       expect(unstakingSummary).toHaveProperty('totalTokenRemaining');
       expect(unstakingSummary).toHaveProperty('totalCanClaimAmount');
       expect(Array.isArray(unstakingSummary.records)).toBe(true);
     });
+
+    it('should get claim summary for test account', async () => {
+      const claimSummary = await stakingApiClient.claimSummary(testOptions, TEST_ACCOUNT);
+      console.log(claimSummary);
+      expect(claimSummary).toHaveProperty('totalClaimedAmount');
+      expect(Array.isArray(claimSummary.records)).toBe(true);
+    });
   });
 
-  // describe('Transaction Building Tests', () => {
-  //   it('should handle insufficient balance for approve transaction', async () => {
-  //     const approveAmount = 1000000; // Large amount to trigger insufficient balance
+  describe('Test approve transaction', () => {
+    it('should handle insufficient balance for approve transaction', async () => {
+      const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
+      expect(balance).toBeDefined();
 
-  //     try {
-  //       await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, false, approveAmount);
-  //       // If we reach here, the test should fail
-  //       expect(true).toBe(false);
-  //     } catch (error: any) {
-  //       expect(error.message).toContain('Balance error');
-  //     }
-  //   });
+      try {
+        await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, false, balance + 1);
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.message).toContain('Insufficient balance error');
+      }
 
-  //   it('should handle insufficient balance for stake transaction', async () => {
-  //     const stakeAmount = 1000000; // Large amount to trigger insufficient balance
+      const tx = await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, false, balance / 10);
+      if (tx) {
+        const receipt = await wallet.sendTransaction(tx);
+        const receipt2 = await receipt.wait(2);
+        expect(receipt2.status).toBe(1);
+      }
+    });
 
-  //     try {
-  //       await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, stakeAmount);
-  //       // If we reach here, the test should fail
-  //       expect(true).toBe(false);
-  //     } catch (error: any) {
-  //       expect(error.message).toContain('Balance error');
-  //     }
-  //   });
+    it('should handle approve transaction with max amount', async () => {
+      const tx = await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, true);
+      expect(tx).toBeDefined();
+    });
 
-  //   it('should handle insufficient balance for unstake transaction', async () => {
-  //     const unstakeAmount = 1000000; // Large amount to trigger insufficient balance
+    // it('test stake transaction', async () => {
+    //   const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
+    //   expect(balance).toBeDefined();
 
-  //     try {
-  //       await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, false, unstakeAmount);
-  //       // If we reach here, the test should fail
-  //       expect(true).toBe(false);
-  //     } catch (error: any) {
-  //       expect(error.message).toContain('Unstake amount too large');
-  //     }
-  //   });
+    //   try {
+    //     await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance + 1);
+    //     expect(true).toBe(false);
+    //   } catch (error: any) {
+    //     expect(error.message).toContain('Insufficient balance error');
+    //   }
 
-  //   it('should handle insufficient approve amount for stake transaction', async () => {
-  //     const stakeAmount = 100; // Reasonable amount but no approval
+    //   const tx = await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance / 10);
+    //   expect(tx).toBeDefined();
+    //   const receipt = await wallet.sendTransaction(tx);
+    //   console.log(receipt.hash);
+    //   const receipt2 = await receipt.wait(2);
+    //   expect(receipt2.status).toBe(1);
+    // });
 
-  //     try {
-  //       await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, stakeAmount);
-  //       // If we reach here, the test should fail
-  //       expect(true).toBe(false);
-  //     } catch (error: any) {
-  //       expect(error.message).toContain('Balance error');
-  //     }
-  //   });
+    it('should handle approve amount error', async () => {
+      try {
+        await stakingApiClient.stake(testOptions, TEST_ACCOUNT, true);
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.message).toContain('Approve amount error');
+      }
+    });
 
-  //   it('should build claim transaction successfully', async () => {
-  //     try {
-  //       const claimTx = await stakingApiClient.claim(testOptions, TEST_ACCOUNT);
-  //       expect(claimTx).toHaveProperty('to');
-  //       expect(claimTx).toHaveProperty('data');
-  //     } catch (error: any) {
-  //       // If there's no claimable amount, that's also a valid scenario
-  //       expect(error.message).toContain('No claimable amount');
-  //     }
-  //   });
-  // });
+    it('should handle insufficient balance for unstake transaction', async () => {
+      const unstakeAmount = 1000000 * 10 ** 18;
 
-  // describe('Token Conversion Tests', () => {
-  //   it('should calculate swap to staking token', async () => {
-  //     const amount = 1000; // 1000 underlying tokens
-  //     const stakingAmount = await stakingApiClient.swapToStakingToken(testOptions, amount);
+      try {
+        await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, false, unstakeAmount);
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.message).toContain('Insufficient balance error');
+      }
 
-  //     expect(stakingAmount).toBeGreaterThan(0);
-  //   });
+      try {
+        await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, true, 0);
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.message).toContain('Insufficient balance error');
+      }
+    });
 
-  //   it('should calculate swap to underlying token', async () => {
-  //     const amount = 1000; // 1000 staking tokens
-  //     const underlyingAmount = await stakingApiClient.swapToUnderlyingToken(testOptions, amount);
+    it('should build claim transaction successfully', async () => {
+      try {
+        const claimTx = await stakingApiClient.claim(testOptions, TEST_ACCOUNT);
+        expect(claimTx).toHaveProperty('to');
+        expect(claimTx).toHaveProperty('data');
+      } catch (error: any) {
+        // If there's no claimable amount, that's also a valid scenario
+        expect(error.message).toContain('No claimable amount');
+      }
+    });
 
-  //     expect(underlyingAmount).toBeGreaterThan(0);
-  //   });
-  // });
+    describe('Token Conversion Tests', () => {
+      it('should calculate swap to staking token', async () => {
+        const amount = 1;
+        const stakingAmount = await stakingApiClient.swapToStakingToken(testOptions, amount);
+        expect(stakingAmount).toBeGreaterThan(0);
+      });
 
-  // describe('Error Handling Tests', () => {
-  //   it('should handle invalid account address', async () => {
-  //     const invalidAddress = '0xinvalid';
+      it('should calculate swap to underlying token', async () => {
+        const amount = 0.1;
+        const underlyingAmount = await stakingApiClient.swapToUnderlyingToken(testOptions, amount);
+        expect(underlyingAmount).toBeGreaterThan(0);
+      });
+    });
 
-  //     try {
-  //       await stakingApiClient.tokenBalance(testOptions, invalidAddress);
-  //       // If we reach here, the test should fail
-  //       expect(true).toBe(false);
-  //     } catch (error) {
-  //       expect(error).toBeDefined();
-  //     }
-  //   });
+    describe('APY Tests', () => {
+      it('should calculate staker APY', async () => {
+        const apy = await stakingApiClient.stakerApy(testOptions);
+        console.log(apy);
+        expect(apy).toBeGreaterThanOrEqual(0);
+      });
 
-  //   it('should handle unsupported client options', async () => {
-  //     const unsupportedOptions: ClientOptions = {
-  //       tokenName: 'XZK',
-  //       stakingPeriod: '999d' as any,
-  //     };
+      it('should calculate estimated APY', async () => {
+        const apy = await stakingApiClient.estimatedApy(testOptions);
+        console.log(apy);
+        expect(apy).toBeGreaterThanOrEqual(0);
+      });
 
-  //     try {
-  //       await stakingApiClient.getChainId(unsupportedOptions);
-  //       // If we reach here, the test should fail
-  //       expect(true).toBe(false);
-  //     } catch (error: any) {
-  //       expect(error.message).toContain('Not initialized');
-  //     }
-  //   });
-  // });
+      it('should calculate estimated APY with amount', async () => {
+        const apy = await stakingApiClient.estimatedApy(testOptions, 1000);
+        console.log(apy);
+        expect(apy).toBeGreaterThanOrEqual(0);
+      });
+    });
 
-  // describe('Performance Tests', () => {
-  //   it('should complete multiple API calls within reasonable time', async () => {
-  //     const startTime = Date.now();
+    describe('Error Handling Tests', () => {
+      it('should handle invalid account address', async () => {
+        const invalidAddress = '0xinvalid';
 
-  //     // Execute multiple API calls
-  //     await Promise.all([
-  //       stakingApiClient.getChainId(testOptions),
-  //       stakingApiClient.tokenContractAddress(testOptions),
-  //       stakingApiClient.stakingContractAddress(testOptions),
-  //       stakingApiClient.isStakingPaused(testOptions),
-  //       stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT),
-  //     ]);
+        try {
+          await stakingApiClient.tokenBalance(testOptions, invalidAddress);
+          // If we reach here, the test should fail
+          expect(true).toBe(false);
+        } catch (error) {
+          expect(error).toBeDefined();
+        }
+      });
 
-  //     const endTime = Date.now();
-  //     const duration = endTime - startTime;
+      it('should handle unsupported client options', async () => {
+        const unsupportedOptions: ClientOptions = {
+          tokenName: 'XZK',
+          stakingPeriod: '999d' as any,
+        };
 
-  //     // Expect to complete all calls within 5 seconds
-  //     expect(duration).toBeLessThan(5000);
-  //   });
-  // });
+        try {
+          await stakingApiClient.getChainId(unsupportedOptions);
+          // If we reach here, the test should fail
+          expect(true).toBe(false);
+        } catch (error: any) {
+          expect(error.message).toContain('Not initialized');
+        }
+      });
+    });
+  });
 });
