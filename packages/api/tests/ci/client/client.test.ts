@@ -18,8 +18,8 @@ jest.mock('@expandzk/xzk-staking-abi', () => {
     balanceOf: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000000' })),
     swapToStakingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
     swapToUnderlyingToken: jest.fn(() => Promise.resolve({ toString: () => '10000000000000000000' })),
-    estimatedApy: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000' })),
-    stakerApy: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000' })),
+    estimatedApr: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000' })),
+    stakerApr: jest.fn(() => Promise.resolve({ toString: () => '50000000000000000' })),
     stakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 2 })),
     unstakingNonces: jest.fn(() => Promise.resolve({ toNumber: () => 1 })),
     stakingRecords: jest.fn((account, index) =>
@@ -205,12 +205,36 @@ describe('StakingApiClient', () => {
       expect(typeof unstakingSummary.totalTokenAmount).toBe('number');
       expect(typeof unstakingSummary.totalUnstakingTokenAmount).toBe('number');
       expect(typeof unstakingSummary.totalCanClaimAmount).toBe('number');
+
+      const claimSummary = await stakingApiClient.claimSummary(testOptions, '0x');
+      expect(claimSummary).toHaveProperty('totalClaimedAmount');
+      expect(claimSummary).toHaveProperty('records');
+      expect(Array.isArray(claimSummary.records)).toBe(true);
+      expect(typeof claimSummary.totalClaimedAmount).toBe('number');
     } catch (error: any) {
       console.error('Actual error:', error);
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
       throw error;
     }
+  });
+
+  it('should return correct stake action summary', async () => {
+    stakingApiClient.initialize(testInitOptions);
+    const stakeActionSummary = await stakingApiClient.stakeActionSummary(testOptions, 1000);
+    expect(stakeActionSummary).toHaveProperty('tokenAmount');
+    expect(stakeActionSummary).toHaveProperty('stakingTokenAmount');
+    expect(stakeActionSummary).toHaveProperty('stakingTime');
+    expect(stakeActionSummary).toHaveProperty('canUnstakeTime');
+  });
+
+  it('should return correct unstake action summary', async () => {
+    stakingApiClient.initialize(testInitOptions);
+    const unstakeActionSummary = await stakingApiClient.unstakeActionSummary(testOptions, 1000);
+    expect(unstakeActionSummary).toHaveProperty('tokenAmount');
+    expect(unstakeActionSummary).toHaveProperty('unstakingTokenAmount');
+    expect(unstakeActionSummary).toHaveProperty('unstakingTime');
+    expect(unstakeActionSummary).toHaveProperty('canClaimTime');
   });
 
   it('should work with different client options', async () => {
@@ -236,7 +260,7 @@ describe('StakingApiClient', () => {
 
       // Mock the MystikoStakingContractFactory.connect to return a contract with the specific APY value
       const mockContract = {
-        estimatedApy: jest.fn(() => Promise.resolve({ toString: () => testCase.wei })),
+        estimatedApr: jest.fn(() => Promise.resolve({ toString: () => testCase.wei })),
       };
 
       require('@expandzk/xzk-staking-abi').MystikoStakingContractFactory.connect = jest.fn(
@@ -246,7 +270,7 @@ describe('StakingApiClient', () => {
       // Initialize the client after setting the mock
       stakingApiClient.initialize(testInitOptions);
 
-      const apy = await stakingApiClient.estimatedApy(testOptions);
+      const apy = await stakingApiClient.estimatedApr(testOptions);
       expect(apy).toBe(testCase.expected);
       expect(typeof apy).toBe('number');
     }
@@ -264,7 +288,7 @@ describe('StakingApiClient', () => {
       stakingApiClient.resetInitStatus();
 
       const mockContract = {
-        stakerApy: jest.fn(() => Promise.resolve({ toString: () => testCase.wei })),
+        stakerApr: jest.fn(() => Promise.resolve({ toString: () => testCase.wei })),
       };
 
       require('@expandzk/xzk-staking-abi').MystikoStakingContractFactory.connect = jest.fn(
@@ -274,7 +298,7 @@ describe('StakingApiClient', () => {
       // Initialize the client after setting the mock
       stakingApiClient.initialize(testInitOptions);
 
-      const apy = await stakingApiClient.stakerApy(testOptions);
+      const apy = await stakingApiClient.stakerApr(testOptions);
       expect(apy).toBe(testCase.expected);
       expect(typeof apy).toBe('number');
     }

@@ -1,7 +1,7 @@
 {
   "name": "@mystikonetwork/staking-rewards",
   "description": "mystiko staking rewards",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "repository": "https://github.com/mystikonetwork/mystiko-staking-rewards",
   "author": "Mystiko Network",

@@ -11,6 +11,8 @@ import type {
   StakingRecord,
   UnstakingRecord,
   ClaimRecord,
+  StakeActionSummary,
+  UnstakeActionSummary,
 } from '../api';
 import { ClientContext } from './context';
 
@@ -109,21 +111,21 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
-  public estimatedApy(amount?: number): Promise<number> {
+  public estimatedApr(amount?: number): Promise<number> {
     let amountBN: BN;
     if (amount === undefined) {
       amountBN = toDecimals(1, this.context.config.decimals);
     } else {
       amountBN = toDecimals(amount, this.context.config.decimals);
     }
-    return this.stakingInstance.estimatedApy(amountBN.toString()).then((apy: any) => {
+    return this.stakingInstance.estimatedApr(amountBN.toString()).then((apy: any) => {
       const apyValue = fromDecimals(apy, 18);
       return Math.round(apyValue * 100 * 1000) / 1000;
     });
   }
 
-  public stakerApy(): Promise<number> {
-    return this.stakingInstance.stakerApy().then((apy: any) => {
+  public stakerApr(): Promise<number> {
+    return this.stakingInstance.stakerApr().then((apy: any) => {
       const apyValue = fromDecimals(apy, 18);
       return Math.round(apyValue * 100 * 1000) / 1000;
     });
@@ -279,6 +281,34 @@ export class ContractClient {
           records,
         };
       });
+  }
+
+  public stakeActionSummary(amount: number): Promise<StakeActionSummary> {
+    const currentTimestamp = Date.now() / 1000;
+    const stakingPeriodSeconds = this.context.config.stakingPeriodSeconds(this.options.stakingPeriod);
+    const canUnstakeTime = currentTimestamp + stakingPeriodSeconds + 1;
+    return this.swapToStakingToken(amount).then((stakingTokenAmount) => {
+      return {
+        tokenAmount: amount,
+        stakingTime: currentTimestamp,
+        canUnstakeTime,
+        stakingTokenAmount,
+      };
+    });
+  }
+
+  public unstakeActionSummary(amount: number): Promise<UnstakeActionSummary> {
+    const currentTimestamp = Date.now() / 1000;
+    const claimDelaySeconds = this.context.config.claimDelaySeconds();
+    const canClaimTime = currentTimestamp + claimDelaySeconds + 1;
+    return this.swapToUnderlyingToken(amount).then((tokenAmount) => {
+      return {
+        unstakingTokenAmount: amount,
+        unstakingTime: currentTimestamp,
+        canClaimTime,
+        tokenAmount,
+      };
+    });
   }
 
   public tokenApprove(
