@@ -83,8 +83,7 @@ contract StakingStakeFlexibleTest is Test {
         );
         assertEq(stakingFlexible.totalStaked(), totalStakedBefore + STAKE_AMOUNT, "Total staked should increase");
 
-        // For flexible staking (0 period), no records should be created
-        assertEq(stakingFlexible.stakingNonces(user1), 0, "No staking records should be created for flexible staking");
+        assertEq(stakingFlexible.stakingNonces(user1), 1, "stakingNonces should be 1");
         vm.stopPrank();
     }
 
@@ -170,6 +169,9 @@ contract StakingStakeFlexibleTest is Test {
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
 
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
+
         uint256 stakingBalanceBefore = stakingFlexible.balanceOf(user1);
         uint256 tokenBalanceBefore = mockToken.balanceOf(user1);
         uint256 totalUnstakedBefore = stakingFlexible.totalUnstaked();
@@ -226,6 +228,9 @@ contract StakingStakeFlexibleTest is Test {
         stakingFlexible.pauseStaking();
         vm.stopPrank();
 
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
+
         // Try to unstake while paused
         vm.startPrank(user1);
         vm.expectRevert("Staking paused");
@@ -238,6 +243,9 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
 
         uint256 partialAmount = STAKE_AMOUNT / 2;
         uint256 balanceBefore = stakingFlexible.balanceOf(user1);
@@ -259,6 +267,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
 
         // Move forward past claim delay
@@ -278,6 +288,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         vm.expectRevert("Claim delay not reached");
         stakingFlexible.claim(user1, 0, 1);
@@ -289,6 +301,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
 
         // Pause claim for user
@@ -417,6 +431,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
 
         // Move forward past claim delay
@@ -436,16 +452,23 @@ contract StakingStakeFlexibleTest is Test {
         stakingFlexible.stake(STAKE_AMOUNT);
         assertEq(stakingFlexible.balanceOf(user1), STAKE_AMOUNT, "First stake balance");
 
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         // Second stake
         stakingFlexible.stake(STAKE_AMOUNT);
         assertEq(stakingFlexible.balanceOf(user1), STAKE_AMOUNT * 2, "Second stake balance");
 
+        vm.warp(block.timestamp + 2);
+        vm.roll(1);
         // Third stake
         stakingFlexible.stake(STAKE_AMOUNT);
         assertEq(stakingFlexible.balanceOf(user1), STAKE_AMOUNT * 3, "Third stake balance");
 
+        vm.warp(block.timestamp + 3);
+        vm.roll(1);
+
         // Unstake all
-        stakingFlexible.unstake(STAKE_AMOUNT * 3, 0, 0);
+        stakingFlexible.unstake(STAKE_AMOUNT * 3, 0, 2);
         assertEq(stakingFlexible.balanceOf(user1), 0, "Balance after unstake all");
 
         vm.stopPrank();
@@ -469,6 +492,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
 
         // Unstake partial amount
         uint256 partialAmount = STAKE_AMOUNT / 2;
@@ -486,10 +511,13 @@ contract StakingStakeFlexibleTest is Test {
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT * 3);
         for (uint256 i = 0; i < 3; i++) {
             stakingFlexible.stake(STAKE_AMOUNT);
-            stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
+            vm.warp(block.timestamp + i + 1);
+            vm.roll(1);
+            stakingFlexible.unstake(STAKE_AMOUNT, i, i);
         }
-        vm.expectRevert();
-        stakingFlexible.claim(user1, 0, 3);
+        vm.warp(block.timestamp + stakingFlexible.CLAIM_DELAY_SECONDS() + 1);
+        vm.roll(1);
+        stakingFlexible.claim(user1, 0, 2);
         vm.stopPrank();
     }
 
@@ -515,6 +543,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
 
         // Unstake should succeed
         bool success = stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
@@ -527,6 +557,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         vm.expectRevert();
         stakingFlexible.claim(user1, 0, 1);
@@ -540,8 +572,9 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
 
-        // Should be able to unstake immediately (no waiting period)
         bool success = stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         assertTrue(success, "Should be able to unstake immediately in flexible staking");
         vm.stopPrank();
@@ -552,6 +585,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         assertEq(stakingFlexible.unstakingNonces(user1), 1, "Unstaking records should be created for flexible staking");
         vm.stopPrank();
@@ -599,6 +634,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         vm.stopPrank();
 
         uint256 totalClaimedBeforeUnstake = stakingFlexible.totalClaimed();
@@ -697,6 +734,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         vm.stopPrank();
 
@@ -730,6 +769,8 @@ contract StakingStakeFlexibleTest is Test {
         vm.startPrank(user1);
         mockToken.approve(address(stakingFlexible), STAKE_AMOUNT * 2);
         stakingFlexible.stake(STAKE_AMOUNT);
+        vm.warp(block.timestamp + 1);
+        vm.roll(1);
         stakingFlexible.unstake(STAKE_AMOUNT, 0, 0);
         vm.stopPrank();
 

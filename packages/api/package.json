@@ -27,7 +27,7 @@
     "lint": "yarn prettier:check",
     "test": "jest --forceExit ./tests/ci",
     "test:integration": "jest --forceExit --testPathPattern=tests/integration",
-    "test:all": "jest --forceExit",
+    "test:cmd": "jest --forceExit --testPathPattern=tests/cmd/cmd.test.ts",
     "coverage": "jest --forceExit --coverage ./tests/ci",
     "coverage:integration": "jest --forceExit --coverage --testPathPattern=tests/integration",
     "clean": "rm -rf build"

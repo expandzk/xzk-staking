@@ -81,9 +81,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         uint256 stakingAmount = swapToStakingToken(_amount);
         SafeERC20.safeTransferFrom(UNDERLYING_TOKEN, account, address(this), _amount);
         _mint(account, stakingAmount);
-        if (STAKING_PERIOD_SECONDS > 0) {
-            require(_stakeRecord(account, _amount, stakingAmount), "XzkStaking: Stake record failed");
-        }
+        require(_stakeRecord(account, _amount, stakingAmount), "XzkStaking: Stake record failed");
         totalStaked += _amount;
         emit Staked(account, _amount, stakingAmount);
         return true;
@@ -101,9 +99,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         require(_stakingAmount <= balanceOf(account), "Insufficient staking balance");
         require(_startNonce <= _endNonce, "Invalid parameter");
         uint256 amount = swapToUnderlyingToken(_stakingAmount);
-        if (STAKING_PERIOD_SECONDS > 0) {
-            require(_unstakeVerify(account, _stakingAmount, _startNonce, _endNonce), "Unstake record failed");
-        }
+        require(_unstakeVerify(account, _stakingAmount, _startNonce, _endNonce), "Unstake record failed");
         _burn(account, _stakingAmount);
         _unstakeRecord(account, amount, _stakingAmount);
         totalUnstaked += amount;
