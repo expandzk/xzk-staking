@@ -123,7 +123,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         return true;
     }
 
-    function estimatedApy(uint256 baseAmount) external view returns (uint256) {
+    function estimatedApr(uint256 baseAmount) external view returns (uint256) {
         require(baseAmount <= UNDERLYING_TOKEN.totalSupply());
         uint256 stakingAmount = swapToStakingToken(baseAmount);
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
@@ -137,7 +137,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         }
     }
 
-    function stakerApy() external view returns (uint256) {
+    function stakerApr() external view returns (uint256) {
         uint256 currentTotalAmount = totalStaked - totalUnstaked;
         require(currentTotalAmount > 0, "No staked amount");
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);

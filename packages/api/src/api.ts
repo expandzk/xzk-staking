@@ -21,6 +21,20 @@ export interface InitOptions {
   scanApiBaseUrl?: string;
 }
 
+export interface StakeActionSummary {
+  tokenAmount: number;
+  stakingTime: number;
+  canUnstakeTime: number;
+  stakingTokenAmount: number;
+}
+
+export interface UnstakeActionSummary {
+  unstakingTokenAmount: number;
+  unstakingTime: number;
+  canClaimTime: number;
+  tokenAmount: number;
+}
+
 export interface StakingSummary {
   totalTokenAmount: number;
   totalStakingTokenAmount: number;
@@ -90,8 +104,8 @@ export interface IStakingClient {
   totalStaked(options: ClientOptions): Promise<number>;
   totalUnstaked(options: ClientOptions): Promise<number>;
   totalClaimed(options: ClientOptions): Promise<number>;
-  estimatedApy(options: ClientOptions, amount?: number): Promise<number>;
-  stakerApy(options: ClientOptions): Promise<number>;
+  estimatedApr(options: ClientOptions, amount?: number): Promise<number>;
+  stakerApr(options: ClientOptions): Promise<number>;
   totalRewardAt(options: ClientOptions, timestamp_seconds?: number): Promise<number>;
   tokenBalance(options: ClientOptions, account: string): Promise<number>;
   stakingBalance(options: ClientOptions, account: string): Promise<number>;
@@ -100,6 +114,8 @@ export interface IStakingClient {
   stakingSummary(options: ClientOptions, account: string): Promise<StakingSummary>;
   unstakingSummary(options: ClientOptions, account: string): Promise<UnstakingSummary>;
   claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary>;
+  stakeActionSummary(options: ClientOptions, amount: number): Promise<StakeActionSummary>;
+  unstakeActionSummary(options: ClientOptions, amount: number): Promise<UnstakeActionSummary>;
   tokenApprove(
     options: ClientOptions,
     account: string,
@@ -249,12 +265,12 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => client.totalClaimed());
   }
 
-  public estimatedApy(options: ClientOptions, amount?: number): Promise<number> {
-    return this.getClient(options).then((client) => client.estimatedApy(amount));
+  public estimatedApr(options: ClientOptions, amount?: number): Promise<number> {
+    return this.getClient(options).then((client) => client.estimatedApr(amount));
   }
 
-  public stakerApy(options: ClientOptions): Promise<number> {
-    return this.getClient(options).then((client) => client.stakerApy());
+  public stakerApr(options: ClientOptions): Promise<number> {
+    return this.getClient(options).then((client) => client.stakerApr());
   }
 
   public stakingTotalSupply(options: ClientOptions): Promise<number> {
@@ -291,6 +307,14 @@ class StakingApiClient implements StakingApiClient {
 
   public claimSummary(options: ClientOptions, account: string): Promise<ClaimSummary> {
     return this.getClient(options).then((client) => client.claimSummary(account));
+  }
+
+  public stakeActionSummary(options: ClientOptions, amount: number): Promise<StakeActionSummary> {
+    return this.getClient(options).then((client) => client.stakeActionSummary(amount));
+  }
+
+  public unstakeActionSummary(options: ClientOptions, amount: number): Promise<UnstakeActionSummary> {
+    return this.getClient(options).then((client) => client.unstakeActionSummary(amount));
   }
 
   public tokenApprove(

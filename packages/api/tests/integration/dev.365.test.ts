@@ -226,23 +226,23 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       });
     });
 
-    describe('APY Tests', () => {
-      it('should calculate staker APY', async () => {
-        const apy = await stakingApiClient.stakerApy(testOptions);
-        console.log(apy);
-        expect(apy).toBeGreaterThanOrEqual(0);
+    describe('APR Tests', () => {
+      it('should calculate staker APR', async () => {
+        const apr = await stakingApiClient.stakerApr(testOptions);
+        console.log(apr);
+        expect(apr).toBeGreaterThanOrEqual(0);
       });
 
-      it('should calculate estimated APY', async () => {
-        const apy = await stakingApiClient.estimatedApy(testOptions);
-        console.log(apy);
-        expect(apy).toBeGreaterThanOrEqual(0);
+      it('should calculate estimated APR', async () => {
+        const apr = await stakingApiClient.estimatedApr(testOptions);
+        console.log(apr);
+        expect(apr).toBeGreaterThanOrEqual(0);
       });
 
-      it('should calculate estimated APY with amount', async () => {
-        const apy = await stakingApiClient.estimatedApy(testOptions, 1000);
-        console.log(apy);
-        expect(apy).toBeGreaterThanOrEqual(0);
+      it('should calculate estimated APR with amount', async () => {
+        const apr = await stakingApiClient.estimatedApr(testOptions, 1000);
+        console.log(apr);
+        expect(apr).toBeGreaterThanOrEqual(0);
       });
     });
 

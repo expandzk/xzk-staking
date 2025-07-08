@@ -40,11 +40,11 @@ contract StakingApyTest is Test {
         vm.warp(startTime - 1 hours);
         vm.roll(10);
         uint256 totalReward = staking.totalRewardAt(block.timestamp + 365 days);
-        uint256 apyValue = staking.estimatedApy(1e18);
+        uint256 apyValue = staking.estimatedApr(1e18);
         assertEq(apyValue, totalReward, "APY be to total reward");
 
         vm.expectRevert("No staked amount");
-        staking.stakerApy();
+        staking.stakerApr();
     }
 
     function testApyAfterStakingDuration(uint256 amount) public {
@@ -65,10 +65,10 @@ contract StakingApyTest is Test {
         vm.warp(startTime + total_duration + 1 seconds);
         vm.roll(10);
 
-        uint256 apyValue = staking.estimatedApy(1e18);
+        uint256 apyValue = staking.estimatedApr(1e18);
         assertEq(apyValue, 0, "APY should be zero");
 
-        uint256 apyValue2 = staking.estimatedApy(amount);
+        uint256 apyValue2 = staking.estimatedApr(amount);
         assertEq(apyValue2, 0, "APY should be zero");
     }
 
@@ -95,12 +95,12 @@ contract StakingApyTest is Test {
         vm.roll(10);
 
         uint256 totalReward = staking.totalRewardAt(block.timestamp + 365 days);
-        uint256 apyValue_staker = staking.stakerApy();
+        uint256 apyValue_staker = staking.stakerApr();
         assertEq(apyValue_staker, (totalReward * 1e18) / totalBalance, "APY should match");
 
-        uint256 apyValue1 = staking.estimatedApy(amount);
-        uint256 apyValue2 = staking.estimatedApy(totalBalance);
+        uint256 apyValue1 = staking.estimatedApr(amount);
+        uint256 apyValue2 = staking.estimatedApr(totalBalance);
         assertGe(apyValue1, apyValue2, "apy1 should be greater than apy2");
-        assertLt(apyValue1, apyValue_staker, "apy1 should be less than stakerApy");
+        assertLt(apyValue1, apyValue_staker, "apy1 should be less than stakerApr");
     }
 }
