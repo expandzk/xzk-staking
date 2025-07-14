@@ -362,12 +362,12 @@ class StakingApiClient implements StakingApiClient {
           unstakeAmountBN = toDecimals(amount, client.getDecimals());
         }
 
-        let startNonce = 0;
+        let startNonce = -1;
         let endNonce = 0;
         let totalCanUnstakeAmountBN = new BN(0);
         for (let i = 0; i < summary.records.length; i += 1) {
           if (summary.records[i].stakingTokenRemainingBN.gt(new BN(0))) {
-            if (startNonce === 0) {
+            if (startNonce === -1) {
               startNonce = i;
             }
             totalCanUnstakeAmountBN = totalCanUnstakeAmountBN.add(summary.records[i].stakingTokenRemainingBN);
@@ -388,12 +388,12 @@ class StakingApiClient implements StakingApiClient {
         if (summary.totalCanClaimAmount <= 0) {
           return createErrorPromise(XZKStakingErrorCode.NO_CLAIMABLE_AMOUNT_ERROR);
         }
-        let startNonce = 0;
+        let startNonce = -1;
         let endNonce = 0;
         let totalCanClaimAmountBN = new BN(0);
         for (let i = 0; i < summary.records.length; i += 1) {
           if (summary.records[i].tokenRemainingBN.gt(new BN(0))) {
-            if (startNonce === 0) {
+            if (startNonce === -1) {
               startNonce = i;
             }
             totalCanClaimAmountBN = totalCanClaimAmountBN.add(summary.records[i].tokenRemainingBN);
