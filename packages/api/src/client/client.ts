@@ -278,7 +278,7 @@ export class ContractClient {
         const totalClaimedAmount = filterRecords.reduce((acc, record) => acc + record.claimedAmount, 0);
         return {
           totalClaimedAmount: this.round(totalClaimedAmount),
-          records,
+          records: filterRecords,
         };
       });
   }
