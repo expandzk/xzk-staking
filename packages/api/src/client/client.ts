@@ -13,6 +13,7 @@ import type {
   ClaimRecord,
   StakeActionSummary,
   UnstakeActionSummary,
+  StakingPoolConfig,
 } from '../api';
 import { ClientContext } from './context';
 
@@ -34,6 +35,21 @@ export class ContractClient {
       stakingContractAddress,
       this.context.provider,
     );
+  }
+
+  public getStakingPoolConfig(): Promise<StakingPoolConfig> {
+    return Promise.resolve({
+      chainId: this.context.config.chainId,
+      tokenName: this.options.tokenName,
+      tokenDecimals: this.context.config.decimals,
+      stakingTokenName: this.context.config.stakingTokenName(this.options),
+      stakingTokenDecimals: this.context.config.decimals,
+      tokenContractAddress: this.context.config.tokenContractAddress(this.options),
+      stakingContractAddress: this.context.config.stakingContractAddress(this.options),
+      stakingPeriodSeconds: this.context.config.stakingPeriodSeconds(this.options.stakingPeriod),
+      totalDurationSeconds: this.context.config.totalDurationSeconds(),
+      claimDelaySeconds: this.context.config.claimDelaySeconds(),
+    });
   }
 
   public getChainId(): Promise<number> {

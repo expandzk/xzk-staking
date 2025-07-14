@@ -11,6 +11,19 @@ export type Network = 'ethereum' | 'sepolia' | 'dev';
 export type TokenName = 'XZK' | 'VXZK';
 export type StakingPeriod = '365d' | '180d' | '90d' | 'Flex';
 
+export interface StakingPoolConfig {
+  chainId: number;
+  tokenName: TokenName;
+  tokenDecimals: number;
+  stakingTokenName: string;
+  stakingTokenDecimals: number;
+  tokenContractAddress: string;
+  stakingContractAddress: string;
+  stakingPeriodSeconds: number;
+  totalDurationSeconds: number;
+  claimDelaySeconds: number;
+}
+
 export interface ClientOptions {
   tokenName: TokenName;
   stakingPeriod: StakingPeriod;
@@ -91,6 +104,7 @@ export interface IStakingClient {
   totalVxzkAmountSummary(): Promise<number>;
   totalRewardXzkAmountSummary(): Promise<number>;
   totalRewardVxzkAmountSummary(): Promise<number>;
+  getStakingPoolConfig(options: ClientOptions): Promise<StakingPoolConfig>;
   getChainId(options: ClientOptions): Promise<number>;
   tokenContractAddress(options: ClientOptions): Promise<string>;
   stakingContractAddress(options: ClientOptions): Promise<string>;
@@ -215,6 +229,10 @@ class StakingApiClient implements StakingApiClient {
     return Promise.all(promises).then((results) => {
       return results.reduce((acc, curr) => acc + curr, 0);
     });
+  }
+
+  public getStakingPoolConfig(options: ClientOptions): Promise<StakingPoolConfig> {
+    return this.getClient(options).then((client) => client.getStakingPoolConfig());
   }
 
   public getChainId(options: ClientOptions): Promise<number> {

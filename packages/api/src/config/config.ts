@@ -121,6 +121,10 @@ export class Config {
     return this.config[keyName as keyof typeof this.config] as string;
   }
 
+  public stakingTokenName(options: ClientOptions): string {
+    return 's' + options.tokenName + '-' + options.stakingPeriod;
+  }
+
   public totalDurationSeconds(): number {
     if (this.network === 'dev') {
       return 14 * 24 * 60 * 60;
