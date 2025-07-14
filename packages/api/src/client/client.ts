@@ -514,7 +514,7 @@ export class ContractClient {
             unstakedTime: record.unstakingTime.toNumber(),
             canClaimTime: record.unstakingTime.toNumber() + this.context.config.claimDelaySeconds(),
             unstakingTokenAmount: this.round(
-              fromDecimals(record.unstakingTokenAmount, this.context.config.decimals),
+              fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
             ),
             tokenAmount: this.round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
             tokenRemaining: this.round(fromDecimals(record.tokenRemaining, this.context.config.decimals)),
