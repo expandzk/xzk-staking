@@ -73,5 +73,13 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       expect(claimSummary).toHaveProperty('totalClaimedAmount');
       expect(Array.isArray(claimSummary.records)).toBe(true);
     });
+
+    it('should get staking pool config', async () => {
+      const stakingPoolConfig = await stakingApiClient.getStakingPoolConfig(testOptions);
+      console.log(stakingPoolConfig);
+      expect(stakingPoolConfig).toHaveProperty('chainId');
+      expect(stakingPoolConfig).toHaveProperty('tokenName');
+      expect(stakingPoolConfig).toHaveProperty('tokenDecimals');
+    });
   });
 });
