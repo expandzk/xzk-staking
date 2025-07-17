@@ -169,7 +169,9 @@ describe('StakingApiClient', () => {
     expect(await stakingApiClient.claimDelaySeconds(testOptions)).toBeDefined();
     expect(await stakingApiClient.isStakingPaused(testOptions)).toBe(true);
     expect(await stakingApiClient.totalStaked(testOptions)).toBeDefined();
-    expect(await stakingApiClient.totalUnstaked(testOptions)).toBeDefined();
+    expect(await stakingApiClient.cumulativeTotalStaked(testOptions)).toBeDefined();
+    expect(await stakingApiClient.cumulativeTotalUnstaked(testOptions)).toBeDefined();
+    expect(await stakingApiClient.cumulativeTotalClaimed(testOptions)).toBeDefined();
     expect(await stakingApiClient.stakingTotalSupply(testOptions)).toBeDefined();
     expect(await stakingApiClient.totalRewardAt(testOptions)).toBeDefined();
     expect(await stakingApiClient.tokenBalance(testOptions, '0x')).toBeDefined();
