@@ -116,8 +116,9 @@ export interface IStakingClient {
   poolTokenAmount(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
   totalStaked(options: ClientOptions): Promise<number>;
-  totalUnstaked(options: ClientOptions): Promise<number>;
-  totalClaimed(options: ClientOptions): Promise<number>;
+  cumulativeTotalStaked(options: ClientOptions): Promise<number>;
+  cumulativeTotalUnstaked(options: ClientOptions): Promise<number>;
+  cumulativeTotalClaimed(options: ClientOptions): Promise<number>;
   estimatedApr(options: ClientOptions, amount?: number): Promise<number>;
   stakerApr(options: ClientOptions): Promise<number>;
   totalRewardAt(options: ClientOptions, timestamp_seconds?: number): Promise<number>;
@@ -272,14 +273,24 @@ class StakingApiClient implements StakingApiClient {
   }
 
   public totalStaked(options: ClientOptions): Promise<number> {
+    return this.getClient(options).then((client) => {
+      return client.totalStaked().then((totalStaked: number) => {
+        return client.totalUnstaked().then((totalUnstaked: number) => {
+          return totalStaked - totalUnstaked;
+        });
+      });
+    });
+  }
+
+  public cumulativeTotalStaked(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.totalStaked());
   }
 
-  public totalUnstaked(options: ClientOptions): Promise<number> {
+  public cumulativeTotalUnstaked(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.totalUnstaked());
   }
 
-  public totalClaimed(options: ClientOptions): Promise<number> {
+  public cumulativeTotalClaimed(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.totalClaimed());
   }
 
