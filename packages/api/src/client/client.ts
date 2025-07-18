@@ -16,6 +16,7 @@ import type {
   StakingPoolConfig,
 } from '../api';
 import { ClientContext } from './context';
+import { round } from '../config/config';
 
 export class ContractClient {
   private options: ClientOptions;
@@ -23,8 +24,6 @@ export class ContractClient {
   private context: ClientContext;
 
   private stakingInstance: XzkStaking;
-
-  private precision: number = 6;
 
   public constructor(context: ClientContext, options: ClientOptions) {
     this.context = context;
@@ -99,7 +98,7 @@ export class ContractClient {
     return tokenContract
       .balanceOf(this.context.config.stakingContractAddress(this.options))
       .then((amount: any) => fromDecimals(amount, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -107,7 +106,7 @@ export class ContractClient {
     return this.stakingInstance
       .totalStaked()
       .then((totalStaked: any) => fromDecimals(totalStaked, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -115,7 +114,7 @@ export class ContractClient {
     return this.stakingInstance
       .totalUnstaked()
       .then((totalUnstaked: any) => fromDecimals(totalUnstaked, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -123,7 +122,7 @@ export class ContractClient {
     return this.stakingInstance
       .totalClaimed()
       .then((totalClaimed: any) => fromDecimals(totalClaimed, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -148,11 +147,11 @@ export class ContractClient {
   }
 
   public totalRewardAt(timestamp_seconds?: number): Promise<number> {
-    const timestamp = timestamp_seconds || Date.now() / 1000;
+    const timestamp = timestamp_seconds || Math.floor(Date.now() / 1000);
     return this.stakingInstance
       .totalRewardAt(timestamp.toString())
       .then((balance: any) => fromDecimals(balance, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -161,7 +160,7 @@ export class ContractClient {
     return tokenContract
       .balanceOf(account)
       .then((balance: any) => fromDecimals(balance, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -177,6 +176,7 @@ export class ContractClient {
     return this.stakingInstance
       .totalSupply()
       .then((totalSupply: any) => fromDecimals(totalSupply, this.context.config.decimals))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -184,7 +184,7 @@ export class ContractClient {
     return this.stakingInstance
       .balanceOf(account)
       .then((balance: any) => fromDecimals(balance, this.context.config.decimals))
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -202,7 +202,7 @@ export class ContractClient {
       .then((stakingAmount: any) => {
         return fromDecimals(stakingAmount, this.context.config.decimals);
       })
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -213,7 +213,7 @@ export class ContractClient {
       .then((underlyingAmount: any) => {
         return fromDecimals(underlyingAmount, this.context.config.decimals);
       })
-      .then((amount: number) => this.round(amount))
+      .then((amount: number) => round(amount))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
@@ -241,10 +241,10 @@ export class ContractClient {
             }
           }
           return {
-            totalTokenAmount: this.round(totalTokenAmount),
-            totalStakingTokenAmount: this.round(totalStakingTokenAmount),
-            totalStakingTokenRemaining: this.round(totalStakingTokenRemaining),
-            totalCanUnstakeAmount: this.round(totalCanUnstakeAmount),
+            totalTokenAmount: round(totalTokenAmount),
+            totalStakingTokenAmount: round(totalStakingTokenAmount),
+            totalStakingTokenRemaining: round(totalStakingTokenRemaining),
+            totalCanUnstakeAmount: round(totalCanUnstakeAmount),
             totalCanUnstakeAmountBN,
             records,
           };
@@ -275,10 +275,10 @@ export class ContractClient {
           }
         }
         return {
-          totalTokenAmount: this.round(totalTokenAmount),
-          totalUnstakingTokenAmount: this.round(totalStakingTokenAmount),
-          totalTokenRemaining: this.round(totalTokenRemaining),
-          totalCanClaimAmount: this.round(totalCanClaimAmount),
+          totalTokenAmount: round(totalTokenAmount),
+          totalUnstakingTokenAmount: round(totalStakingTokenAmount),
+          totalTokenRemaining: round(totalTokenRemaining),
+          totalCanClaimAmount: round(totalCanClaimAmount),
           totalCanClaimAmountBN,
           records,
         };
@@ -293,7 +293,7 @@ export class ContractClient {
         const filterRecords = records.filter((record) => record.claimedTime > 0);
         const totalClaimedAmount = filterRecords.reduce((acc, record) => acc + record.claimedAmount, 0);
         return {
-          totalClaimedAmount: this.round(totalClaimedAmount),
+          totalClaimedAmount: round(totalClaimedAmount),
           records: filterRecords,
         };
       });
@@ -508,11 +508,9 @@ export class ContractClient {
             canUnstakeTime:
               record.stakingTime.toNumber() +
               this.context.config.stakingPeriodSeconds(this.options.stakingPeriod),
-            tokenAmount: this.round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
-            stakingTokenAmount: this.round(
-              fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
-            ),
-            stakingTokenRemaining: this.round(
+            tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+            stakingTokenAmount: round(fromDecimals(record.stakingTokenAmount, this.context.config.decimals)),
+            stakingTokenRemaining: round(
               fromDecimals(record.stakingTokenRemaining, this.context.config.decimals),
             ),
             stakingTokenRemainingBN: toBN(record.stakingTokenRemaining.toString()),
@@ -529,11 +527,11 @@ export class ContractClient {
           ({
             unstakedTime: record.unstakingTime.toNumber(),
             canClaimTime: record.unstakingTime.toNumber() + this.context.config.claimDelaySeconds(),
-            unstakingTokenAmount: this.round(
+            unstakingTokenAmount: round(
               fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
             ),
-            tokenAmount: this.round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
-            tokenRemaining: this.round(fromDecimals(record.tokenRemaining, this.context.config.decimals)),
+            tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+            tokenRemaining: round(fromDecimals(record.tokenRemaining, this.context.config.decimals)),
             tokenRemainingBN: toBN(record.tokenRemaining.toString()),
           } as UnstakingRecord),
       )
@@ -547,13 +545,9 @@ export class ContractClient {
         (record: any) =>
           ({
             claimedTime: record.claimTime.toNumber(),
-            claimedAmount: this.round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+            claimedAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
           } as ClaimRecord),
       )
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
-  }
-
-  private round(amount: number): number {
-    return Math.round(amount * 10 ** this.precision) / 10 ** this.precision;
   }
 }

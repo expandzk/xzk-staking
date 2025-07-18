@@ -5,6 +5,7 @@ import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise, XZKStakingErrorCode } from './error';
 import BN from 'bn.js';
 import { toDecimals } from '@mystikonetwork/utils';
+import { round } from './config/config';
 
 // Import types directly to avoid circular dependency
 export type Network = 'ethereum' | 'sepolia' | 'dev';
@@ -188,11 +189,11 @@ class StakingApiClient implements StakingApiClient {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'XZK') {
-        promises.push(this.getClient(clientOption).then((client) => client.poolTokenAmount()));
+        promises.push(this.totalStaked(clientOption));
       }
     });
     return Promise.all(promises).then((results) => {
-      return results.reduce((acc, curr) => acc + curr, 0);
+      return round(results.reduce((acc, curr) => acc + curr, 0));
     });
   }
 
@@ -200,11 +201,11 @@ class StakingApiClient implements StakingApiClient {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'VXZK') {
-        promises.push(this.getClient(clientOption).then((client) => client.poolTokenAmount()));
+        promises.push(this.totalStaked(clientOption));
       }
     });
     return Promise.all(promises).then((results) => {
-      return results.reduce((acc, curr) => acc + curr, 0);
+      return round(results.reduce((acc, curr) => acc + curr, 0));
     });
   }
 
@@ -216,7 +217,7 @@ class StakingApiClient implements StakingApiClient {
       }
     });
     return Promise.all(promises).then((results) => {
-      return results.reduce((acc, curr) => acc + curr, 0);
+      return round(results.reduce((acc, curr) => acc + curr, 0));
     });
   }
 
@@ -228,7 +229,7 @@ class StakingApiClient implements StakingApiClient {
       }
     });
     return Promise.all(promises).then((results) => {
-      return results.reduce((acc, curr) => acc + curr, 0);
+      return round(results.reduce((acc, curr) => acc + curr, 0));
     });
   }
 
@@ -276,7 +277,7 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => {
       return client.totalStaked().then((totalStaked: number) => {
         return client.totalUnstaked().then((totalUnstaked: number) => {
-          return totalStaked - totalUnstaked;
+          return round(totalStaked - totalUnstaked);
         });
       });
     });
