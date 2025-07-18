@@ -81,5 +81,20 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       expect(stakingPoolConfig).toHaveProperty('tokenName');
       expect(stakingPoolConfig).toHaveProperty('tokenDecimals');
     });
+
+    it('should total summary', async () => {
+      const xzkAmountSummary = await stakingApiClient.totalXzkAmountSummary();
+      console.log(xzkAmountSummary);
+      const vxzkAmountSummary = await stakingApiClient.totalVxzkAmountSummary();
+      console.log(vxzkAmountSummary);
+      const totalRewardXzkAmount = await stakingApiClient.totalRewardXzkAmountSummary();
+      console.log(totalRewardXzkAmount);
+      const totalRewardVxzkAmount = await stakingApiClient.totalRewardVxzkAmountSummary();
+      console.log(totalRewardVxzkAmount);
+      expect(xzkAmountSummary).toBeGreaterThan(0);
+      expect(vxzkAmountSummary).toBeGreaterThan(0);
+      expect(totalRewardXzkAmount).toBeGreaterThan(0);
+      expect(totalRewardVxzkAmount).toBeGreaterThan(0);
+    });
   });
 });

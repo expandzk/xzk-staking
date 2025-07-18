@@ -20,6 +20,11 @@ export function clientOptionToKey(options: ClientOptions): string {
   return `s${options.tokenName}${options.stakingPeriod}`;
 }
 
+export function round(amount: number): number {
+  const precision = 4;
+  return Math.round(amount * 10 ** precision) / 10 ** precision;
+}
+
 export class Config {
   private static chainConfigs: { [network: string]: ChainConfig } = {
     ethereum: {
