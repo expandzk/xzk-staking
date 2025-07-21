@@ -189,7 +189,7 @@ class StakingApiClient implements StakingApiClient {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'XZK') {
-        promises.push(this.totalStaked(clientOption));
+        promises.push(this.cumulativeTotalStaked(clientOption));
       }
     });
     return Promise.all(promises).then((results) => {
@@ -201,7 +201,7 @@ class StakingApiClient implements StakingApiClient {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'VXZK') {
-        promises.push(this.totalStaked(clientOption));
+        promises.push(this.cumulativeTotalStaked(clientOption));
       }
     });
     return Promise.all(promises).then((results) => {
@@ -274,13 +274,7 @@ class StakingApiClient implements StakingApiClient {
   }
 
   public totalStaked(options: ClientOptions): Promise<number> {
-    return this.getClient(options).then((client) => {
-      return client.totalStaked().then((totalStaked: number) => {
-        return client.totalUnstaked().then((totalUnstaked: number) => {
-          return round(totalStaked - totalUnstaked);
-        });
-      });
-    });
+    return this.cumulativeTotalStaked(options)
   }
 
   public cumulativeTotalStaked(options: ClientOptions): Promise<number> {

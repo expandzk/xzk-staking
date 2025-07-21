@@ -136,14 +136,14 @@ export class ContractClient {
     return this.stakingInstance.estimatedApr(amountBN.toString()).then((apy: any) => {
       const apyValue = fromDecimals(apy, 18);
       return Math.round(apyValue * 100 * 1000) / 1000;
-    });
+    }).catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
   public stakerApr(): Promise<number> {
     return this.stakingInstance.stakerApr().then((apy: any) => {
       const apyValue = fromDecimals(apy, 18);
       return Math.round(apyValue * 100 * 1000) / 1000;
-    });
+    }).catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
   public totalRewardAt(timestamp_seconds?: number): Promise<number> {
@@ -503,18 +503,18 @@ export class ContractClient {
       .stakingRecords(account, index)
       .then(
         (record: any) =>
-          ({
-            stakedTime: record.stakingTime.toNumber(),
-            canUnstakeTime:
-              record.stakingTime.toNumber() +
-              this.context.config.stakingPeriodSeconds(this.options.stakingPeriod),
-            tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
-            stakingTokenAmount: round(fromDecimals(record.stakingTokenAmount, this.context.config.decimals)),
-            stakingTokenRemaining: round(
-              fromDecimals(record.stakingTokenRemaining, this.context.config.decimals),
-            ),
-            stakingTokenRemainingBN: toBN(record.stakingTokenRemaining.toString()),
-          } as StakingRecord),
+        ({
+          stakedTime: record.stakingTime.toNumber(),
+          canUnstakeTime:
+            record.stakingTime.toNumber() +
+            this.context.config.stakingPeriodSeconds(this.options.stakingPeriod),
+          tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+          stakingTokenAmount: round(fromDecimals(record.stakingTokenAmount, this.context.config.decimals)),
+          stakingTokenRemaining: round(
+            fromDecimals(record.stakingTokenRemaining, this.context.config.decimals),
+          ),
+          stakingTokenRemainingBN: toBN(record.stakingTokenRemaining.toString()),
+        } as StakingRecord),
       )
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
@@ -524,16 +524,16 @@ export class ContractClient {
       .unstakingRecords(account, index)
       .then(
         (record: any) =>
-          ({
-            unstakedTime: record.unstakingTime.toNumber(),
-            canClaimTime: record.unstakingTime.toNumber() + this.context.config.claimDelaySeconds(),
-            unstakingTokenAmount: round(
-              fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
-            ),
-            tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
-            tokenRemaining: round(fromDecimals(record.tokenRemaining, this.context.config.decimals)),
-            tokenRemainingBN: toBN(record.tokenRemaining.toString()),
-          } as UnstakingRecord),
+        ({
+          unstakedTime: record.unstakingTime.toNumber(),
+          canClaimTime: record.unstakingTime.toNumber() + this.context.config.claimDelaySeconds(),
+          unstakingTokenAmount: round(
+            fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
+          ),
+          tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+          tokenRemaining: round(fromDecimals(record.tokenRemaining, this.context.config.decimals)),
+          tokenRemainingBN: toBN(record.tokenRemaining.toString()),
+        } as UnstakingRecord),
       )
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
@@ -543,10 +543,10 @@ export class ContractClient {
       .unstakingRecords(account, index)
       .then(
         (record: any) =>
-          ({
-            claimedTime: record.claimTime.toNumber(),
-            claimedAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
-          } as ClaimRecord),
+        ({
+          claimedTime: record.claimTime.toNumber(),
+          claimedAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+        } as ClaimRecord),
       )
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
