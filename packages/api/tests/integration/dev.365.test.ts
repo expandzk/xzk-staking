@@ -22,7 +22,7 @@ const testInitOptions: InitOptions = {
 // 365-day staking options
 const testOptions: ClientOptions = {
   tokenName: 'XZK',
-  stakingPeriod: '365d',
+  stakingPeriod: 'Flex',
 };
 
 let wallet: ethers.Wallet;
@@ -155,24 +155,24 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       expect(tx).toBeDefined();
     });
 
-    // it('test stake transaction', async () => {
-    //   const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
-    //   expect(balance).toBeDefined();
+    it('test stake transaction', async () => {
+      const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
+      expect(balance).toBeDefined();
 
-    //   try {
-    //     await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance + 1);
-    //     expect(true).toBe(false);
-    //   } catch (error: any) {
-    //     expect(error.message).toContain('Insufficient balance error');
-    //   }
+      try {
+        await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance + 1);
+        expect(true).toBe(false);
+      } catch (error: any) {
+        expect(error.message).toContain('Insufficient balance error');
+      }
 
-    //   const tx = await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance / 10);
-    //   expect(tx).toBeDefined();
-    //   const receipt = await wallet.sendTransaction(tx);
-    //   console.log(receipt.hash);
-    //   const receipt2 = await receipt.wait(2);
-    //   expect(receipt2.status).toBe(1);
-    // });
+      const tx = await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance / 10);
+      expect(tx).toBeDefined();
+      const receipt = await wallet.sendTransaction(tx);
+      console.log(receipt.hash);
+      const receipt2 = await receipt.wait(2);
+      expect(receipt2.status).toBe(1);
+    });
 
     it('should handle approve amount error', async () => {
       try {

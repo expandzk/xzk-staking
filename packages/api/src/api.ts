@@ -274,7 +274,7 @@ class StakingApiClient implements StakingApiClient {
   }
 
   public totalStaked(options: ClientOptions): Promise<number> {
-    return this.cumulativeTotalStaked(options)
+    return this.cumulativeTotalStaked(options);
   }
 
   public cumulativeTotalStaked(options: ClientOptions): Promise<number> {
