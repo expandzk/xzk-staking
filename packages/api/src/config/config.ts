@@ -49,7 +49,7 @@ export class Config {
         'https://api.zan.top/eth-mainnet',
         'https://eth.merkle.io',
         'https://ethereum.rpc.subquery.network/public',
-        'https://ethereum.therpc.io'
+        'https://ethereum.therpc.io',
       ],
       xzkContract: '0xe8fC52b1bb3a40fd8889C0f8f75879676310dDf0',
       vXZkContract: '0x16aFFA80C65Fd7003d40B24eDb96f77b38dDC96A',
@@ -67,7 +67,8 @@ export class Config {
       decimals: 18,
       xzkContract: '0x932161e47821c6F5AE69ef329aAC84be1E547e53',
       vXZkContract: '0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587',
-      providers: ['https://sepolia.gateway.tenderly.co',
+      providers: [
+        'https://sepolia.gateway.tenderly.co',
         'https://sepolia.drpc.org',
         'https://1rpc.io/sepolia',
         'https://eth-sepolia.api.onfinality.io/public',
@@ -75,7 +76,7 @@ export class Config {
         'https://rpc.sepolia.ethpandaops.io',
         'https://rpc-sepolia.rockx.com',
         'https://eth-sepolia.public.blastapi.io',
-        'https://ethereum-sepolia-rpc.publicnode.com'
+        'https://ethereum-sepolia-rpc.publicnode.com',
       ],
       sXZK365d: '0x0000000000000000000000000000000000000000',
       sXZK180d: '0x0000000000000000000000000000000000000000',
@@ -91,7 +92,8 @@ export class Config {
       decimals: 18,
       xzkContract: '0x932161e47821c6F5AE69ef329aAC84be1E547e53',
       vXZkContract: '0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587',
-      providers: ['https://sepolia.gateway.tenderly.co',
+      providers: [
+        'https://sepolia.gateway.tenderly.co',
         'https://sepolia.drpc.org',
         'https://1rpc.io/sepolia',
         'https://eth-sepolia.api.onfinality.io/public',
@@ -99,7 +101,7 @@ export class Config {
         'https://rpc.sepolia.ethpandaops.io',
         'https://rpc-sepolia.rockx.com',
         'https://eth-sepolia.public.blastapi.io',
-        'https://ethereum-sepolia-rpc.publicnode.com'
+        'https://ethereum-sepolia-rpc.publicnode.com',
       ],
       sXZK365d: '0x7475d5B3f6aECfC3897FeAf02359cD84D5a96a3E',
       sXZK180d: '0x94B934c10f2A2DEE067a9c335628bbb3219DaF47',
