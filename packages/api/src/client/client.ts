@@ -133,17 +133,23 @@ export class ContractClient {
     } else {
       amountBN = toDecimals(amount, this.context.config.decimals);
     }
-    return this.stakingInstance.estimatedApr(amountBN.toString()).then((apy: any) => {
-      const apyValue = fromDecimals(apy, 18);
-      return Math.round(apyValue * 100 * 1000) / 1000;
-    });
+    return this.stakingInstance
+      .estimatedApr(amountBN.toString())
+      .then((apy: any) => {
+        const apyValue = fromDecimals(apy, 18);
+        return Math.round(apyValue * 100 * 1000) / 1000;
+      })
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
   public stakerApr(): Promise<number> {
-    return this.stakingInstance.stakerApr().then((apy: any) => {
-      const apyValue = fromDecimals(apy, 18);
-      return Math.round(apyValue * 100 * 1000) / 1000;
-    });
+    return this.stakingInstance
+      .stakerApr()
+      .then((apy: any) => {
+        const apyValue = fromDecimals(apy, 18);
+        return Math.round(apyValue * 100 * 1000) / 1000;
+      })
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
   public totalRewardAt(timestamp_seconds?: number): Promise<number> {
