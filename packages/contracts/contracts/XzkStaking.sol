@@ -120,13 +120,14 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     }
 
     function estimatedApr(uint256 baseAmount) external view returns (uint256) {
-        require(baseAmount <= UNDERLYING_TOKEN.totalSupply());
+        require(baseAmount > 0, "Invalid amount");
+        require(baseAmount < UNDERLYING_TOKEN.totalSupply(), "Invalid amount");
         uint256 stakingAmount = swapToStakingToken(baseAmount);
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
         uint256 stakingTotalSupply = totalSupply() + stakingAmount;
         uint256 totalAmountAfterYear = totalStaked + totalRewardAfterYear - totalUnstaked + baseAmount;
         uint256 swapAmountAfterYear = (stakingAmount * totalAmountAfterYear) / stakingTotalSupply;
-        if (swapAmountAfterYear >= baseAmount) {
+        if (swapAmountAfterYear > baseAmount) {
             return ((swapAmountAfterYear - baseAmount) * 1e18) / baseAmount;
         } else {
             return 0;
@@ -134,10 +135,15 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     }
 
     function stakerApr() external view returns (uint256) {
-        uint256 currentTotalAmount = totalStaked - totalUnstaked;
-        require(currentTotalAmount > 0, "No staked amount");
+        uint256 currentTotalReward = totalRewardAt(block.timestamp);
+        uint256 currentTotalAmount = totalStaked + currentTotalReward - totalUnstaked;
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
-        return ((totalRewardAfterYear) * 1e18) / currentTotalAmount;
+        uint256 totalReward = totalRewardAfterYear - currentTotalReward;
+        if (currentTotalAmount > 0) {
+            return ((totalReward) * 1e18) / currentTotalAmount;
+        } else {
+            return 0;
+        }
     }
 
     function claimToDao(uint256 _amount) external onlyMystikoDAO {
