@@ -50,50 +50,80 @@ export interface UnstakeActionSummary {
 }
 
 export interface StakingSummary {
+  // total token amount (xzk or vxzk) that has been staked
   totalTokenAmount: number;
+  // total received staking token amount (s token) that has been staked
   totalStakingTokenAmount: number;
+  // total remaining staking token amount (s token) that has not been unstaked
   totalStakingTokenRemaining: number;
+  // total token amount (xzk or vxzk) that can be unstaked
   totalCanUnstakeAmount: number;
+  // total token amount (xzk or vxzk) that can be unstaked in BN
   totalCanUnstakeAmountBN: BN;
+  // staking records
   records: StakingRecord[];
 }
 
 export interface StakingRecord {
+  // staking transaction time
   stakedTime: number;
+  // can do unstake time
   canUnstakeTime: number;
+  // can do unstake or not
   canUnstake: boolean;
+  // token amount (xzk or vxzk) than do staking
   tokenAmount: number;
+  // received staking token amount (s token) that do staking
   stakingTokenAmount: number;
+  // remaining staking token amount that has not been unstaked
   stakingTokenRemaining: number;
+  // remaining staking token amount that has not been unstaked in BN
   stakingTokenRemainingBN: BN;
 }
 
 export interface UnstakingSummary {
+  // total unstaking token amount (s token)
   totalUnstakingTokenAmount: number;
+  // total received token amount (xzk or vxzk) that do unstaking
   totalTokenAmount: number;
+  // total token amount (xzk or vxzk) that has been unstaked and not claimed
   totalTokenRemaining: number;
+  // total token amount (xzk or vxzk) than can claim
   totalCanClaimAmount: number;
+  // total token amount (xzk or vxzk) than can claim in BN
   totalCanClaimAmountBN: BN;
+  // unstaking records
   records: UnstakingRecord[];
 }
 
 export interface UnstakingRecord {
+  //unstaking transaction time
   unstakedTime: number;
+  // can do claim time
   canClaimTime: number;
+  // can do claim or not
   canClaim: boolean;
+  // unstaking transaction unstaked token(s token) amount
   unstakingTokenAmount: number;
+  // received token amount (xzk or vxzk) that do unstaking
   tokenAmount: number;
+  // token amount that has not been claimed (xzk or vxzk)
   tokenRemaining: number;
+  // token amount that has not been claimed (xzk or vxzk) in BN
   tokenRemainingBN: BN;
 }
 
 export interface ClaimSummary {
+  // total claimed token amount (xzk or vxzk)
   totalClaimedAmount: number;
+  // claim records
   records: ClaimRecord[];
 }
 
 export interface ClaimRecord {
+  // claim transaction time
   claimedTime: number;
+  // claimed token amount (xzk or vxzk)
   claimedAmount: number;
 }
 
