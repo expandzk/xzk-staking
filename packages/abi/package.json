@@ -1,6 +1,6 @@
 {
   "name": "@expandzk/xzk-staking-abi",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "repository": {
     "type": "git",
     "url": "https://github.com/expandzk/xzk-staking",
@@ -30,7 +30,7 @@
     "test": "echo 'No tests'"
   },
   "devDependencies": {
-    "@expandzk/xzk-staking-contracts": "0.1.11",
+    "@expandzk/xzk-staking-contracts": "0.1.12",
     "@tsconfig/recommended": "^1.0.1",
     "@typechain/ethers-v5": "^11.1.2",
     "prettier": "3.2.4",
