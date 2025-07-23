@@ -53,6 +53,7 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       expect(summary).toHaveProperty('totalTokenAmount');
       expect(summary).toHaveProperty('totalStakingTokenAmount');
       expect(summary).toHaveProperty('totalStakingTokenRemaining');
+      expect(summary).toHaveProperty('totalStakingTokenLocked');
       expect(summary).toHaveProperty('totalCanUnstakeAmount');
       expect(Array.isArray(summary.records)).toBe(true);
     });
@@ -63,6 +64,7 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       expect(unstakingSummary).toHaveProperty('totalTokenAmount');
       expect(unstakingSummary).toHaveProperty('totalUnstakingTokenAmount');
       expect(unstakingSummary).toHaveProperty('totalTokenRemaining');
+      expect(unstakingSummary).toHaveProperty('totalTokenLocked');
       expect(unstakingSummary).toHaveProperty('totalCanClaimAmount');
       expect(Array.isArray(unstakingSummary.records)).toBe(true);
     });

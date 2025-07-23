@@ -56,6 +56,8 @@ export interface StakingSummary {
   totalStakingTokenAmount: number;
   // total remaining staking token amount (s token) that has not been unstaked
   totalStakingTokenRemaining: number;
+  // total staking token locked amount (s token) that can not be unstaked
+  totalStakingTokenLocked: number;
   // total token amount (xzk or vxzk) that can be unstaked
   totalCanUnstakeAmount: number;
   // total token amount (xzk or vxzk) that can be unstaked in BN
@@ -88,6 +90,8 @@ export interface UnstakingSummary {
   totalTokenAmount: number;
   // total token amount (xzk or vxzk) that has been unstaked and not claimed
   totalTokenRemaining: number;
+  // total token amount (xzk or vxzk) that can not be claimed
+  totalTokenLocked: number;
   // total token amount (xzk or vxzk) than can claim
   totalCanClaimAmount: number;
   // total token amount (xzk or vxzk) than can claim in BN
