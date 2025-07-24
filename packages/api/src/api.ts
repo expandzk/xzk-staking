@@ -56,11 +56,11 @@ export interface StakingSummary {
   totalStakingTokenAmount: number;
   // total remaining staking token amount (s token) that has not been unstaked
   totalStakingTokenRemaining: number;
-  // total staking token locked amount (s token) that can not be unstaked
+  // total locked staking token amount (s token) that can not be unstaked
   totalStakingTokenLocked: number;
-  // total token amount (xzk or vxzk) that can be unstaked
+  // total staking token amount (s token) that can be unstaked
   totalCanUnstakeAmount: number;
-  // total token amount (xzk or vxzk) that can be unstaked in BN
+  // total staking token amount (s token) that can be unstaked in BN
   totalCanUnstakeAmountBN: BN;
   // staking records
   records: StakingRecord[];
@@ -77,9 +77,11 @@ export interface StakingRecord {
   tokenAmount: number;
   // received staking token amount (s token) that do staking
   stakingTokenAmount: number;
-  // remaining staking token amount that has not been unstaked
+  // can unstake amount (s token)
+  canUnstakeAmount: number;
+  // remaining staking token amount (s token) that has not been unstaked
   stakingTokenRemaining: number;
-  // remaining staking token amount that has not been unstaked in BN
+  // remaining staking token amount (s token) that has not been unstaked in BN
   stakingTokenRemainingBN: BN;
 }
 
@@ -111,6 +113,8 @@ export interface UnstakingRecord {
   unstakingTokenAmount: number;
   // received token amount (xzk or vxzk) that do unstaking
   tokenAmount: number;
+  // can claim amount (xzk or vxzk)
+  canClaimAmount: number;
   // token amount that has not been claimed (xzk or vxzk)
   tokenRemaining: number;
   // token amount that has not been claimed (xzk or vxzk) in BN

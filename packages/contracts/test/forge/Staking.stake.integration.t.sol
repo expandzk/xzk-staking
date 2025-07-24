@@ -52,7 +52,7 @@ contract StakingStakeIntegrationTest is Test {
             "sVXZK-90D",
             STAKING_PERIOD_SECONDS,
             1500, // total factor
-            block.timestamp + 1 days // start time
+            block.timestamp + 5 days // start time
         );
         vm.stopPrank();
 

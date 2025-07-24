@@ -52,7 +52,7 @@ contract StakingGovernorTest is Test {
             "sVXZK-90D",
             90 days, // staking period
             1500, // total factor
-            block.timestamp + 1 days // start time
+            block.timestamp + 5 days // start time
         );
         vm.stopPrank();
 

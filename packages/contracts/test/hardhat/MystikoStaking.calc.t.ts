@@ -34,17 +34,17 @@ describe('XzkStaking', function () {
     if (!latestBlock) {
       throw new Error('Latest block not found');
     }
-    const startTimestamp = latestBlock.timestamp + 24 * 3600 + 3600;
+    const startTimestamp = latestBlock.timestamp + 5 * 24 * 3600 + 3600 * 4;
     const XzkStaking = await ethers.getContractFactory('XzkStaking');
 
     staking360 = await XzkStaking.deploy(
       dao.address,
       owner.address,
       mockVoteTokenAddress,
-      'Mystiko Staking Vote Token 360D',
-      'sVXZK-360D',
-      360,
-      20,
+      'Mystiko Staking Vote Token 365D',
+      'sVXZK-365D',
+      365 * 24 * 3600,
+      5500,
       startTimestamp,
     );
     await staking360.waitForDeployment();
@@ -55,8 +55,8 @@ describe('XzkStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 180D',
       'sVXZK-180D',
-      180,
-      15,
+      180 * 24 * 3600,
+      2700,
       startTimestamp,
     );
     await staking180.waitForDeployment();
@@ -67,8 +67,8 @@ describe('XzkStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 90D',
       'sVXZK-90D',
-      90,
-      10,
+      90 * 24 * 3600,
+      1300,
       startTimestamp,
     );
     await staking90.waitForDeployment();
@@ -80,7 +80,7 @@ describe('XzkStaking', function () {
       'Mystiko Staking Vote Token Flexible',
       'sVXZK-FLEX',
       0,
-      5,
+      500,
       startTimestamp,
     );
     await stakingFlexible.waitForDeployment();
@@ -105,8 +105,9 @@ describe('XzkStaking', function () {
       }
       const latestTimestamp = latestBlock.timestamp;
 
+
       const startTimestamp = Number(await staking360.START_TIME());
-      const totalDuration = Number(await staking360.TOTAL_DURATION_SECONDS());
+      const totalDuration = Number(await staking360.totalDurationSeconds());
       const endTimestamp = startTimestamp + totalDuration;
 
       // Create array to store data
@@ -119,75 +120,58 @@ describe('XzkStaking', function () {
       }[] = [];
 
       // Pre-start blocks - use smaller intervals to avoid memory issues
-      for (let i = latestTimestamp; i < startTimestamp; i += 3600) {
-        const reward360 = await staking360.currentTotalReward();
-        const reward180 = await staking180.currentTotalReward();
-        const reward90 = await staking90.currentTotalReward();
-        const rewardFlexible = await stakingFlexible.currentTotalReward();
+      let i = latestTimestamp + 5 * 24 * 3600;
+      for (; i < startTimestamp; i += 3600) {
+        await ethers.provider.send('evm_setNextBlockTimestamp', [i]);
+        await ethers.provider.send('hardhat_mine', [1]);
+        const reward360 = await staking360.totalRewardAt(i);
+        const reward180 = await staking180.totalRewardAt(i);
+        const reward90 = await staking90.totalRewardAt(i);
+        const rewardFlexible = await stakingFlexible.totalRewardAt(i);
         rewardData.push({
-          blockTimestamp: i,
+          blockTimestamp: i - startTimestamp,
           reward360: reward360.toString(),
           reward180: reward180.toString(),
           reward90: reward90.toString(),
           rewardFlexible: rewardFlexible.toString(),
         });
-        if (i + 3600 < startTimestamp) {
-          await ethers.provider.send('hardhat_mine', [3600]);
-        }
       }
 
-      const currentBlock = await ethers.provider.getBlock('latest');
-      if (!currentBlock) {
-        throw new Error('Current block not found');
-      }
-      const currentTimestamp = currentBlock.timestamp;
-      if (currentTimestamp < startTimestamp) {
-        await ethers.provider.send('hardhat_mine', [startTimestamp - currentTimestamp]);
-        const newBlock = await ethers.provider.getBlock('latest');
-        if (!newBlock) {
-          throw new Error('New block not found');
-        }
-        expect(newBlock.timestamp).to.equal(startTimestamp);
-      }
-
+      i = startTimestamp;
       // Active rewards period - use larger intervals to reduce memory usage
-      for (let i = 0; i <= totalDuration; i += 3600) {
-        expect(i % 3600).to.equal(0);
-        const reward360 = await staking360.currentTotalReward();
-        const reward180 = await staking180.currentTotalReward();
-        const reward90 = await staking90.currentTotalReward();
-        const rewardFlexible = await stakingFlexible.currentTotalReward();
+      for (; i <= endTimestamp; i += 3600) {
+        await ethers.provider.send('evm_setNextBlockTimestamp', [i]);
+        await ethers.provider.send('hardhat_mine', [1]);
+        expect((i - startTimestamp) % 3600).to.equal(0);
+        const reward360 = await staking360.totalRewardAt(i);
+        const reward180 = await staking180.totalRewardAt(i);
+        const reward90 = await staking90.totalRewardAt(i);
+        const rewardFlexible = await stakingFlexible.totalRewardAt(i);
         rewardData.push({
-          blockTimestamp: i,
+          blockTimestamp: i - startTimestamp,
           reward360: reward360.toString(),
           reward180: reward180.toString(),
           reward90: reward90.toString(),
           rewardFlexible: rewardFlexible.toString(),
         });
-        if (i + 3600 <= totalDuration) {
-          await ethers.provider.send('hardhat_mine', [3600]);
-        }
       }
 
-      await ethers.provider.send('hardhat_mine', [1]);
-
-      // Post-total blocks rewards - use even larger intervals
+      i = endTimestamp + 1;
       const postEndTimestamp = endTimestamp + 3600 * 30;
-      for (let i = endTimestamp + 1; i < postEndTimestamp; i += 3600) {
-        const reward360 = await staking360.currentTotalReward();
-        const reward180 = await staking180.currentTotalReward();
-        const reward90 = await staking90.currentTotalReward();
-        const rewardFlexible = await stakingFlexible.currentTotalReward();
+      for (; i < postEndTimestamp; i += 3600) {
+        await ethers.provider.send('evm_setNextBlockTimestamp', [i]);
+        await ethers.provider.send('hardhat_mine', [1]);
+        const reward360 = await staking360.totalRewardAt(i);
+        const reward180 = await staking180.totalRewardAt(i);
+        const reward90 = await staking90.totalRewardAt(i);
+        const rewardFlexible = await stakingFlexible.totalRewardAt(i);
         rewardData.push({
-          blockTimestamp: i,
+          blockTimestamp: i - startTimestamp,
           reward360: reward360.toString(),
           reward180: reward180.toString(),
           reward90: reward90.toString(),
           rewardFlexible: rewardFlexible.toString(),
         });
-        if (i + 3600 < postEndTimestamp) {
-          await ethers.provider.send('hardhat_mine', [3600]);
-        }
       }
 
       // Convert data to CSV format - fix the property name

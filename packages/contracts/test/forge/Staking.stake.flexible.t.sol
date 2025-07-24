@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
+import {Constants} from "../../contracts/libs/constant.sol";
 import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -49,7 +50,7 @@ contract StakingStakeFlexibleTest is Test {
             "sXZK",
             0, // flexible staking period
             100, // total factor
-            block.timestamp + 1 days // start time
+            block.timestamp + 5 days // start time
         );
         vm.stopPrank();
 
@@ -338,7 +339,7 @@ contract StakingStakeFlexibleTest is Test {
 
     function test_CurrentTotalReward_AtMaxDuration() public {
         // Move forward to max duration
-        vm.warp(stakingFlexible.START_TIME() + stakingFlexible.TOTAL_DURATION_SECONDS());
+        vm.warp(stakingFlexible.START_TIME() + Constants.TOTAL_DURATION_SECONDS);
 
         uint256 reward = stakingFlexible.totalRewardAt(block.timestamp);
         assertEq(reward, stakingFlexible.TOTAL_REWARD(), "Reward should equal total reward at max duration");
