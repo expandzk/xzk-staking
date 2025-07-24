@@ -5,20 +5,15 @@ import {SafeERC20, IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC2
 import {ReentrancyGuard} from "lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import {MystikoDAOAccessControl} from "lib/mystiko-governance/packages/contracts/contracts/MystikoDAOAccessControl.sol";
 import {XzkStakingToken} from "./token/XzkStakingToken.sol";
+import {Constants} from "./libs/constant.sol";
 import {RewardsLibrary} from "./libs/Reward.sol";
 import {XzkStakingRecord} from "./XzkStakingRecord.sol";
 
 contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessControl, ReentrancyGuard {
-    // Total reward amount (50 million tokens) of underlying token
-    uint256 public constant ALL_REWARD = (50_000_000 * 1e18);
-
     // Total shares for the underlying token
     uint256 public constant ALL_SHARES = 10000;
 
-    // Total duration 3 years)
-    uint256 public constant TOTAL_DURATION_SECONDS = 3 * 365 days;
-
-    uint256 public constant START_DELAY_SECONDS = 1 days;
+    uint256 public constant START_DELAY_SECONDS = 5 days;
 
     // Total factor for the staking token of total share
     uint256 public immutable TOTAL_FACTOR;
@@ -63,10 +58,9 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         MystikoDAOAccessControl(_daoRegistry)
     {
         require(_startTime >= block.timestamp + START_DELAY_SECONDS, "Start time must be after start delay");
-        require(TOTAL_DURATION_SECONDS < 10 * 365 days, "Total duration must be less than 10 years");
         START_TIME = _startTime;
         TOTAL_FACTOR = _totalFactor;
-        TOTAL_REWARD = (ALL_REWARD * TOTAL_FACTOR) / ALL_SHARES;
+        TOTAL_REWARD = (Constants.ALL_REWARD * TOTAL_FACTOR) / ALL_SHARES;
         totalStaked = 0;
         totalUnstaked = 0;
         totalClaimed = 0;
@@ -192,11 +186,23 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         }
 
         uint256 timePassed = _time - START_TIME;
-        if (timePassed >= TOTAL_DURATION_SECONDS) {
+        if (timePassed >= Constants.TOTAL_DURATION_SECONDS) {
             return TOTAL_REWARD;
         }
 
         uint256 reward = RewardsLibrary.calcTotalReward(timePassed);
         return (reward * TOTAL_FACTOR) / ALL_SHARES;
+    }
+
+    function allReward() public pure returns (uint256) {
+        return Constants.ALL_REWARD;
+    }
+
+    function totalDurationSeconds() public pure returns (uint256) {
+        return Constants.TOTAL_DURATION_SECONDS;
+    }
+
+    function totalFactor() public pure returns (uint256) {
+        return Constants.TOTAL_FACTOR;
     }
 }

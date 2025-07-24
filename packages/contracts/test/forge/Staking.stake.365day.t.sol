@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
+import {Constants} from "../../contracts/libs/constant.sol";
 import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../contracts/mocks/MockVoteToken.sol";
@@ -54,7 +55,7 @@ contract StakingStake365DayTest is Test {
             "sVXZK-360D",
             STAKING_PERIOD_SECONDS, // 360-day staking period
             2000, // total factor
-            block.timestamp + 1 days // start time
+            block.timestamp + 5 days // start time
         );
         vm.stopPrank();
 
@@ -404,7 +405,7 @@ contract StakingStake365DayTest is Test {
 
     function test_CurrentTotalReward_AtMaxDuration() public {
         // Move forward to max duration
-        vm.warp(staking.START_TIME() + staking.TOTAL_DURATION_SECONDS());
+        vm.warp(staking.START_TIME() + Constants.TOTAL_DURATION_SECONDS);
 
         uint256 reward = staking.totalRewardAt(block.timestamp);
         assertEq(reward, staking.TOTAL_REWARD(), "Reward should equal total reward at max duration");
@@ -412,7 +413,7 @@ contract StakingStake365DayTest is Test {
 
     function test_CurrentTotalReward_AfterMaxDuration() public {
         // Move forward past max duration
-        vm.warp(staking.START_TIME() + staking.TOTAL_DURATION_SECONDS() + 1);
+        vm.warp(staking.START_TIME() + Constants.TOTAL_DURATION_SECONDS + 1);
 
         uint256 reward = staking.totalRewardAt(block.timestamp);
         assertEq(reward, staking.TOTAL_REWARD(), "Reward should equal total reward after max duration");

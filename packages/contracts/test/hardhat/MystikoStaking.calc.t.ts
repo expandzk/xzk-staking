@@ -106,7 +106,7 @@ describe('XzkStaking', function () {
       const latestTimestamp = latestBlock.timestamp;
 
       const startTimestamp = Number(await staking360.START_TIME());
-      const totalDuration = Number(await staking360.TOTAL_DURATION_SECONDS());
+      const totalDuration = Number(await staking360.totalDurationSeconds());
       const endTimestamp = startTimestamp + totalDuration;
 
       // Create array to store data
@@ -120,10 +120,10 @@ describe('XzkStaking', function () {
 
       // Pre-start blocks - use smaller intervals to avoid memory issues
       for (let i = latestTimestamp; i < startTimestamp; i += 3600) {
-        const reward360 = await staking360.currentTotalReward();
-        const reward180 = await staking180.currentTotalReward();
-        const reward90 = await staking90.currentTotalReward();
-        const rewardFlexible = await stakingFlexible.currentTotalReward();
+        const reward360 = await staking360.totalRewardAt(i);
+        const reward180 = await staking180.totalRewardAt(i);
+        const reward90 = await staking90.totalRewardAt(i);
+        const rewardFlexible = await stakingFlexible.totalRewardAt(i);
         rewardData.push({
           blockTimestamp: i,
           reward360: reward360.toString(),
@@ -153,10 +153,10 @@ describe('XzkStaking', function () {
       // Active rewards period - use larger intervals to reduce memory usage
       for (let i = 0; i <= totalDuration; i += 3600) {
         expect(i % 3600).to.equal(0);
-        const reward360 = await staking360.currentTotalReward();
-        const reward180 = await staking180.currentTotalReward();
-        const reward90 = await staking90.currentTotalReward();
-        const rewardFlexible = await stakingFlexible.currentTotalReward();
+        const reward360 = await staking360.TOTAL_REWARD();
+        const reward180 = await staking180.TOTAL_REWARD();
+        const reward90 = await staking90.TOTAL_REWARD();
+        const rewardFlexible = await stakingFlexible.TOTAL_REWARD();
         rewardData.push({
           blockTimestamp: i,
           reward360: reward360.toString(),
@@ -174,10 +174,10 @@ describe('XzkStaking', function () {
       // Post-total blocks rewards - use even larger intervals
       const postEndTimestamp = endTimestamp + 3600 * 30;
       for (let i = endTimestamp + 1; i < postEndTimestamp; i += 3600) {
-        const reward360 = await staking360.currentTotalReward();
-        const reward180 = await staking180.currentTotalReward();
-        const reward90 = await staking90.currentTotalReward();
-        const rewardFlexible = await stakingFlexible.currentTotalReward();
+        const reward360 = await staking360.TOTAL_REWARD();
+        const reward180 = await staking180.TOTAL_REWARD();
+        const reward90 = await staking90.TOTAL_REWARD();
+        const rewardFlexible = await stakingFlexible.TOTAL_REWARD();
         rewardData.push({
           blockTimestamp: i,
           reward360: reward360.toString(),

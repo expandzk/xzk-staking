@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
+import {Constants} from "./constant.sol";
+
 library RewardsLibrary {
     uint256 private constant SCALE = 1e18;
     uint256 private constant LAMBDA_DECAY = 20 * 1e9;
-    uint256 private constant TOTAL_FACTOR = 58875190375432478;
 
     function calcTotalReward(uint256 timePassed) internal pure returns (uint256) {
         require(timePassed < 10 * 365 days, "Reward: Invalid time passed");
@@ -12,7 +13,7 @@ library RewardsLibrary {
         uint256 expNeg = expTaylor(x);
         uint256 scaledExpVal = (SCALE * SCALE) / expNeg;
         uint256 raw = SCALE - scaledExpVal;
-        uint256 total = (raw * TOTAL_FACTOR) / 1e9;
+        uint256 total = (raw * Constants.TOTAL_FACTOR) / 1e9;
         return total;
     }
 

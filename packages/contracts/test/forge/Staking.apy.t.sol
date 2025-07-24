@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import "forge-std/Test.sol";
+import "../../contracts/libs/constant.sol";
 import "../../contracts/XzkStaking.sol";
 import "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "./utils/TimeBasedRandom.sol";
@@ -30,7 +31,7 @@ contract StakingApyTest is Test {
             "sXZK-Flex",
             0, // flexible staking period
             100, // total factor
-            block.timestamp + 1 days // start time
+            block.timestamp + 5 days // start time
         );
         vm.stopPrank();
     }
@@ -61,7 +62,7 @@ contract StakingApyTest is Test {
         assertEq(staking.totalUnstaked(), 0);
         vm.stopPrank();
 
-        uint256 total_duration = staking.TOTAL_DURATION_SECONDS();
+        uint256 total_duration = Constants.TOTAL_DURATION_SECONDS;
         vm.warp(startTime + total_duration + 1 seconds);
         vm.roll(10);
 
@@ -85,7 +86,7 @@ contract StakingApyTest is Test {
         assertEq(staking.totalUnstaked(), 0);
         vm.stopPrank();
 
-        uint256 total_duration = staking.TOTAL_DURATION_SECONDS();
+        uint256 total_duration = Constants.TOTAL_DURATION_SECONDS;
         uint256 randomSeed = TimeBasedRandom.getRandomUint256(vm);
         uint256 time_passed = bound(randomSeed, 0, total_duration);
         uint256 amount = bound(randomSeed, 1, totalBalance / 10);

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {Test, console2} from "forge-std/Test.sol";
+import {Constants} from "../../contracts/libs/constant.sol";
 import {XzkStaking} from "../../contracts/XzkStaking.sol";
 import {MockToken} from "../../contracts/mocks/MockToken.sol";
 import {MockVoteToken} from "../../contracts/mocks/MockVoteToken.sol";
@@ -37,7 +38,7 @@ contract StakingSwapTest is Test {
             "sVXZK-180D",
             180 days,
             1500,
-            block.timestamp + 1 days
+            block.timestamp + 5 days
         );
         vm.stopPrank();
     }
@@ -205,7 +206,7 @@ contract StakingSwapTest is Test {
         mockToken.approve(address(stakingFlexible), amount);
         stakingFlexible.stake(amount);
 
-        uint256 totalDuration = stakingFlexible.TOTAL_DURATION_SECONDS();
+        uint256 totalDuration = Constants.TOTAL_DURATION_SECONDS;
         // Test swap at different reward levels
         uint256[] memory timestamps = new uint256[](3);
         timestamps[0] = stakingFlexible.START_TIME() + totalDuration / 4;

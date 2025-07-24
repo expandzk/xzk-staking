@@ -241,6 +241,7 @@ export class ContractClient {
             if (currentTimestamp > records[i].stakedTime + stakingPeriodSeconds) {
               totalCanUnstakeAmount += records[i].stakingTokenRemaining;
               totalCanUnstakeAmountBN = totalCanUnstakeAmountBN.add(records[i].stakingTokenRemainingBN);
+              records[i].canUnstakeAmount = records[i].stakingTokenRemaining;
               records[i].canUnstake = true;
             } else {
               records[i].canUnstake = false;
@@ -276,6 +277,7 @@ export class ContractClient {
           if (currentTimestamp > records[i].unstakedTime + claimDelaySeconds) {
             totalCanClaimAmount += records[i].tokenRemaining;
             totalCanClaimAmountBN = totalCanClaimAmountBN.add(records[i].tokenRemainingBN);
+            records[i].canClaimAmount = records[i].tokenRemaining;
             records[i].canClaim = true;
           } else {
             records[i].canClaim = false;
@@ -518,6 +520,7 @@ export class ContractClient {
               this.context.config.stakingPeriodSeconds(this.options.stakingPeriod),
             tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
             stakingTokenAmount: round(fromDecimals(record.stakingTokenAmount, this.context.config.decimals)),
+            canUnstakeAmount: 0,
             stakingTokenRemaining: round(
               fromDecimals(record.stakingTokenRemaining, this.context.config.decimals),
             ),
@@ -539,6 +542,7 @@ export class ContractClient {
               fromDecimals(record.stakingTokenAmount, this.context.config.decimals),
             ),
             tokenAmount: round(fromDecimals(record.tokenAmount, this.context.config.decimals)),
+            canClaimAmount: 0,
             tokenRemaining: round(fromDecimals(record.tokenRemaining, this.context.config.decimals)),
             tokenRemainingBN: toBN(record.tokenRemaining.toString()),
           } as UnstakingRecord),

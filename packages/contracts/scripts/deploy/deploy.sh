@@ -19,14 +19,14 @@ elif [ "$target_network" == "sepolia" ]; then
     RPC_URL=$SEPOLIA_ENDPOINT
     PRIVATE_KEY=$SEPOLIA_PRIVATE_KEY
     start_time=$SEPOLIA_START_TIME
-    # Production requires 1 day delay
-    MIN_DELAY=86400
+    # Production requires 5 day delay
+    MIN_DELAY=432000
 elif [ "$target_network" == "ethereum" ]; then
     RPC_URL=$ETHEREUM_ENDPOINT
     PRIVATE_KEY=$ETHEREUM_PRIVATE_KEY
     start_time=$ETHEREUM_START_TIME
-    # Production requires 1 day delay
-    MIN_DELAY=86400
+    # Production requires 5 day delay
+    MIN_DELAY=432000
 else
     echo "Usage: ./deploy.sh [dev|sepolia|ethereum]"
     exit 1
