@@ -41,10 +41,10 @@ describe('XzkStaking', function () {
       dao.address,
       owner.address,
       mockVoteTokenAddress,
-      'Mystiko Staking Vote Token 360D',
-      'sVXZK-360D',
-      360,
-      20,
+      'Mystiko Staking Vote Token 365D',
+      'sVXZK-365D',
+      365 * 24 * 3600,
+      5500,
       startTimestamp,
     );
     await staking360.waitForDeployment();
@@ -55,8 +55,8 @@ describe('XzkStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 180D',
       'sVXZK-180D',
-      180,
-      15,
+      180 * 24 * 3600,
+      2700,
       startTimestamp,
     );
     await staking180.waitForDeployment();
@@ -67,8 +67,8 @@ describe('XzkStaking', function () {
       mockVoteTokenAddress,
       'Mystiko Staking Vote Token 90D',
       'sVXZK-90D',
-      90,
-      10,
+      90 * 24 * 3600,
+      1300,
       startTimestamp,
     );
     await staking90.waitForDeployment();
@@ -80,7 +80,7 @@ describe('XzkStaking', function () {
       'Mystiko Staking Vote Token Flexible',
       'sVXZK-FLEX',
       0,
-      5,
+      500,
       startTimestamp,
     );
     await stakingFlexible.waitForDeployment();
