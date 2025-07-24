@@ -34,7 +34,7 @@ describe('XzkStaking', function () {
     if (!latestBlock) {
       throw new Error('Latest block not found');
     }
-    const startTimestamp = latestBlock.timestamp + 24 * 3600 + 3600;
+    const startTimestamp = latestBlock.timestamp + 5 * 24 * 3600 + 3600;
     const XzkStaking = await ethers.getContractFactory('XzkStaking');
 
     staking360 = await XzkStaking.deploy(
