@@ -37,12 +37,12 @@ contract CheckStaking is Script {
 
     function check_sepolia_dev_staking(uint256 startTime) public view {
         console.log("Checking sepolia dev staking contracts...");
-        check_sepolia_dev_sXZK_3d_contract(startTime);
-        check_sepolia_dev_sVXZK_3d_contract(startTime);
-        check_sepolia_dev_sXZK_2d_contract(startTime);
-        check_sepolia_dev_sVXZK_2d_contract(startTime);
-        check_sepolia_dev_sXZK_1d_contract(startTime);
-        check_sepolia_dev_sVXZK_1d_contract(startTime);
+        check_sepolia_dev_sXZK_3_contract(startTime);
+        check_sepolia_dev_sVXZK_3_contract(startTime);
+        check_sepolia_dev_sXZK_2_contract(startTime);
+        check_sepolia_dev_sVXZK_2_contract(startTime);
+        check_sepolia_dev_sXZK_1_contract(startTime);
+        check_sepolia_dev_sVXZK_1_contract(startTime);
         check_sepolia_dev_sXZK_flexible_contract(startTime);
         check_sepolia_dev_sVXZK_flexible_contract(startTime);
         console.log("check success");
@@ -405,122 +405,122 @@ contract CheckStaking is Script {
         check_sepolia_vxzk_token(staking);
     }
 
-    function check_sepolia_dev_sXZK_3d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sXZK_3d");
-        address staking_contract = vm.envAddress("sepolia_dev_sXZK_3d");
+    function check_sepolia_dev_sXZK_3_contract(uint256 startTime) public view {
+        console.log("Checking sepolia dev staking contract: sepolia_dev_sXZK_3");
+        address staking_contract = vm.envAddress("sepolia_dev_sXZK_3");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking XZK 3 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking XZK 3")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-3d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-3")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_3d_contract(staking);
+        check_3_contract(staking);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
 
-    function check_sepolia_dev_sVXZK_3d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_3d");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_3d");
+    function check_sepolia_dev_sVXZK_3_contract(uint256 startTime) public view {
+        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_3");
+        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_3");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 3 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 3")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-3d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-3")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_3d_contract(staking);
+        check_3_contract(staking);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
 
-    function check_sepolia_dev_sXZK_2d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sXZK_2d");
-        address staking_contract = vm.envAddress("sepolia_dev_sXZK_2d");
+    function check_sepolia_dev_sXZK_2_contract(uint256 startTime) public view {
+        console.log("Checking sepolia dev staking contract: sepolia_dev_sXZK_2");
+        address staking_contract = vm.envAddress("sepolia_dev_sXZK_2");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking XZK 2 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking XZK 2")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-2d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-2")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_2d_contract(staking);
+        check_2_contract(staking);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
 
-    function check_sepolia_dev_sVXZK_2d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_2d");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_2d");
+    function check_sepolia_dev_sVXZK_2_contract(uint256 startTime) public view {
+        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_2");
+        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_2");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 2 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 2")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-2d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-2")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_2d_contract(staking);
+        check_2_contract(staking);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
 
-    function check_sepolia_dev_sXZK_1d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sXZK_1d");
-        address staking_contract = vm.envAddress("sepolia_dev_sXZK_1d");
+    function check_sepolia_dev_sXZK_1_contract(uint256 startTime) public view {
+        console.log("Checking sepolia dev staking contract: sepolia_dev_sXZK_1");
+        address staking_contract = vm.envAddress("sepolia_dev_sXZK_1");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking XZK 1 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking XZK 1")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-1d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sXZK-1")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_1d_contract(staking);
+        check_1_contract(staking);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
 
-    function check_sepolia_dev_sVXZK_1d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_1d");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_1d");
+    function check_sepolia_dev_sVXZK_1_contract(uint256 startTime) public view {
+        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_1");
+        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_1");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 1 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 1")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-1d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-1")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_1d_contract(staking);
+        check_1_contract(staking);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
@@ -595,32 +595,32 @@ contract CheckStaking is Script {
         check_staking_contract(staking, false);
     }
 
-    function check_3d_contract(XzkStaking staking) public view {
+    function check_3_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_DEV_3);
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
-        assert(period == 3 days);
+        assert(period == 3600);
 
         check_staking_contract(staking, true);
     }
 
-    function check_2d_contract(XzkStaking staking) public view {
+    function check_2_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_DEV_2);
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
-        assert(period == 2 days);
+        assert(period == 1800);
 
         check_staking_contract(staking, true);
     }
 
-    function check_1d_contract(XzkStaking staking) public view {
+    function check_1_contract(XzkStaking staking) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         assert(totalFactor == TOTAL_FACTOR_DEV_1);
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
-        assert(period == 1 days);
+        assert(period == 600);
 
         check_staking_contract(staking, true);
     }
@@ -637,15 +637,15 @@ contract CheckStaking is Script {
         assert(period == 0);
 
         uint256 totalReward = staking.TOTAL_REWARD();
-        assert(totalReward == (staking.ALL_REWARD() * totalFactor) / staking.ALL_SHARES());
+        assert(totalReward == (staking.allReward() * totalFactor) / staking.ALL_SHARES());
 
         check_staking_contract(staking, is_dev);
     }
 
     function check_staking_contract(XzkStaking staking, bool is_dev) public view {
-        uint256 totalDuration = staking.TOTAL_DURATION_SECONDS();
+        uint256 totalDuration = staking.totalDurationSeconds();
         if (is_dev) {
-            assert(totalDuration == 14 days);
+            assert(totalDuration == 4 hours);
         } else {
             assert(totalDuration == 3 * 365 days);
         }
@@ -668,7 +668,7 @@ contract CheckStaking is Script {
 
         uint256 startDelay = staking.START_DELAY_SECONDS();
         if (is_dev) {
-            assert(startDelay == 30 minutes);
+            assert(startDelay == 10 minutes);
         } else {
             assert(startDelay == 1 days);
         }

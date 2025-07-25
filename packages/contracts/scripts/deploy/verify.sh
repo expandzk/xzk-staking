@@ -8,9 +8,9 @@ if [ "$target_network" == "ethereum" ]; then
     PAUSE_ADMIN=0x0000000000000000000000000000000000000000
     XZK_TOKEN=0xe8fC52b1bb3a40fd8889C0f8f75879676310dDf0
     VXZK_TOKEN=0x16aFFA80C65Fd7003d40B24eDb96f77b38dDC96A
-    total_factor_365=2000
-    total_factor_180=1500
-    total_factor_90=1000
+    total_factor_365=5500
+    total_factor_180=2700
+    total_factor_90=1300
     total_factor_flexible=500
 elif [ "$target_network" == "sepolia" ]; then
     start_time=$SEPOLIA_START_TIME
@@ -18,10 +18,10 @@ elif [ "$target_network" == "sepolia" ]; then
     PAUSE_ADMIN=0x0000000000000000000000000000000000000000
     XZK_TOKEN=0x932161e47821c6F5AE69ef329aAC84be1E547e53
     VXZK_TOKEN=0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587
-    total_factor_365=2000
-    total_factor_180=1500
-    total_factor_90=1000
-    total_factor_flexible=500    
+    total_factor_365=5500
+    total_factor_180=2700
+    total_factor_90=1300
+    total_factor_flexible=500   
 elif [ "$target_network" == "dev" ]; then
     start_time=$SEPOLIA_DEV_START_TIME
     DAO_REGISTRY=0x0bF5B2d61BD12A6Ea08A4DC0ff35223d3A2d5698
@@ -122,12 +122,12 @@ elif [ "$target_network" == "sepolia" ]; then
     verify_contract $XZK_TOKEN "Staking XZK Flexible" "sXZK-Flex" 0 $total_factor_flexible $sepolia_sXZK_Flex
     verify_contract $VXZK_TOKEN "Staking VXZK Flexible" "sVXZK-Flex" 0 $total_factor_flexible $sepolia_sVXZK_Flex
 elif [ "$target_network" == "dev" ]; then
-    verify_contract $XZK_TOKEN "Staking XZK 3 days" "sXZK-3d" 259200 $total_factor_3 $sepolia_dev_sXZK_3d
-    verify_contract $VXZK_TOKEN "Staking VXZK 3 days" "sVXZK-3d" 259200 $total_factor_3 $sepolia_dev_sVXZK_3d
-    verify_contract $XZK_TOKEN "Staking XZK 2 days" "sXZK-2d" 172800 $total_factor_2 $sepolia_dev_sXZK_2d
-    verify_contract $VXZK_TOKEN "Staking VXZK 2 days" "sVXZK-2d" 172800 $total_factor_2 $sepolia_dev_sVXZK_2d
-    verify_contract $XZK_TOKEN "Staking XZK 1 days" "sXZK-1d" 86400 $total_factor_1 $sepolia_dev_sXZK_1d
-    verify_contract $VXZK_TOKEN "Staking VXZK 1 days" "sVXZK-1d" 86400 $total_factor_1 $sepolia_dev_sVXZK_1d
+    verify_contract $XZK_TOKEN "Staking XZK 3" "sXZK-3" 3600 $total_factor_3 $sepolia_dev_sXZK_3
+    verify_contract $VXZK_TOKEN "Staking VXZK 3" "sVXZK-3" 3600 $total_factor_3 $sepolia_dev_sVXZK_3
+    verify_contract $XZK_TOKEN "Staking XZK 2" "sXZK-2" 1800 $total_factor_2 $sepolia_dev_sXZK_2
+    verify_contract $VXZK_TOKEN "Staking VXZK 2" "sVXZK-2" 1800 $total_factor_2 $sepolia_dev_sVXZK_2
+    verify_contract $XZK_TOKEN "Staking XZK 1" "sXZK-1" 600 $total_factor_1 $sepolia_dev_sXZK_1
+    verify_contract $VXZK_TOKEN "Staking VXZK 1" "sVXZK-1" 600 $total_factor_1 $sepolia_dev_sVXZK_1
     verify_contract $XZK_TOKEN "Staking XZK Flexible" "sXZK-Flex" 0 $total_factor_dev_flexible $sepolia_dev_sXZK_Flex
     verify_contract $VXZK_TOKEN "Staking VXZK Flexible" "sVXZK-Flex" 0 $total_factor_dev_flexible $sepolia_dev_sVXZK_Flex
 fi
