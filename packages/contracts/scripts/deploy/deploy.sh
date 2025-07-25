@@ -13,8 +13,8 @@ if [ "$target_network" == "dev" ]; then
     RPC_URL=$SEPOLIA_ENDPOINT
     PRIVATE_KEY=$SEPOLIA_PRIVATE_KEY
     start_time=$SEPOLIA_DEV_START_TIME
-    # Dev environment requires 30 minutes delay
-    MIN_DELAY=1800
+    # Dev environment requires 10 minutes delay
+    MIN_DELAY=600
 elif [ "$target_network" == "sepolia" ]; then
     RPC_URL=$SEPOLIA_ENDPOINT
     PRIVATE_KEY=$SEPOLIA_PRIVATE_KEY
