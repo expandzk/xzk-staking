@@ -1,0 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+TOTAL_REWARD = 50_000_000*10**18
+TOTAL_DURATION_SECONDS = 3*365*24*3600
+SCALE = 10**18
+lambda_decay = 20*10**9
+
+def calc_raw_reward(time_passed: int) -> int:
+    x = time_passed*lambda_decay
+    exp_val = exp_taylor(x)
+    scaledExpVal = SCALE*SCALE//exp_val
+    raw_reward = SCALE-scaledExpVal
+    return raw_reward
+
+# exp Taylor series approximation same with solidity
+def exp_taylor(x: int, terms: int = 20) -> int:
+    sum_ = SCALE
+    term = SCALE
+
+    for i in range(1, terms):
+        term = term * x // SCALE
+        term = term // i
+        sum_ += term
+    return sum_
+
+def main():
+    raw_total_reward = calc_raw_reward(TOTAL_DURATION_SECONDS)
+    factor = TOTAL_REWARD/raw_total_reward
+    print(f"factor: {factor}")
+
+if __name__ == "__main__":
+    main()
