@@ -220,12 +220,12 @@ contract StakingGovernorTest is Test {
     // ============ pauseClaim Tests ============
 
     function test_pauseClaim_Success() public {
-        assertFalse(staking.unstakingPaused(user1), "User should not be paused initially");
+        assertFalse(staking.claimPaused(user1), "User should not be paused initially");
 
         vm.prank(deployer);
         staking.pauseClaim(user1);
 
-        assertTrue(staking.unstakingPaused(user1), "User should be paused");
+        assertTrue(staking.claimPaused(user1), "User should be paused");
     }
 
     function test_pauseClaim_OnlyAdmin() public {
@@ -249,12 +249,12 @@ contract StakingGovernorTest is Test {
         // Pause first time
         vm.prank(deployer);
         staking.pauseClaim(user1);
-        assertTrue(staking.unstakingPaused(user1), "User should be paused");
+        assertTrue(staking.claimPaused(user1), "User should be paused");
 
         // Pause again should work (no revert)
         vm.prank(deployer);
         staking.pauseClaim(user1);
-        assertTrue(staking.unstakingPaused(user1), "User should remain paused");
+        assertTrue(staking.claimPaused(user1), "User should remain paused");
     }
 
     // ============ unpauseClaim Tests ============
@@ -263,12 +263,12 @@ contract StakingGovernorTest is Test {
         // First pause user
         vm.prank(deployer);
         staking.pauseClaim(user1);
-        assertTrue(staking.unstakingPaused(user1), "User should be paused");
+        assertTrue(staking.claimPaused(user1), "User should be paused");
 
         vm.prank(deployer);
         staking.unpauseClaim(user1);
 
-        assertFalse(staking.unstakingPaused(user1), "User should be unpaused");
+        assertFalse(staking.claimPaused(user1), "User should be unpaused");
     }
 
     function test_unpauseClaim_OnlyAdmin() public {
@@ -293,7 +293,7 @@ contract StakingGovernorTest is Test {
         vm.prank(deployer);
         staking.unpauseClaim(user1);
 
-        assertFalse(staking.unstakingPaused(user1), "User should remain unpaused");
+        assertFalse(staking.claimPaused(user1), "User should remain unpaused");
     }
 
     // ============ Integration Tests ============
@@ -364,8 +364,8 @@ contract StakingGovernorTest is Test {
         staking.pauseClaim(user2);
         vm.stopPrank();
 
-        assertTrue(staking.unstakingPaused(user1), "User1 should be paused");
-        assertTrue(staking.unstakingPaused(user2), "User2 should be paused");
+        assertTrue(staking.claimPaused(user1), "User1 should be paused");
+        assertTrue(staking.claimPaused(user2), "User2 should be paused");
 
         // Unpause multiple users
         vm.startPrank(deployer);
@@ -373,8 +373,8 @@ contract StakingGovernorTest is Test {
         staking.unpauseClaim(user2);
         vm.stopPrank();
 
-        assertFalse(staking.unstakingPaused(user1), "User1 should be unpaused");
-        assertFalse(staking.unstakingPaused(user2), "User2 should be unpaused");
+        assertFalse(staking.claimPaused(user1), "User1 should be unpaused");
+        assertFalse(staking.claimPaused(user2), "User2 should be unpaused");
     }
 
     // ============ Edge Cases ============
@@ -510,7 +510,7 @@ contract StakingGovernorTest is Test {
         staking.unpauseClaim(user1);
 
         // Should not revert
-        assertFalse(staking.unstakingPaused(user1), "User should be unpaused");
+        assertFalse(staking.claimPaused(user1), "User should be unpaused");
     }
 
     function test_AccessControl_DAOIsNotAdmin() public {

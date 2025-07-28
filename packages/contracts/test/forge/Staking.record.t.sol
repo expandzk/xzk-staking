@@ -170,7 +170,7 @@ contract XzkStakingRecordTest is Test {
         mockContract.pauseClaim(user);
 
         // Verify pause
-        assertTrue(mockContract.unstakingPaused(user));
+        assertTrue(mockContract.claimPaused(user));
 
         // Move forward past claim delay
         vm.warp(block.timestamp + mockContract.CLAIM_DELAY_SECONDS() + 1);
@@ -184,7 +184,7 @@ contract XzkStakingRecordTest is Test {
         mockContract.unpauseClaim(user);
 
         // Verify unpause
-        assertFalse(mockContract.unstakingPaused(user));
+        assertFalse(mockContract.claimPaused(user));
 
         // Try to claim
         uint256 claimedAmount = mockContract.claimRecord(user, 0, 0);
