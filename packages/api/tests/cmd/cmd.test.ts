@@ -98,5 +98,23 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       expect(totalRewardXzkAmount).toBeGreaterThan(0);
       expect(totalRewardVxzkAmount).toBeGreaterThan(0);
     });
+
+    it('should get is stake disabled', async () => {
+      const isStakeDisabled = await stakingApiClient.isStakeDisabled(testOptions);
+      console.log(isStakeDisabled);
+      expect(isStakeDisabled).toBe(false);
+    });
+
+    it('should get is staking paused', async () => {
+      const isStakingPaused = await stakingApiClient.isStakingPaused(testOptions);
+      console.log(isStakingPaused);
+      expect(isStakingPaused).toBe(false);
+    });
+
+    it('should get is claim paused', async () => {
+      const isClaimPaused = await stakingApiClient.isClaimPaused(testOptions, TEST_ACCOUNT);
+      console.log(isClaimPaused);
+      expect(isClaimPaused).toBe(false);
+    });
   });
 });

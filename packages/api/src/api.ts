@@ -153,6 +153,7 @@ export interface IStakingClient {
   claimDelaySeconds(options: ClientOptions): Promise<number>;
   isStakeDisabled(options: ClientOptions): Promise<boolean>;
   isStakingPaused(options: ClientOptions): Promise<boolean>;
+  isClaimPaused(options: ClientOptions, account: string): Promise<boolean>;
   poolTokenAmount(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
   totalStaked(options: ClientOptions): Promise<number>;
@@ -310,6 +311,10 @@ class StakingApiClient implements StakingApiClient {
 
   public isStakingPaused(options: ClientOptions): Promise<boolean> {
     return this.getClient(options).then((client) => client.isStakingPaused());
+  }
+
+  public isClaimPaused(options: ClientOptions, account: string): Promise<boolean> {
+    return this.getClient(options).then((client) => client.isClaimPaused(account));
   }
 
   public poolTokenAmount(options: ClientOptions): Promise<number> {

@@ -87,11 +87,11 @@ export class ContractClient {
   }
 
   public isStakeDisabled(): Promise<boolean> {
-    const timestamp = Date.now() / 1000;
+    const timestamp = Math.floor(Date.now() / 1000);
     return this.stakingStartTimestamp()
       .then((stakingStartTimestamp) => {
         return this.totalDurationSeconds().then((totalDurationSeconds) => {
-          return timestamp < stakingStartTimestamp + totalDurationSeconds;
+          return timestamp > stakingStartTimestamp + totalDurationSeconds;
         });
       })
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
@@ -100,6 +100,13 @@ export class ContractClient {
   public isStakingPaused(): Promise<boolean> {
     return this.stakingInstance
       .isStakingPaused()
+      .then((paused: any) => Boolean(paused))
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+  }
+
+  public isClaimPaused(account: string): Promise<boolean> {
+    return this.stakingInstance
+      .claimPaused(account)
       .then((paused: any) => Boolean(paused))
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
