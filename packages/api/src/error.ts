@@ -8,6 +8,7 @@ export enum XZKStakingErrorCode {
   AMOUNT_NOT_SPECIFIED_ERROR = 6,
   NO_CLAIMABLE_AMOUNT_ERROR = 7,
   INSUFFICIENT_BALANCE_ERROR = 8,
+  UNSTAKE_GAS_COST_TOO_LARGE_ERROR = 9,
 }
 
 export class XZKStakingError extends Error {

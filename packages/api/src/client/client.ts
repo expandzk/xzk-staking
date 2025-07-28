@@ -86,6 +86,17 @@ export class ContractClient {
     return Promise.resolve(this.context.config.claimDelaySeconds());
   }
 
+  public isStakeDisabled(): Promise<boolean> {
+    const timestamp = Date.now() / 1000;
+    return this.stakingStartTimestamp()
+      .then((stakingStartTimestamp) => {
+        return this.totalDurationSeconds().then((totalDurationSeconds) => {
+          return timestamp < stakingStartTimestamp + totalDurationSeconds;
+        });
+      })
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+  }
+
   public isStakingPaused(): Promise<boolean> {
     return this.stakingInstance
       .isStakingPaused()
