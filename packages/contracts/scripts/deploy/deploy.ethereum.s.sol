@@ -37,7 +37,7 @@ contract DeployStaking is Script {
                 "Staking XZK 365 days",
                 "sXZK-365d",
                 365 days,
-                TOTAL_FACTOR_365,
+                (TOTAL_FACTOR_365 * XZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum_sXZK_365d=", address(sXZK365));
@@ -51,7 +51,7 @@ contract DeployStaking is Script {
                 "Staking XZK 180 days",
                 "sXZK-180d",
                 180 days,
-                TOTAL_FACTOR_180,
+                (TOTAL_FACTOR_180 * XZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum_sXZK_180d=", address(sXZK180));
@@ -65,7 +65,7 @@ contract DeployStaking is Script {
                 "Staking XZK 90 days",
                 "sXZK-90d",
                 90 days,
-                TOTAL_FACTOR_90,
+                (TOTAL_FACTOR_90 * XZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum_sXZK_90d=", address(sXZK90));
@@ -79,7 +79,7 @@ contract DeployStaking is Script {
                 "Staking XZK Flexible",
                 "sXZK-Flex",
                 0,
-                TOTAL_FACTOR_FLEXIBLE,
+                (TOTAL_FACTOR_FLEXIBLE * XZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum_sXZK_Flex=", address(sXZKFlexible));
@@ -93,7 +93,7 @@ contract DeployStaking is Script {
                 "Staking VXZK 365 days",
                 "sVXZK-365d",
                 365 days,
-                TOTAL_FACTOR_365,
+                (TOTAL_FACTOR_365 * VXZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum-sVXZK-365d=", address(sVXZK365));
@@ -107,7 +107,7 @@ contract DeployStaking is Script {
                 "Staking VXZK 180 days",
                 "sVXZK-180d",
                 180 days,
-                TOTAL_FACTOR_180,
+                (TOTAL_FACTOR_180 * VXZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum-sVXZK-180d=", address(sVXZK180));
@@ -121,7 +121,7 @@ contract DeployStaking is Script {
                 "Staking VXZK 90 days",
                 "sVXZK-90d",
                 90 days,
-                TOTAL_FACTOR_90,
+                (TOTAL_FACTOR_90 * VXZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum-sVXZK-90d=", address(sVXZK90));
@@ -135,7 +135,7 @@ contract DeployStaking is Script {
                 "Staking VXZK Flexible",
                 "sVXZK-Flex",
                 0,
-                TOTAL_FACTOR_FLEXIBLE,
+                (TOTAL_FACTOR_FLEXIBLE * VXZK_RATIO) / 100,
                 startTime
             );
             console.log("ethereum-sVXZK-Flex=", address(sVXZKFlexible));

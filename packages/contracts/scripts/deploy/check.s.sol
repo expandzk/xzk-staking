@@ -8,6 +8,7 @@ import {TOTAL_FACTOR_365, TOTAL_FACTOR_180, TOTAL_FACTOR_90, TOTAL_FACTOR_FLEXIB
 import {SEPOLIA_DAO_REGISTRY, SEPOLIA_XZK_TOKEN, SEPOLIA_VXZK_TOKEN, SEPOLIA_PAUSE_ADMIN} from "./const.sol";
 import {ETHEREUM_DAO_REGISTRY, ETHEREUM_XZK_TOKEN, ETHEREUM_VXZK_TOKEN, ETHEREUM_PAUSE_ADMIN} from "./const.sol";
 import {TOTAL_FACTOR_DEV_3, TOTAL_FACTOR_DEV_2, TOTAL_FACTOR_DEV_1, TOTAL_FACTOR_DEV_FLEXIBLE} from "./const.sol";
+import {XZK_RATIO, VXZK_RATIO} from "./const.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 contract CheckStaking is Script {
@@ -79,7 +80,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_365d_contract(staking);
+        check_365d_contract(staking, true);
         check_ethereum_admin(staking);
         check_ethereum_xzk_token(staking);
     }
@@ -102,7 +103,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_365d_contract(staking);
+        check_365d_contract(staking, false);
         check_ethereum_admin(staking);
         check_ethereum_vxzk_token(staking);
     }
@@ -125,7 +126,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_180d_contract(staking);
+        check_180d_contract(staking, true);
         check_ethereum_admin(staking);
         check_ethereum_xzk_token(staking);
     }
@@ -148,7 +149,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_180d_contract(staking);
+        check_180d_contract(staking, false);
         check_ethereum_admin(staking);
         check_ethereum_vxzk_token(staking);
     }
@@ -171,7 +172,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_90d_contract(staking);
+        check_90d_contract(staking, true);
         check_ethereum_admin(staking);
         check_ethereum_xzk_token(staking);
     }
@@ -194,7 +195,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_90d_contract(staking);
+        check_90d_contract(staking, false);
         check_ethereum_admin(staking);
         check_ethereum_vxzk_token(staking);
     }
@@ -217,7 +218,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_flexible_contract(staking, false);
+        check_flexible_contract(staking, false, true);
         check_ethereum_admin(staking);
         check_ethereum_xzk_token(staking);
     }
@@ -240,7 +241,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_flexible_contract(staking, false);
+        check_flexible_contract(staking, false, false);
         check_ethereum_admin(staking);
         check_ethereum_vxzk_token(staking);
     }
@@ -260,7 +261,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_365d_contract(staking);
+        check_365d_contract(staking, true);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
@@ -280,7 +281,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_365d_contract(staking);
+        check_365d_contract(staking, false);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
@@ -300,7 +301,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_180d_contract(staking);
+        check_180d_contract(staking, true);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
@@ -320,7 +321,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_180d_contract(staking);
+        check_180d_contract(staking, false);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
@@ -340,7 +341,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_90d_contract(staking);
+        check_90d_contract(staking, true);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
@@ -360,7 +361,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_90d_contract(staking);
+        check_90d_contract(staking, false);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
@@ -380,7 +381,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_flexible_contract(staking, false);
+        check_flexible_contract(staking, false, true);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
@@ -400,7 +401,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_flexible_contract(staking, false);
+        check_flexible_contract(staking, false, false);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
@@ -540,7 +541,7 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_flexible_contract(staking, true);
+        check_flexible_contract(staking, true, true);
         check_sepolia_admin(staking);
         check_sepolia_xzk_token(staking);
     }
@@ -560,14 +561,18 @@ contract CheckStaking is Script {
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
 
-        check_flexible_contract(staking, true);
+        check_flexible_contract(staking, true, false);
         check_sepolia_admin(staking);
         check_sepolia_vxzk_token(staking);
     }
 
-    function check_365d_contract(XzkStaking staking) public view {
+    function check_365d_contract(XzkStaking staking, bool is_xzk) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
-        assert(totalFactor == TOTAL_FACTOR_365);
+        if (is_xzk) {
+            assert(totalFactor == (TOTAL_FACTOR_365 * XZK_RATIO) / 100);
+        } else {
+            assert(totalFactor == (TOTAL_FACTOR_365 * VXZK_RATIO) / 100);
+        }
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
         assert(period == 365 days);
@@ -575,9 +580,13 @@ contract CheckStaking is Script {
         check_staking_contract(staking, false);
     }
 
-    function check_180d_contract(XzkStaking staking) public view {
+    function check_180d_contract(XzkStaking staking, bool is_xzk) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
-        assert(totalFactor == TOTAL_FACTOR_180);
+        if (is_xzk) {
+            assert(totalFactor == (TOTAL_FACTOR_180 * XZK_RATIO) / 100);
+        } else {
+            assert(totalFactor == (TOTAL_FACTOR_180 * VXZK_RATIO) / 100);
+        }
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
         assert(period == 180 days);
@@ -585,9 +594,13 @@ contract CheckStaking is Script {
         check_staking_contract(staking, false);
     }
 
-    function check_90d_contract(XzkStaking staking) public view {
+    function check_90d_contract(XzkStaking staking, bool is_xzk) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
-        assert(totalFactor == TOTAL_FACTOR_90);
+        if (is_xzk) {
+            assert(totalFactor == (TOTAL_FACTOR_90 * XZK_RATIO) / 100);
+        } else {
+            assert(totalFactor == (TOTAL_FACTOR_90 * VXZK_RATIO) / 100);
+        }
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
         assert(period == 90 days);
@@ -625,12 +638,16 @@ contract CheckStaking is Script {
         check_staking_contract(staking, true);
     }
 
-    function check_flexible_contract(XzkStaking staking, bool is_dev) public view {
+    function check_flexible_contract(XzkStaking staking, bool is_dev, bool is_xzk) public view {
         uint256 totalFactor = staking.TOTAL_FACTOR();
         if (is_dev) {
             assert(totalFactor == TOTAL_FACTOR_DEV_FLEXIBLE);
         } else {
-            assert(totalFactor == TOTAL_FACTOR_FLEXIBLE);
+            if (is_xzk) {
+                assert(totalFactor == (TOTAL_FACTOR_FLEXIBLE * XZK_RATIO) / 100);
+            } else {
+                assert(totalFactor == (TOTAL_FACTOR_FLEXIBLE * VXZK_RATIO) / 100);
+            }
         }
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
