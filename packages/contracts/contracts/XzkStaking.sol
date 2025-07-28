@@ -130,11 +130,11 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
 
     function stakerApr() external view returns (uint256) {
         uint256 currentTotalReward = totalRewardAt(block.timestamp);
-        uint256 currentTotalAmount = totalStaked + currentTotalReward - totalUnstaked;
+        uint256 currentTotal = totalStaked + currentTotalReward - totalUnstaked;
         uint256 totalRewardAfterYear = totalRewardAt(block.timestamp + 365 days);
-        uint256 totalReward = totalRewardAfterYear - currentTotalReward;
-        if (currentTotalAmount > 0) {
-            return ((totalReward) * 1e18) / currentTotalAmount;
+        uint256 afterYearTotal = totalStaked + totalRewardAfterYear - totalUnstaked;
+        if (afterYearTotal > currentTotal && currentTotal > 0) {
+            return ((afterYearTotal - currentTotal) * 1e18) / currentTotal;
         } else {
             return 0;
         }
