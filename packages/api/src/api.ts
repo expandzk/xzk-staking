@@ -151,6 +151,7 @@ export interface IStakingClient {
   totalDurationSeconds(options: ClientOptions): Promise<number>;
   stakingPeriodSeconds(options: ClientOptions): Promise<number>;
   claimDelaySeconds(options: ClientOptions): Promise<number>;
+  isStakeDisabled(options: ClientOptions): Promise<boolean>;
   isStakingPaused(options: ClientOptions): Promise<boolean>;
   poolTokenAmount(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
@@ -303,6 +304,10 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => client.claimDelaySeconds());
   }
 
+  public isStakeDisabled(options: ClientOptions): Promise<boolean> {
+    return this.getClient(options).then((client) => client.isStakeDisabled());
+  }
+
   public isStakingPaused(options: ClientOptions): Promise<boolean> {
     return this.getClient(options).then((client) => client.isStakingPaused());
   }
@@ -439,7 +444,14 @@ class StakingApiClient implements StakingApiClient {
             }
           }
         }
-        return client.unstake(account, unstakeAmountBN, startNonce, endNonce);
+
+        if (startNonce >= 0 && endNonce - startNonce > 20) {
+          return createErrorPromise(XZKStakingErrorCode.UNSTAKE_GAS_COST_TOO_LARGE_ERROR);
+        } else if (startNonce >= 0 && endNonce >= startNonce) {
+          return client.unstake(account, unstakeAmountBN, startNonce, endNonce);
+        } else {
+          return createErrorPromise(XZKStakingErrorCode.INSUFFICIENT_BALANCE_ERROR);
+        }
       }),
     );
   }
@@ -465,7 +477,14 @@ class StakingApiClient implements StakingApiClient {
             }
           }
         }
-        return client.claim(toAccount || account, startNonce, endNonce);
+
+        if (startNonce >= 0 && endNonce - startNonce >= 20) {
+          return client.claim(toAccount || account, startNonce, startNonce + 20);
+        } else if (startNonce >= 0 && endNonce >= startNonce) {
+          return client.claim(toAccount || account, startNonce, endNonce);
+        } else {
+          return createErrorPromise(XZKStakingErrorCode.INSUFFICIENT_BALANCE_ERROR);
+        }
       }),
     );
   }
