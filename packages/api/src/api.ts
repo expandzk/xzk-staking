@@ -35,6 +35,14 @@ export interface InitOptions {
   scanApiBaseUrl?: string;
 }
 
+export interface StakingPoolSummary {
+  currentReward: number;
+  totalReward: number;
+  rewardRate: number;
+  startTime: number;
+  endTime: number;
+}
+
 export interface StakeActionSummary {
   tokenAmount: number;
   stakingTime: number;
@@ -144,6 +152,7 @@ export interface IStakingClient {
   totalRewardXzkAmountSummary(): Promise<number>;
   totalRewardVxzkAmountSummary(): Promise<number>;
   getStakingPoolConfig(options: ClientOptions): Promise<StakingPoolConfig>;
+  stakingPoolSummary(options: ClientOptions): Promise<StakingPoolSummary>;
   getChainId(options: ClientOptions): Promise<number>;
   tokenContractAddress(options: ClientOptions): Promise<string>;
   stakingContractAddress(options: ClientOptions): Promise<string>;
@@ -275,6 +284,10 @@ class StakingApiClient implements StakingApiClient {
 
   public getStakingPoolConfig(options: ClientOptions): Promise<StakingPoolConfig> {
     return this.getClient(options).then((client) => client.getStakingPoolConfig());
+  }
+
+  public stakingPoolSummary(options: ClientOptions): Promise<StakingPoolSummary> {
+    return this.getClient(options).then((client) => client.stakingPoolSummary());
   }
 
   public getChainId(options: ClientOptions): Promise<number> {

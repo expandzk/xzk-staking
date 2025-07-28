@@ -14,6 +14,7 @@ import type {
   StakeActionSummary,
   UnstakeActionSummary,
   StakingPoolConfig,
+  StakingPoolSummary,
 } from '../api';
 import { ClientContext } from './context';
 import { round } from '../config/config';
@@ -48,6 +49,27 @@ export class ContractClient {
       stakingPeriodSeconds: this.context.config.stakingPeriodSeconds(this.options.stakingPeriod),
       totalDurationSeconds: this.context.config.totalDurationSeconds(),
       claimDelaySeconds: this.context.config.claimDelaySeconds(),
+    });
+  }
+
+  public stakingPoolSummary(): Promise<StakingPoolSummary> {
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const durationSeconds = this.context.config.totalDurationSeconds();
+
+    return this.totalRewardAt(currentTimestamp).then((currentReward) => {
+      return this.stakingInstance.TOTAL_REWARD().then((totalReward: any) => {
+        return this.stakingStartTimestamp().then((startTime) => {
+          const totalRewardNumber = round(fromDecimals(totalReward, this.context.config.decimals));
+          const rewardRate = round(currentReward / durationSeconds) * 100;
+          return {
+            currentReward,
+            totalReward: totalRewardNumber,
+            startTime,
+            endTime: startTime + durationSeconds,
+            rewardRate,
+          };
+        });
+      });
     });
   }
 
