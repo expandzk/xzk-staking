@@ -687,7 +687,7 @@ contract CheckStaking is Script {
         if (is_dev) {
             assert(startDelay == 10 minutes);
         } else {
-            assert(startDelay == 1 days);
+            assert(startDelay == 5 days);
         }
 
         bool isPaused = staking.isStakingPaused();
