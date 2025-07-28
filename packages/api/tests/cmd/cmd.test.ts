@@ -116,5 +116,13 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       console.log(isClaimPaused);
       expect(isClaimPaused).toBe(false);
     });
+
+    it('should get staking pool summary', async () => {
+      const stakingPoolSummary = await stakingApiClient.stakingPoolSummary(testOptions);
+      console.log(stakingPoolSummary);
+      expect(stakingPoolSummary).toHaveProperty('currentReward');
+      expect(stakingPoolSummary).toHaveProperty('totalReward');
+      expect(stakingPoolSummary).toHaveProperty('rewardRate');
+    });
   });
 });
