@@ -105,7 +105,6 @@ describe('XzkStaking', function () {
       }
       const latestTimestamp = latestBlock.timestamp;
 
-
       const startTimestamp = Number(await staking360.START_TIME());
       const totalDuration = Number(await staking360.totalDurationSeconds());
       const endTimestamp = startTimestamp + totalDuration;

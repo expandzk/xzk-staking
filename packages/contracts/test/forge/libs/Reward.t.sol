@@ -20,8 +20,6 @@ contract RewardsLibraryTest is Test {
     uint256 public constant totalAmount = 50_000_000 * 1e18;
     uint256 public constant totalTime = 3 * 365 days;
     uint256 public constant SCALE = 1e18;
-    uint256 public constant LAMBDA_DECAY = 200 * 1e9;
-    uint256 public constant TOTAL_FACTOR = 63022819693366840;
 
     RewardsLibraryWrapper public wrapper;
 

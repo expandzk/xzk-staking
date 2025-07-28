@@ -103,14 +103,14 @@ export class Config {
         'https://eth-sepolia.public.blastapi.io',
         'https://ethereum-sepolia-rpc.publicnode.com',
       ],
-      sXZK365d: '0x99bC68Bae3aA8072BD31DE3ce8071e8D446efC80',
-      sXZK180d: '0xa760Eb427B85d0D3906D4D4d0DF4732534775F00',
-      sXZK90d: '0xcAa2d1970693D5ad761ec3447787CBfEc1C719E8',
-      sXZKFlex: '0x3f3e85AB264942E0dCA0406129CA1937fabd6ebE',
-      sVXZK365d: '0x19daA3b9511D7C0d723cA178f3A09cF5623BB131',
-      sVXZK180d: '0xD8BaB550559e00B1E7298238d3f9B47b09AfB04d',
-      sVXZK90d: '0xfa492a723aF048bbedb72055CEDE9C67a78441c9',
-      sVXZKFlex: '0x52206B47BB2A7d5771FC16164Cdb6064623B9380',
+      sXZK365d: '0x286d2DdCf7b6F4bE4B7f73ccaAbd94B83eC41eeb',
+      sXZK180d: '0x45FD0dcD6b77AEA7c3B1F1Df75714A3aa367C7c6',
+      sXZK90d: '0x3df15066e9e099087f2253df0126687da2Ddc76A',
+      sXZKFlex: '0x2AfB0BEA29F47bEA70a5E43Ef09882a8E7923A63',
+      sVXZK365d: '0xa69dDc7dDb6acF641bb3a2E68C4be58D9a109462',
+      sVXZK180d: '0x798e104e80Defb818DD5aeC8eD1C1C462F8C8d34',
+      sVXZK90d: '0xA4dB20804A0242e5eeb1912Ff1ABeF4faB26Cf2D',
+      sVXZKFlex: '0x040F9A586895cCc26cEd1cc6df2e2f7e91c1B1f6',
     },
   };
 
@@ -165,7 +165,7 @@ export class Config {
 
   public totalDurationSeconds(): number {
     if (this.network === 'dev') {
-      return 14 * 24 * 60 * 60;
+      return 4 * 60 * 60;
     }
     return 3 * 365 * 24 * 60 * 60;
   }
@@ -180,13 +180,13 @@ export class Config {
   public stakingPeriodSeconds(period: StakingPeriod): number {
     if (this.network === 'dev') {
       if (period === '365d') {
-        return 3 * 24 * 60 * 60;
+        return 60 * 60;
       }
       if (period === '180d') {
-        return 2 * 24 * 60 * 60;
+        return 30 * 60;
       }
       if (period === '90d') {
-        return 1 * 24 * 60 * 60;
+        return 10 * 60;
       }
       if (period === 'Flex') {
         return 0;
