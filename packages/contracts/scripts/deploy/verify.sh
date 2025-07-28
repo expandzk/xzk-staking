@@ -1,37 +1,40 @@
 #!/bin/bash
 source .env
 
+XZK_RATIO=60
+VXZK_RATIO=40
+total_factor_365_XZK=$((5500*XZK_RATIO/100))
+total_factor_180_XZK=$((2700*XZK_RATIO/100))
+total_factor_90_XZK=$((1300*XZK_RATIO/100))
+total_factor_flexible_XZK=$((500*XZK_RATIO/100))
+total_factor_365_VXZK=$((5500*VXZK_RATIO/100))
+total_factor_180_VXZK=$((2700*VXZK_RATIO/100))
+total_factor_90_VXZK=$((1300*VXZK_RATIO/100))
+total_factor_flexible_VXZK=$((500*VXZK_RATIO/100))
+total_factor_3=4
+total_factor_2=3
+total_factor_1=2
+total_factor_dev_flexible=1
+
 target_network=$1
 if [ "$target_network" == "ethereum" ]; then
     start_time=$ETHEREUM_START_TIME
     DAO_REGISTRY=0x33C044e4807ed822724F7c473502B00eD3bf7c7f
-    PAUSE_ADMIN=0x0000000000000000000000000000000000000000
+    PAUSE_ADMIN=0xCbF665AabeA896b47814d5B23878591D7F893Ae7
     XZK_TOKEN=0xe8fC52b1bb3a40fd8889C0f8f75879676310dDf0
     VXZK_TOKEN=0x16aFFA80C65Fd7003d40B24eDb96f77b38dDC96A
-    total_factor_365=5500
-    total_factor_180=2700
-    total_factor_90=1300
-    total_factor_flexible=500
 elif [ "$target_network" == "sepolia" ]; then
     start_time=$SEPOLIA_START_TIME
     DAO_REGISTRY=0x0bF5B2d61BD12A6Ea08A4DC0ff35223d3A2d5698
-    PAUSE_ADMIN=0x0000000000000000000000000000000000000000
+    PAUSE_ADMIN=0x5aae320D3EF8f2bb79e4CE2059Ea725dD23c1bF4
     XZK_TOKEN=0x932161e47821c6F5AE69ef329aAC84be1E547e53
     VXZK_TOKEN=0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587
-    total_factor_365=5500
-    total_factor_180=2700
-    total_factor_90=1300
-    total_factor_flexible=500   
 elif [ "$target_network" == "dev" ]; then
     start_time=$SEPOLIA_DEV_START_TIME
     DAO_REGISTRY=0x0bF5B2d61BD12A6Ea08A4DC0ff35223d3A2d5698
-    PAUSE_ADMIN=0x0000000000000000000000000000000000000000
+    PAUSE_ADMIN=0x5aae320D3EF8f2bb79e4CE2059Ea725dD23c1bF4
     XZK_TOKEN=0x932161e47821c6F5AE69ef329aAC84be1E547e53
     VXZK_TOKEN=0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587
-    total_factor_3=4
-    total_factor_2=3
-    total_factor_1=2
-    total_factor_dev_flexible=1
 else
     echo "Usage: ./verify.sh [dev|sepolia|ethereum]"
     exit 1
@@ -104,23 +107,23 @@ function verify_contract() {
 }
 
 if [ "$target_network" == "ethereum" ]; then
-    verify_contract $XZK_TOKEN "Staking XZK 365 days" "sXZK-365d" 31536000 $total_factor_365 $ethereum_sXZK_365d 
-    verify_contract $VXZK_TOKEN "Staking VXZK 365 days" "sVXZK-365d" 31536000 $total_factor_365 $ethereum_sVXZK_365d 
-    verify_contract $XZK_TOKEN "Staking XZK 180 days" "sXZK-180d" 15552000 $total_factor_180 $ethereum_sXZK_180d
-    verify_contract $VXZK_TOKEN "Staking VXZK 180 days" "sVXZK-180d" 15552000 $total_factor_180 $ethereum_sVXZK_180d
-    verify_contract $XZK_TOKEN "Staking XZK 90 days" "sXZK-90d" 7776000 $total_factor_90 $ethereum_sXZK_90d
-    verify_contract $VXZK_TOKEN "Staking VXZK 90 days" "sVXZK-90d" 7776000 $total_factor_90 $ethereum_sVXZK_90d
-    verify_contract $XZK_TOKEN "Staking XZK Flexible" "sXZK-Flex" 0 $total_factor_flexible $ethereum_sXZK_Flex
-    verify_contract $VXZK_TOKEN "Staking VXZK Flexible" "sVXZK-Flex" 0 $total_factor_flexible $ethereum_sVXZK_Flex
+    verify_contract $XZK_TOKEN "Staking XZK 365 days" "sXZK-365d" 31536000 $total_factor_365_XZK $ethereum_sXZK_365d 
+    verify_contract $VXZK_TOKEN "Staking VXZK 365 days" "sVXZK-365d" 31536000 $total_factor_365_VXZK $ethereum_sVXZK_365d 
+    verify_contract $XZK_TOKEN "Staking XZK 180 days" "sXZK-180d" 15552000 $total_factor_180_XZK $ethereum_sXZK_180d
+    verify_contract $VXZK_TOKEN "Staking VXZK 180 days" "sVXZK-180d" 15552000 $total_factor_180_VXZK $ethereum_sVXZK_180d
+    verify_contract $XZK_TOKEN "Staking XZK 90 days" "sXZK-90d" 7776000 $total_factor_90_XZK $ethereum_sXZK_90d
+    verify_contract $VXZK_TOKEN "Staking VXZK 90 days" "sVXZK-90d" 7776000 $total_factor_90_VXZK $ethereum_sVXZK_90d
+    verify_contract $XZK_TOKEN "Staking XZK Flexible" "sXZK-Flex" 0 $total_factor_flexible_XZK $ethereum_sXZK_Flex
+    verify_contract $VXZK_TOKEN "Staking VXZK Flexible" "sVXZK-Flex" 0 $total_factor_flexible_VXZK $ethereum_sVXZK_Flex
 elif [ "$target_network" == "sepolia" ]; then
-    verify_contract $XZK_TOKEN "Staking XZK 365 days" "sXZK-365d" 31536000 $total_factor_365 $sepolia_sXZK_365d
-    verify_contract $VXZK_TOKEN "Staking VXZK 365 days" "sVXZK-365d" 31536000 $total_factor_365 $sepolia_sVXZK_365d
-    verify_contract $XZK_TOKEN "Staking XZK 180 days" "sXZK-180d" 15552000 $total_factor_180 $sepolia_sXZK_180d
-    verify_contract $VXZK_TOKEN "Staking VXZK 180 days" "sVXZK-180d" 15552000 $total_factor_180 $sepolia_sVXZK_180d
-    verify_contract $XZK_TOKEN "Staking XZK 90 days" "sXZK-90d" 7776000 $total_factor_90 $sepolia_sXZK_90d
-    verify_contract $VXZK_TOKEN "Staking VXZK 90 days" "sVXZK-90d" 7776000 $total_factor_90 $sepolia_sVXZK_90d
-    verify_contract $XZK_TOKEN "Staking XZK Flexible" "sXZK-Flex" 0 $total_factor_flexible $sepolia_sXZK_Flex
-    verify_contract $VXZK_TOKEN "Staking VXZK Flexible" "sVXZK-Flex" 0 $total_factor_flexible $sepolia_sVXZK_Flex
+    verify_contract $XZK_TOKEN "Staking XZK 365 days" "sXZK-365d" 31536000 $total_factor_365_XZK $sepolia_sXZK_365d
+    verify_contract $VXZK_TOKEN "Staking VXZK 365 days" "sVXZK-365d" 31536000 $total_factor_365_VXZK $sepolia_sVXZK_365d
+    verify_contract $XZK_TOKEN "Staking XZK 180 days" "sXZK-180d" 15552000 $total_factor_180_XZK $sepolia_sXZK_180d
+    verify_contract $VXZK_TOKEN "Staking VXZK 180 days" "sVXZK-180d" 15552000 $total_factor_180_VXZK $sepolia_sVXZK_180d
+    verify_contract $XZK_TOKEN "Staking XZK 90 days" "sXZK-90d" 7776000 $total_factor_90_XZK $sepolia_sXZK_90d
+    verify_contract $VXZK_TOKEN "Staking VXZK 90 days" "sVXZK-90d" 7776000 $total_factor_90_VXZK $sepolia_sVXZK_90d
+    verify_contract $XZK_TOKEN "Staking XZK Flexible" "sXZK-Flex" 0 $total_factor_flexible_XZK $sepolia_sXZK_Flex
+    verify_contract $VXZK_TOKEN "Staking VXZK Flexible" "sVXZK-Flex" 0 $total_factor_flexible_VXZK $sepolia_sVXZK_Flex
 elif [ "$target_network" == "dev" ]; then
     verify_contract $XZK_TOKEN "Staking XZK 3" "sXZK-3" 3600 $total_factor_3 $sepolia_dev_sXZK_3
     verify_contract $VXZK_TOKEN "Staking VXZK 3" "sVXZK-3" 3600 $total_factor_3 $sepolia_dev_sVXZK_3
