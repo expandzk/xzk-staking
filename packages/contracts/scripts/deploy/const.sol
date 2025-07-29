@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 // Sepolia addresses
-address constant SEPOLIA_DAO_REGISTRY = address(0x0bF5B2d61BD12A6Ea08A4DC0ff35223d3A2d5698);
+address constant SEPOLIA_DAO_REGISTRY = address(0x23e230EBf23E02393d8F5d74863Dac478dF93f5f);
 IERC20 constant SEPOLIA_XZK_TOKEN = IERC20(0x932161e47821c6F5AE69ef329aAC84be1E547e53);
 IERC20 constant SEPOLIA_VXZK_TOKEN = IERC20(0xE662feEF4Bb1f25e5eBb4F9f157d37A921Af1587);
 address constant SEPOLIA_PAUSE_ADMIN = address(0x5aae320D3EF8f2bb79e4CE2059Ea725dD23c1bF4);
