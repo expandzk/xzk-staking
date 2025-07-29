@@ -86,19 +86,19 @@ contract CheckStaking is Script {
     }
 
     function check_ethereum_sVXZK_365d_contract(uint256 startTime) public view {
-        console.log("Checking ethereum staking contract: ethereum_sVXZK_365d");
-        address staking_contract = vm.envAddress("ethereum_sVXZK_365d");
+        console.log("Checking ethereum staking contract: ethereum_svXZK_365d");
+        address staking_contract = vm.envAddress("ethereum_svXZK_365d");
         if (staking_contract == address(0)) {
-            console.log("ethereum_sVXZK_365d is not deployed");
+            console.log("ethereum_svXZK_365d is not deployed");
             return;
         }
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 365 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 365 days")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-365d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-365d")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -132,19 +132,19 @@ contract CheckStaking is Script {
     }
 
     function check_ethereum_sVXZK_180d_contract(uint256 startTime) public view {
-        console.log("Checking ethereum staking contract: ethereum_sVXZK_180d");
-        address staking_contract = vm.envAddress("ethereum_sVXZK_180d");
+        console.log("Checking ethereum staking contract: ethereum_svXZK_180d");
+        address staking_contract = vm.envAddress("ethereum_svXZK_180d");
         if (staking_contract == address(0)) {
-            console.log("ethereum_sVXZK_180d is not deployed");
+            console.log("ethereum_svXZK_180d is not deployed");
             return;
         }
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 180 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 180 days")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-180d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-180d")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -178,19 +178,19 @@ contract CheckStaking is Script {
     }
 
     function check_ethereum_sVXZK_90d_contract(uint256 startTime) public view {
-        console.log("Checking ethereum staking contract: ethereum_sVXZK_90d");
-        address staking_contract = vm.envAddress("ethereum_sVXZK_90d");
+        console.log("Checking ethereum staking contract: ethereum_svXZK_90d");
+        address staking_contract = vm.envAddress("ethereum_svXZK_90d");
         if (staking_contract == address(0)) {
-            console.log("ethereum_sVXZK_90d is not deployed");
+            console.log("ethereum_svXZK_90d is not deployed");
             return;
         }
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 90 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 90 days")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-90d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-90d")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -224,8 +224,8 @@ contract CheckStaking is Script {
     }
 
     function check_ethereum_sVXZK_flexible_contract(uint256 startTime) public view {
-        console.log("Checking ethereum staking contract: ethereum_sVXZK_Flex");
-        address staking_contract = vm.envAddress("ethereum_sVXZK_Flex");
+        console.log("Checking ethereum staking contract: ethereum_svXZK_Flex");
+        address staking_contract = vm.envAddress("ethereum_svXZK_Flex");
         if (staking_contract == address(0)) {
             console.log("ethereum_sVXZK_flexible is not deployed");
             return;
@@ -233,10 +233,10 @@ contract CheckStaking is Script {
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK Flexible")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK Flexible")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-Flex")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-Flex")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -267,16 +267,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_sVXZK_365d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia staking contract: sepolia_sVXZK_365d");
-        address staking_contract = vm.envAddress("sepolia_sVXZK_365d");
+        console.log("Checking sepolia staking contract: sepolia_svXZK_365d");
+        address staking_contract = vm.envAddress("sepolia_svXZK_365d");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 365 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 365 days")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-365d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-365d")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -307,16 +307,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_sVXZK_180d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia staking contract: sepolia_sVXZK_180d");
-        address staking_contract = vm.envAddress("sepolia_sVXZK_180d");
+        console.log("Checking sepolia staking contract: sepolia_svXZK_180d");
+        address staking_contract = vm.envAddress("sepolia_svXZK_180d");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 180 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 180 days")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-180d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-180d")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -347,16 +347,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_sVXZK_90d_contract(uint256 startTime) public view {
-        console.log("Checking sepolia staking contract: sepolia_sVXZK_90d");
-        address staking_contract = vm.envAddress("sepolia_sVXZK_90d");
+        console.log("Checking sepolia staking contract: sepolia_svXZK_90d");
+        address staking_contract = vm.envAddress("sepolia_svXZK_90d");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 90 days")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 90 days")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-90d")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-90d")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -387,16 +387,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_sVXZK_flexible_contract(uint256 startTime) public view {
-        console.log("Checking sepolia staking contract: sepolia_sVXZK_Flex");
-        address staking_contract = vm.envAddress("sepolia_sVXZK_Flex");
+        console.log("Checking sepolia staking contract: sepolia_svXZK_Flex");
+        address staking_contract = vm.envAddress("sepolia_svXZK_Flex");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK Flexible")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK Flexible")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-Flex")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-Flex")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -427,16 +427,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_dev_sVXZK_3_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_3");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_3");
+        console.log("Checking sepolia dev staking contract: sepolia_dev_svXZK_3");
+        address staking_contract = vm.envAddress("sepolia_dev_svXZK_3");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 3")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 3")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-3")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-3")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -467,16 +467,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_dev_sVXZK_2_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_2");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_2");
+        console.log("Checking sepolia dev staking contract: sepolia_dev_svXZK_2");
+        address staking_contract = vm.envAddress("sepolia_dev_svXZK_2");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 2")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 2")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-2")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-2")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -507,16 +507,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_dev_sVXZK_1_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_1");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_1");
+        console.log("Checking sepolia dev staking contract: sepolia_dev_svXZK_1");
+        address staking_contract = vm.envAddress("sepolia_dev_svXZK_1");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK 1")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK 1")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-1")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-1")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);
@@ -547,16 +547,16 @@ contract CheckStaking is Script {
     }
 
     function check_sepolia_dev_sVXZK_flexible_contract(uint256 startTime) public view {
-        console.log("Checking sepolia dev staking contract: sepolia_dev_sVXZK_Flex");
-        address staking_contract = vm.envAddress("sepolia_dev_sVXZK_Flex");
+        console.log("Checking sepolia dev staking contract: sepolia_dev_svXZK_Flex");
+        address staking_contract = vm.envAddress("sepolia_dev_svXZK_Flex");
         assert(staking_contract != address(0));
 
         XzkStaking staking = XzkStaking(staking_contract);
         string memory name = staking.name();
-        assert(keccak256(bytes(name)) == keccak256(bytes("Staking VXZK Dev Flexible")));
+        assert(keccak256(bytes(name)) == keccak256(bytes("Staking vXZK Dev Flexible")));
 
         string memory symbol = staking.symbol();
-        assert(keccak256(bytes(symbol)) == keccak256(bytes("sVXZK-Dev-Flex")));
+        assert(keccak256(bytes(symbol)) == keccak256(bytes("svXZK-Dev-Flex")));
 
         uint256 startTimestamp = staking.START_TIME();
         assert(startTimestamp == startTime);

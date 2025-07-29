@@ -9,7 +9,7 @@ import { round } from './config/config';
 
 // Import types directly to avoid circular dependency
 export type Network = 'ethereum' | 'sepolia' | 'dev';
-export type TokenName = 'XZK' | 'VXZK';
+export type TokenName = 'XZK' | 'vXZK';
 export type StakingPeriod = '365d' | '180d' | '90d' | 'Flex';
 
 export interface StakingPoolConfig {
@@ -154,6 +154,7 @@ export interface IStakingClient {
   getStakingPoolConfig(options: ClientOptions): Promise<StakingPoolConfig>;
   stakingPoolSummary(options: ClientOptions): Promise<StakingPoolSummary>;
   getChainId(options: ClientOptions): Promise<number>;
+  etherscanBaseUrl(options: ClientOptions): Promise<string>;
   tokenContractAddress(options: ClientOptions): Promise<string>;
   stakingContractAddress(options: ClientOptions): Promise<string>;
   stakingStartTimestamp(options: ClientOptions): Promise<number>;
@@ -249,7 +250,7 @@ class StakingApiClient implements StakingApiClient {
   public totalVxzkAmountSummary(): Promise<number> {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
-      if (clientOption.tokenName === 'VXZK') {
+      if (clientOption.tokenName === 'vXZK') {
         promises.push(this.cumulativeTotalStaked(clientOption));
       }
     });
@@ -273,7 +274,7 @@ class StakingApiClient implements StakingApiClient {
   public totalRewardVxzkAmountSummary(): Promise<number> {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
-      if (clientOption.tokenName === 'VXZK') {
+      if (clientOption.tokenName === 'vXZK') {
         promises.push(this.getClient(clientOption).then((client) => client.totalRewardAt()));
       }
     });
@@ -292,6 +293,10 @@ class StakingApiClient implements StakingApiClient {
 
   public getChainId(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.getChainId());
+  }
+
+  public etherscanBaseUrl(options: ClientOptions): Promise<string> {
+    return this.getClient(options).then((client) => client.etherscanBaseUrl());
   }
 
   public tokenContractAddress(options: ClientOptions): Promise<string> {

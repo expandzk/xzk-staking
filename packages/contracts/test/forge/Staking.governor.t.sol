@@ -49,7 +49,7 @@ contract StakingGovernorTest is Test {
             deployer,
             mockToken,
             "Mystiko Staking Vote Token 90D",
-            "sVXZK-90D",
+            "svXZK-90D",
             90 days, // staking period
             1500, // total factor
             block.timestamp + 5 days // start time

@@ -13,10 +13,10 @@ contract DeployStaking is Script {
         address envSepoliasDevXZK2 = vm.envAddress("sepolia_dev_sXZK_2");
         address envSepoliasDevXZK1 = vm.envAddress("sepolia_dev_sXZK_1");
         address envSepoliasDevXZKFlex = vm.envAddress("sepolia_dev_sXZK_Flex");
-        address envSepoliasDevVXZK3 = vm.envAddress("sepolia_dev_sVXZK_3");
-        address envSepoliasDevVXZK2 = vm.envAddress("sepolia_dev_sVXZK_2");
-        address envSepoliasDevVXZK1 = vm.envAddress("sepolia_dev_sVXZK_1");
-        address envSepoliasDevVXZKFlex = vm.envAddress("sepolia_dev_sVXZK_Flex");
+        address envSepoliasDevVXZK3 = vm.envAddress("sepolia_dev_svXZK_3");
+        address envSepoliasDevVXZK2 = vm.envAddress("sepolia_dev_svXZK_2");
+        address envSepoliasDevVXZK1 = vm.envAddress("sepolia_dev_svXZK_1");
+        address envSepoliasDevVXZKFlex = vm.envAddress("sepolia_dev_svXZK_Flex");
 
         console.log("=== Starting XZK Staking Deployment ===");
         console.log("Network:", "Sepolia Testnet Dev");
@@ -88,13 +88,13 @@ contract DeployStaking is Script {
                 SEPOLIA_DAO_REGISTRY,
                 SEPOLIA_PAUSE_ADMIN,
                 SEPOLIA_VXZK_TOKEN,
-                "Staking VXZK 3",
-                "sVXZK-3",
+                "Staking vXZK 3",
+                "svXZK-3",
                 1 hours,
                 TOTAL_FACTOR_DEV_3,
                 startTime
             );
-            console.log("sepolia_dev_sVXZK_3=", address(sVXZK3));
+            console.log("sepolia_dev_svXZK_3=", address(sVXZK3));
         }
 
         if (envSepoliasDevVXZK2 == address(0)) {
@@ -102,13 +102,13 @@ contract DeployStaking is Script {
                 SEPOLIA_DAO_REGISTRY,
                 SEPOLIA_PAUSE_ADMIN,
                 SEPOLIA_VXZK_TOKEN,
-                "Staking VXZK 2",
-                "sVXZK-2",
+                "Staking vXZK 2",
+                "svXZK-2",
                 30 minutes,
                 TOTAL_FACTOR_DEV_2,
                 startTime
             );
-            console.log("sepolia_dev_sVXZK_2=", address(sVXZK2));
+            console.log("sepolia_dev_svXZK_2=", address(sVXZK2));
         }
 
         if (envSepoliasDevVXZK1 == address(0)) {
@@ -116,13 +116,13 @@ contract DeployStaking is Script {
                 SEPOLIA_DAO_REGISTRY,
                 SEPOLIA_PAUSE_ADMIN,
                 SEPOLIA_VXZK_TOKEN,
-                "Staking VXZK 1",
-                "sVXZK-1",
+                "Staking vXZK 1",
+                "svXZK-1",
                 10 minutes,
                 TOTAL_FACTOR_DEV_1,
                 startTime
             );
-            console.log("sepolia_dev_sVXZK_1=", address(sVXZK1));
+            console.log("sepolia_dev_svXZK_1=", address(sVXZK1));
         }
 
         if (envSepoliasDevVXZKFlex == address(0)) {
@@ -130,13 +130,13 @@ contract DeployStaking is Script {
                 SEPOLIA_DAO_REGISTRY,
                 SEPOLIA_PAUSE_ADMIN,
                 SEPOLIA_VXZK_TOKEN,
-                "Staking VXZK Dev Flexible",
-                "sVXZK-Dev-Flex",
+                "Staking vXZK Dev Flexible",
+                "svXZK-Dev-Flex",
                 0,
                 TOTAL_FACTOR_DEV_FLEXIBLE,
                 startTime
             );
-            console.log("sepolia_dev_sVXZK_Flex=", address(sVXZKFlexible));
+            console.log("sepolia_dev_svXZK_Flex=", address(sVXZKFlexible));
         }
 
         vm.stopBroadcast();

@@ -118,6 +118,11 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
     });
 
     it('should get staking pool summary', async () => {
+      const apr = await stakingApiClient.estimatedApr(testOptions);
+      console.log('apr', apr);
+      const stakerApr = await stakingApiClient.stakerApr(testOptions);
+      console.log('stakerApr', stakerApr);
+
       const stakingPoolSummary = await stakingApiClient.stakingPoolSummary(testOptions);
       console.log(stakingPoolSummary);
       expect(stakingPoolSummary).toHaveProperty('currentReward');
