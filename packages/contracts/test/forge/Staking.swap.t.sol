@@ -35,7 +35,7 @@ contract StakingSwapTest is Test {
             owner,
             mockToken,
             "Mystiko Staking Vote Token 180D",
-            "sVXZK-180D",
+            "svXZK-180D",
             180 days,
             1500,
             block.timestamp + 5 days

@@ -39,8 +39,8 @@ describe('Config', () => {
       expect(config.tokenContractAddress(options)).toBe(config.xzkContract);
     });
 
-    it('should return vXZkContract for VXZK token', () => {
-      const options: ClientOptions = { tokenName: 'VXZK', stakingPeriod: '365d' };
+    it('should return vXZkContract for vXZK token', () => {
+      const options: ClientOptions = { tokenName: 'vXZK', stakingPeriod: '365d' };
       expect(config.tokenContractAddress(options)).toBe(config.vXZkContract);
     });
   });
@@ -59,10 +59,10 @@ describe('Config', () => {
         { tokenName: 'XZK', stakingPeriod: '180d' },
         { tokenName: 'XZK', stakingPeriod: '90d' },
         { tokenName: 'XZK', stakingPeriod: 'Flex' },
-        { tokenName: 'VXZK', stakingPeriod: '365d' },
-        { tokenName: 'VXZK', stakingPeriod: '180d' },
-        { tokenName: 'VXZK', stakingPeriod: '90d' },
-        { tokenName: 'VXZK', stakingPeriod: 'Flex' },
+        { tokenName: 'vXZK', stakingPeriod: '365d' },
+        { tokenName: 'vXZK', stakingPeriod: '180d' },
+        { tokenName: 'vXZK', stakingPeriod: '90d' },
+        { tokenName: 'vXZK', stakingPeriod: 'Flex' },
       ];
 
       testCases.forEach((options) => {

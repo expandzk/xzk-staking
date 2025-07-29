@@ -32,7 +32,7 @@ contract XzkStakingTokenVXZKTest is Test {
     address public user3 = address(0x4);
 
     string public constant TOKEN_NAME = "Mystiko Staking Vote Token";
-    string public constant TOKEN_SYMBOL = "sVXZK";
+    string public constant TOKEN_SYMBOL = "svXZK";
     uint8 public constant TOKEN_DECIMALS = 18;
 
     function setUp() public {

@@ -9,11 +9,12 @@ export type ChainConfig = {
   sXZK180d: string;
   sXZK90d: string;
   sXZKFlex: string;
-  sVXZK365d: string;
-  sVXZK180d: string;
-  sVXZK90d: string;
-  sVXZKFlex: string;
+  svXZK365d: string;
+  svXZK180d: string;
+  svXZK90d: string;
+  svXZKFlex: string;
   providers: string[];
+  etherscanUrl: string;
 };
 
 export function clientOptionToKey(options: ClientOptions): string {
@@ -51,16 +52,17 @@ export class Config {
         'https://ethereum.rpc.subquery.network/public',
         'https://ethereum.therpc.io',
       ],
+      etherscanUrl: 'https://etherscan.io',
       xzkContract: '0xe8fC52b1bb3a40fd8889C0f8f75879676310dDf0',
       vXZkContract: '0x16aFFA80C65Fd7003d40B24eDb96f77b38dDC96A',
       sXZK365d: '0x0000000000000000000000000000000000000000',
       sXZK180d: '0x0000000000000000000000000000000000000000',
       sXZK90d: '0x0000000000000000000000000000000000000000',
       sXZKFlex: '0x0000000000000000000000000000000000000000',
-      sVXZK365d: '0x0000000000000000000000000000000000000000',
-      sVXZK180d: '0x0000000000000000000000000000000000000000',
-      sVXZK90d: '0x0000000000000000000000000000000000000000',
-      sVXZKFlex: '0x0000000000000000000000000000000000000000',
+      svXZK365d: '0x0000000000000000000000000000000000000000',
+      svXZK180d: '0x0000000000000000000000000000000000000000',
+      svXZK90d: '0x0000000000000000000000000000000000000000',
+      svXZKFlex: '0x0000000000000000000000000000000000000000',
     },
     sepolia: {
       chainId: 11155111,
@@ -78,14 +80,15 @@ export class Config {
         'https://eth-sepolia.public.blastapi.io',
         'https://ethereum-sepolia-rpc.publicnode.com',
       ],
-      sXZK365d: '0xA9b45BFF69dF562312857324bD21df426DA420D9',
-      sXZK180d: '0xdBdD9DA5051Ad3beeac9440CCC884A88E03Ab36c',
-      sXZK90d: '0x767713090a5843fb156F3896744bDd8aAF68fc57',
-      sXZKFlex: '0x1ADe795D331b7D1823Cdb4A6b3CBE0103c6D0EA8',
-      sVXZK365d: '0x58749273155A4cDb637c36bD4a9f2cb43Fe4dE5A',
-      sVXZK180d: '0x4919D01E18E21d4e106E9792017d52A4c6E06a75',
-      sVXZK90d: '0x8720eFb6D05DA8854B8630418eAc4eBD93EEa770',
-      sVXZKFlex: '0x7821b03F8F0cf5c48fB7eb3fAb029356D753f02A',
+      etherscanUrl: 'https://sepolia.etherscan.io',
+      sXZK365d: '0x8353F765B47CC87dcc5F295864a898C0c5651Cf4',
+      sXZK180d: '0xC4F93a71017E49278B8594E297c3A8144cF47E84',
+      sXZK90d: '0xb29021e44dBa5a1F0C35191FD6D1a4BDa8E72ded',
+      sXZKFlex: '0x378803eff090F670EE5b80C0c2e97b42C1eccA2F',
+      svXZK365d: '0xbfC46221F86c7f9451e2831B39a9C70fA0820C2D',
+      svXZK180d: '0x9fbC51F5dC006E6B2A6717B9F08Fb8EAeb3066a2',
+      svXZK90d: '0x3b41F3D8f727F7d78Cb2dE10d90A6EAab4647b81',
+      svXZKFlex: '0x1D042C3b0BBcb010D78b25C5D52bc831555edf07',
     },
     dev: {
       chainId: 11155111,
@@ -103,14 +106,15 @@ export class Config {
         'https://eth-sepolia.public.blastapi.io',
         'https://ethereum-sepolia-rpc.publicnode.com',
       ],
-      sXZK365d: '0x0297b171bE11B700Ec003AeBC83B88c0668229F9',
-      sXZK180d: '0xC8324e675b73eed0fAFE80593744C477e18899C6',
-      sXZK90d: '0x611dcB377652E9799152DB639fc4C9e3DE5Db245',
-      sXZKFlex: '0x4AE71CEfa8141e785bef19532D3d5791922c9753',
-      sVXZK365d: '0x4C816e411c244E864710F4faddBb7F8FbAe774d5',
-      sVXZK180d: '0xCe27738836A51dA2bbA95Fef0C8CDBB99604CEa8',
-      sVXZK90d: '0x5B8E4AcA084Cd844adFc20Fadb31dF8666588834',
-      sVXZKFlex: '0x30778e6d3AF77dcd36930a840445F84d4B50f913',
+      etherscanUrl: 'https://sepolia.etherscan.io',
+      sXZK365d: '0x87f5e43aEA250A8a85214D06c7d66Ad7D0FC9188',
+      sXZK180d: '0x620206d3f579c72030449cFe7a18162CF111e9CD',
+      sXZK90d: '0xc81A97eB8743Cb0a0f9aD0329e272d717E94C186',
+      sXZKFlex: '0x39FAeAe645fFeDBB837ef3328D5dF5D811aEE68a',
+      svXZK365d: '0x50c75b2DF1D73c976845cE536777dbFEc8538bA7',
+      svXZK180d: '0x30C82cB9676158843934C827dF9a989E47D62b65',
+      svXZK90d: '0x35AAc86C76Cd83b3BE07D58b3603BAE0883d9EE0',
+      svXZKFlex: '0xA948E83CE97Df35CA7065bC0CD87a2c498400B64',
     },
   };
 
@@ -129,6 +133,10 @@ export class Config {
 
   public get chainId(): number {
     return this.config.chainId;
+  }
+
+  public get etherscanUrl(): string {
+    return this.config.etherscanUrl;
   }
 
   public get decimals(): number {
@@ -216,7 +224,7 @@ export const GlobalClientOptions: ClientOptions[] = [
     stakingPeriod: '365d',
   },
   {
-    tokenName: 'VXZK',
+    tokenName: 'vXZK',
     stakingPeriod: '365d',
   },
   {
@@ -224,7 +232,7 @@ export const GlobalClientOptions: ClientOptions[] = [
     stakingPeriod: '180d',
   },
   {
-    tokenName: 'VXZK',
+    tokenName: 'vXZK',
     stakingPeriod: '180d',
   },
   {
@@ -232,7 +240,7 @@ export const GlobalClientOptions: ClientOptions[] = [
     stakingPeriod: '90d',
   },
   {
-    tokenName: 'VXZK',
+    tokenName: 'vXZK',
     stakingPeriod: '90d',
   },
   {
@@ -240,7 +248,7 @@ export const GlobalClientOptions: ClientOptions[] = [
     stakingPeriod: 'Flex',
   },
   {
-    tokenName: 'VXZK',
+    tokenName: 'vXZK',
     stakingPeriod: 'Flex',
   },
 ];

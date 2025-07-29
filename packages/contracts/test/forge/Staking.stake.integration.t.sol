@@ -49,7 +49,7 @@ contract StakingStakeIntegrationTest is Test {
             owner,
             mockVoteToken,
             "Mystiko Staking Vote Token 90D",
-            "sVXZK-90D",
+            "svXZK-90D",
             STAKING_PERIOD_SECONDS,
             1500, // total factor
             block.timestamp + 5 days // start time

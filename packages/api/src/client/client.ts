@@ -60,7 +60,12 @@ export class ContractClient {
       return this.stakingInstance.TOTAL_REWARD().then((totalReward: any) => {
         return this.stakingStartTimestamp().then((startTime) => {
           const totalRewardNumber = round(fromDecimals(totalReward, this.context.config.decimals));
-          const rewardRate = round(currentReward / durationSeconds) * 100;
+          let rewardRate = 0;
+          if (totalRewardNumber > 0) {
+            rewardRate = round(currentReward / totalRewardNumber) * 100;
+          } else {
+            rewardRate = 0;
+          }
           return {
             currentReward,
             totalReward: totalRewardNumber,
@@ -75,6 +80,10 @@ export class ContractClient {
 
   public getChainId(): Promise<number> {
     return Promise.resolve(this.context.config.chainId);
+  }
+
+  public etherscanBaseUrl(): Promise<string> {
+    return Promise.resolve(this.context.config.etherscanUrl);
   }
 
   public getDecimals(): number {

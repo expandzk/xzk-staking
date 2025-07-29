@@ -15,10 +15,10 @@ contract DeployStaking is Script {
         address envEthereumXZK180d = vm.envAddress("ethereum_sXZK_180d");
         address envEthereumXZK90d = vm.envAddress("ethereum_sXZK_90d");
         address envEthereumXZKFlex = vm.envAddress("ethereum_sXZK_Flex");
-        address envEthereumVXZK365d = vm.envAddress("ethereum_sVXZK_365d");
-        address envEthereumVXZK180d = vm.envAddress("ethereum_sVXZK_180d");
-        address envEthereumVXZK90d = vm.envAddress("ethereum_sVXZK_90d");
-        address envEthereumVXZKFlex = vm.envAddress("ethereum_sVXZK_Flex");
+        address envEthereumVXZK365d = vm.envAddress("ethereum_svXZK_365d");
+        address envEthereumVXZK180d = vm.envAddress("ethereum_svXZK_180d");
+        address envEthereumVXZK90d = vm.envAddress("ethereum_svXZK_90d");
+        address envEthereumVXZKFlex = vm.envAddress("ethereum_svXZK_Flex");
 
         console.log("=== Starting XZK Staking Deployment ===");
         console.log("Network:", "Ethereum Mainnet");
@@ -91,13 +91,13 @@ contract DeployStaking is Script {
                 ETHEREUM_DAO_REGISTRY,
                 ETHEREUM_PAUSE_ADMIN,
                 ETHEREUM_VXZK_TOKEN,
-                "Staking VXZK 365 days",
-                "sVXZK-365d",
+                "Staking vXZK 365 days",
+                "svXZK-365d",
                 365 days,
                 (TOTAL_FACTOR_365 * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-sVXZK-365d=", address(sVXZK365));
+            console.log("ethereum-svXZK-365d=", address(sVXZK365));
         }
 
         if (envEthereumVXZK180d == address(0)) {
@@ -105,13 +105,13 @@ contract DeployStaking is Script {
                 ETHEREUM_DAO_REGISTRY,
                 ETHEREUM_PAUSE_ADMIN,
                 ETHEREUM_VXZK_TOKEN,
-                "Staking VXZK 180 days",
-                "sVXZK-180d",
+                "Staking vXZK 180 days",
+                "svXZK-180d",
                 180 days,
                 (TOTAL_FACTOR_180 * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-sVXZK-180d=", address(sVXZK180));
+            console.log("ethereum-svXZK-180d=", address(sVXZK180));
         }
 
         if (envEthereumVXZK90d == address(0)) {
@@ -119,13 +119,13 @@ contract DeployStaking is Script {
                 ETHEREUM_DAO_REGISTRY,
                 ETHEREUM_PAUSE_ADMIN,
                 ETHEREUM_VXZK_TOKEN,
-                "Staking VXZK 90 days",
-                "sVXZK-90d",
+                "Staking vXZK 90 days",
+                "svXZK-90d",
                 90 days,
                 (TOTAL_FACTOR_90 * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-sVXZK-90d=", address(sVXZK90));
+            console.log("ethereum-svXZK-90d=", address(sVXZK90));
         }
 
         if (envEthereumVXZKFlex == address(0)) {
@@ -133,13 +133,13 @@ contract DeployStaking is Script {
                 ETHEREUM_DAO_REGISTRY,
                 ETHEREUM_PAUSE_ADMIN,
                 ETHEREUM_VXZK_TOKEN,
-                "Staking VXZK Flexible",
-                "sVXZK-Flex",
+                "Staking vXZK Flexible",
+                "svXZK-Flex",
                 0,
                 (TOTAL_FACTOR_FLEXIBLE * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-sVXZK-Flex=", address(sVXZKFlexible));
+            console.log("ethereum-svXZK-Flex=", address(sVXZKFlexible));
         }
 
         vm.stopBroadcast();

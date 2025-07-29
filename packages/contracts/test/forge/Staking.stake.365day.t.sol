@@ -52,7 +52,7 @@ contract StakingStake365DayTest is Test {
             owner,
             mockVoteToken,
             "Mystiko Staking Vote Token 360D",
-            "sVXZK-360D",
+            "svXZK-360D",
             STAKING_PERIOD_SECONDS, // 360-day staking period
             2000, // total factor
             block.timestamp + 5 days // start time
