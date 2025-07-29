@@ -201,10 +201,10 @@ contract CheckStaking is Script {
     }
 
     function check_ethereum_sXZK_flexible_contract(uint256 startTime) public view {
-        console.log("Checking ethereum staking contract: ethereum_sXZK_flexible");
-        address staking_contract = vm.envAddress("ethereum_sXZK_flexible");
+        console.log("Checking ethereum staking contract: ethereum_sXZK_Flex");
+        address staking_contract = vm.envAddress("ethereum_sXZK_Flex");
         if (staking_contract == address(0)) {
-            console.log("ethereum_sXZK_flexible is not deployed");
+            console.log("ethereum_sXZK_Flex is not deployed");
             return;
         }
 
