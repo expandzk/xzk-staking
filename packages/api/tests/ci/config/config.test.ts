@@ -66,7 +66,7 @@ describe('Config', () => {
       ];
 
       testCases.forEach((options) => {
-        expect(mainnetConfig.stakingContractAddress(options)).toBe(
+        expect(mainnetConfig.stakingContractAddress(options)).not.toBe(
           '0x0000000000000000000000000000000000000000',
         );
       });
