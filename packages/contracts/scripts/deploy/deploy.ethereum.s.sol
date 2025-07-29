@@ -97,7 +97,7 @@ contract DeployStaking is Script {
                 (TOTAL_FACTOR_365 * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-svXZK-365d=", address(sVXZK365));
+            console.log("ethereum_svXZK_365d=", address(sVXZK365));
         }
 
         if (envEthereumVXZK180d == address(0)) {
@@ -111,7 +111,7 @@ contract DeployStaking is Script {
                 (TOTAL_FACTOR_180 * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-svXZK-180d=", address(sVXZK180));
+            console.log("ethereum_svXZK_180d=", address(sVXZK180));
         }
 
         if (envEthereumVXZK90d == address(0)) {
@@ -125,7 +125,7 @@ contract DeployStaking is Script {
                 (TOTAL_FACTOR_90 * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-svXZK-90d=", address(sVXZK90));
+            console.log("ethereum_svXZK_90d=", address(sVXZK90));
         }
 
         if (envEthereumVXZKFlex == address(0)) {
@@ -139,7 +139,7 @@ contract DeployStaking is Script {
                 (TOTAL_FACTOR_FLEXIBLE * VXZK_RATIO) / 100,
                 startTime
             );
-            console.log("ethereum-svXZK-Flex=", address(sVXZKFlexible));
+            console.log("ethereum_svXZK_Flex=", address(sVXZKFlexible));
         }
 
         vm.stopBroadcast();

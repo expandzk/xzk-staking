@@ -1,6 +1,6 @@
 {
   "name": "@expandzk/xzk-staking-contracts",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
