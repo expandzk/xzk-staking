@@ -218,6 +218,8 @@ export class Config {
   public stakingStartTime(): Promise<number> {
     if (this.network === 'dev') {
       return Promise.resolve(1753848000);
+    } else if (this.network === 'sepolia') {
+      return Promise.resolve(1754352000);
     }
     return Promise.resolve(1754438400);
   }
