@@ -14,7 +14,7 @@ const TEST_ACCOUNT = '';
 
 // Test configuration
 const testInitOptions: InitOptions = {
-  network: 'dev',
+  network: 'ethereum',
   scanApiBaseUrl: 'https://api-sepolia.etherscan.io/api',
 };
 
@@ -118,8 +118,20 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
     });
 
     it('should get staking pool summary', async () => {
+      const totalReward = await stakingApiClient.totalRewardXzkAmountSummary();
+      console.log('totalReward', totalReward);
+      const totalRewardVxzk = await stakingApiClient.totalRewardVxzkAmountSummary();
+      console.log('totalRewardVxzk', totalRewardVxzk);
+
+      const totalStaked = await stakingApiClient.cumulativeTotalStaked(testOptions);
+      console.log('totalStaked', totalStaked);
+      const totalUnstaked = await stakingApiClient.cumulativeTotalUnstaked(testOptions);
+      console.log('totalUnstaked', totalUnstaked);
+      const totalClaimed = await stakingApiClient.cumulativeTotalClaimed(testOptions);
+      console.log('totalClaimed', totalClaimed);
+
       const apr = await stakingApiClient.estimatedApr(testOptions);
-      console.log('apr', apr);
+      console.log('estimatedApr', apr);
       const stakerApr = await stakingApiClient.stakerApr(testOptions);
       console.log('stakerApr', stakerApr);
 

@@ -1,4 +1,4 @@
-import type { ClientOptions, StakingPeriod, Network } from '../api';
+import type { ClientOptions, StakingPeriod, Network, TokenName } from '../api';
 
 export type ChainConfig = {
   chainId: number;
@@ -214,6 +214,59 @@ export class Config {
       return 0;
     }
     throw new Error(`Unsupported staking period: ${period}`);
+  }
+
+  public stakingStartTime(): Promise<number> {
+    if (this.network === 'dev') {
+      return Promise.resolve(1753848000);
+    }
+    return Promise.resolve(1754438400);
+  }
+
+  public totalReward(tokenName: TokenName, stakingPeriod: StakingPeriod): Promise<number> {
+    if (this.network === 'dev') {
+      if (stakingPeriod === '365d') {
+        return Promise.resolve(20000);
+      }
+      if (stakingPeriod === '180d') {
+        return Promise.resolve(15000);
+      }
+      if (stakingPeriod === '90d') {
+        return Promise.resolve(10000);
+      }
+      if (stakingPeriod === 'Flex') {
+        return Promise.resolve(5000);
+      }
+    } else {
+      if (tokenName === 'XZK') {
+        if (stakingPeriod === '365d') {
+          return Promise.resolve(11000000);
+        }
+        if (stakingPeriod === '180d') {
+          return Promise.resolve(5400000);
+        }
+        if (stakingPeriod === '90d') {
+          return Promise.resolve(2600000);
+        }
+        if (stakingPeriod === 'Flex') {
+          return Promise.resolve(1000000);
+        }
+      } else {
+        if (stakingPeriod === '365d') {
+          return Promise.resolve(16500000);
+        }
+        if (stakingPeriod === '180d') {
+          return Promise.resolve(8100000);
+        }
+        if (stakingPeriod === '90d') {
+          return Promise.resolve(3900000);
+        }
+        if (stakingPeriod === 'Flex') {
+          return Promise.resolve(1500000);
+        }
+      }
+    }
+    return Promise.resolve(0);
   }
 }
 

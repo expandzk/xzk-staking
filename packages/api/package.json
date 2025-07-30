@@ -1,6 +1,6 @@
 {
   "name": "@expandzk/xzk-staking-api",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "repository": {
     "type": "git",
     "url": "https://github.com/expandzk/xzk-staking",
@@ -28,6 +28,7 @@
     "test": "jest --forceExit ./tests/ci",
     "test:integration": "jest --forceExit --testPathPattern=tests/integration",
     "test:cmd": "jest --forceExit --testPathPattern=tests/cmd/cmd.test.ts",
+    "test:check": "jest --forceExit --testPathPattern=tests/cmd/check.test.ts",
     "coverage": "jest --forceExit --coverage ./tests/ci",
     "coverage:integration": "jest --forceExit --coverage --testPathPattern=tests/integration",
     "clean": "rm -rf build"
@@ -52,7 +53,7 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "@expandzk/xzk-staking-abi": "0.1.25",
+    "@expandzk/xzk-staking-abi": "0.1.26",
     "@jest/globals": "^27.4.7",
     "@mystikonetwork/ether-fetcher": "^0.3.7",
     "@mystikonetwork/utils": "^0.3.8",

@@ -57,24 +57,26 @@ export class ContractClient {
     const durationSeconds = this.context.config.totalDurationSeconds();
 
     return this.totalRewardAt(currentTimestamp).then((currentReward) => {
-      return this.stakingInstance.TOTAL_REWARD().then((totalReward: any) => {
-        return this.stakingStartTimestamp().then((startTime) => {
-          const totalRewardNumber = round(fromDecimals(totalReward, this.context.config.decimals));
-          let rewardRate = 0;
-          if (totalRewardNumber > 0) {
-            rewardRate = round(currentReward / totalRewardNumber) * 100;
-          } else {
-            rewardRate = 0;
-          }
-          return {
-            currentReward,
-            totalReward: totalRewardNumber,
-            startTime,
-            endTime: startTime + durationSeconds,
-            rewardRate,
-          };
+      return this.context.config
+        .totalReward(this.options.tokenName, this.options.stakingPeriod)
+        .then((totalReward: any) => {
+          return this.context.config.stakingStartTime().then((startTime) => {
+            const totalRewardNumber = round(fromDecimals(totalReward, this.context.config.decimals));
+            let rewardRate = 0;
+            if (totalRewardNumber > 0) {
+              rewardRate = round(currentReward / totalRewardNumber) * 100;
+            } else {
+              rewardRate = 0;
+            }
+            return {
+              currentReward,
+              totalReward: totalRewardNumber,
+              startTime,
+              endTime: startTime + durationSeconds,
+              rewardRate,
+            };
+          });
         });
-      });
     });
   }
 
@@ -99,10 +101,7 @@ export class ContractClient {
   }
 
   public stakingStartTimestamp(): Promise<number> {
-    return this.stakingInstance
-      .START_TIME()
-      .then((timestamp: any) => timestamp.toNumber())
-      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+    return this.context.config.stakingStartTime();
   }
 
   public totalDurationSeconds(): Promise<number> {

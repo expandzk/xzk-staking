@@ -577,6 +577,9 @@ contract CheckStaking is Script {
         uint256 period = staking.STAKING_PERIOD_SECONDS();
         assert(period == 365 days);
 
+        uint256 totalReward = staking.TOTAL_REWARD();
+        assert(totalReward == (staking.allReward() * totalFactor) / staking.ALL_SHARES());
+
         check_staking_contract(staking, false);
     }
 
@@ -591,6 +594,9 @@ contract CheckStaking is Script {
         uint256 period = staking.STAKING_PERIOD_SECONDS();
         assert(period == 180 days);
 
+        uint256 totalReward = staking.TOTAL_REWARD();
+        assert(totalReward == (staking.allReward() * totalFactor) / staking.ALL_SHARES());
+
         check_staking_contract(staking, false);
     }
 
@@ -604,6 +610,9 @@ contract CheckStaking is Script {
 
         uint256 period = staking.STAKING_PERIOD_SECONDS();
         assert(period == 90 days);
+
+        uint256 totalReward = staking.TOTAL_REWARD();
+        assert(totalReward == (staking.allReward() * totalFactor) / staking.ALL_SHARES());
 
         check_staking_contract(staking, false);
     }
