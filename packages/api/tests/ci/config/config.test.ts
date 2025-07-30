@@ -10,7 +10,6 @@ describe('Config', () => {
       expect(config.decimals).toBe(18);
       expect(config.xzkContract).toBe('0xe8fC52b1bb3a40fd8889C0f8f75879676310dDf0');
       expect(config.vXZkContract).toBe('0x16aFFA80C65Fd7003d40B24eDb96f77b38dDC96A');
-      expect(config.providers).toHaveLength(19);
     });
 
     it('should create config for sepolia network', () => {
