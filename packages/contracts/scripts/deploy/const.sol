@@ -20,8 +20,8 @@ uint256 constant TOTAL_FACTOR_365 = 5500;
 uint256 constant TOTAL_FACTOR_180 = 2700;
 uint256 constant TOTAL_FACTOR_90 = 1300;
 uint256 constant TOTAL_FACTOR_FLEXIBLE = 500;
-uint256 constant XZK_RATIO = 60;
-uint256 constant VXZK_RATIO = 40;
+uint256 constant XZK_RATIO = 40;
+uint256 constant VXZK_RATIO = 60;
 
 // Total factors
 uint256 constant TOTAL_FACTOR_DEV_3 = 4;
