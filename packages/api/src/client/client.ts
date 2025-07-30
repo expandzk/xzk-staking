@@ -59,9 +59,8 @@ export class ContractClient {
     return this.totalRewardAt(currentTimestamp).then((currentReward) => {
       return this.context.config
         .totalReward(this.options.tokenName, this.options.stakingPeriod)
-        .then((totalReward: any) => {
+        .then((totalRewardNumber: number) => {
           return this.context.config.stakingStartTime().then((startTime) => {
-            const totalRewardNumber = round(fromDecimals(totalReward, this.context.config.decimals));
             let rewardRate = 0;
             if (totalRewardNumber > 0) {
               rewardRate = round(currentReward / totalRewardNumber) * 100;
