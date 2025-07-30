@@ -163,7 +163,7 @@ describe('StakingApiClient', () => {
     expect(await stakingApiClient.getChainId(testOptions)).toBe(1);
     expect(await stakingApiClient.tokenContractAddress(testOptions)).toBeDefined();
     expect(await stakingApiClient.stakingContractAddress(testOptions)).toBeDefined();
-    expect(await stakingApiClient.stakingStartTimestamp(testOptions)).toBe(123);
+    expect(await stakingApiClient.stakingStartTimestamp(testOptions)).toBe(1754438400);
     expect(await stakingApiClient.totalDurationSeconds(testOptions)).toBeDefined();
     expect(await stakingApiClient.stakingPeriodSeconds(testOptions)).toBeDefined();
     expect(await stakingApiClient.claimDelaySeconds(testOptions)).toBeDefined();
