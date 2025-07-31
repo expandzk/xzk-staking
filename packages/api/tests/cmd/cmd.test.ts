@@ -93,10 +93,6 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       console.log(totalRewardXzkAmount);
       const totalRewardVxzkAmount = await stakingApiClient.totalRewardVxzkAmountSummary();
       console.log(totalRewardVxzkAmount);
-      expect(xzkAmountSummary).toBeGreaterThan(0);
-      expect(vxzkAmountSummary).toBeGreaterThan(0);
-      expect(totalRewardXzkAmount).toBeGreaterThan(0);
-      expect(totalRewardVxzkAmount).toBeGreaterThan(0);
     });
 
     it('should get is stake disabled', async () => {

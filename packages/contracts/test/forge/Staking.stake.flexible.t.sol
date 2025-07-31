@@ -62,6 +62,7 @@ contract StakingStakeFlexibleTest is Test {
 
         // Fund the staking contract with enough underlying tokens for rewards and DAO claims
         mockToken.transfer(address(stakingFlexible), 50_000_000 ether);
+        stakingFlexible.enableClaimToDao();
         vm.stopPrank();
     }
 

@@ -53,14 +53,22 @@ export class Config {
         'https://ethereum.therpc.io',
       ],
       etherscanUrl: 'https://etherscan.io',
-      sXZK365d: '0x292Cc9a88FCf0D68Eb561cca105568b317f0e4CE',
-      sXZK180d: '0xF2b429c751a09Fe4C5F09d24453175511801270c',
-      sXZK90d: '0x39bCCe141B5E1754A3534511b529F3030F7172bA',
-      sXZKFlex: '0x43f15F0a9EEf7d2Ea10D6A3A71C38B88B1db0Eb8',
-      svXZK365d: '0xF566aceC92AeA720D782727C2fD8aEeC60ea6D9A',
-      svXZK180d: '0x663a3f16938Bea331517758e6a126dB04A95c11E',
-      svXZK90d: '0x3F477B2468c2C28c21316029A215c66176ce4aaF',
-      svXZKFlex: '0x3C00b5960411F842d3B6610d5541f098D2b82e35',
+      sXZK365d: '0x270f7E593fd538b07f0606DF3624C606b55a9043',
+      sXZK180d: '0x35Da8E53E7d9c7D5899eE7BE54f2122DaE214BD8',
+      sXZK90d: '0xfEE16A342Fbd9119dD80bF9305289A7CBfb01A70',
+      sXZKFlex: '0x824B707B48D48C589E6E97D600BE8104158D0a42',
+      svXZK365d: '0x7C9e12FFA3084D68975f480b99bBe817E1Dcf994',
+      svXZK180d: '0xC11d2d8A667c609E380A3E75cE2D540B529D1e8e',
+      svXZK90d: '0x51bbcEBe2FD4C0cFCcAc16dD6bffb91FDb891d0E',
+      svXZKFlex: '0x793463a437EA6bc29B748008Ca4483E7A350903a',
+      // sXZK365dV1: '0x292Cc9a88FCf0D68Eb561cca105568b317f0e4CE',
+      // sXZK180dV1: '0xF2b429c751a09Fe4C5F09d24453175511801270c',
+      // sXZK90dV1: '0x39bCCe141B5E1754A3534511b529F3030F7172bA',
+      // sXZKFlexV1: '0x43f15F0a9EEf7d2Ea10D6A3A71C38B88B1db0Eb8',
+      // svXZK365dV1: '0xF566aceC92AeA720D782727C2fD8aEeC60ea6D9A',
+      // svXZK180dV1: '0x663a3f16938Bea331517758e6a126dB04A95c11E',
+      // svXZK90dV1: '0x3F477B2468c2C28c21316029A215c66176ce4aaF',
+      // svXZKFlexV1: '0x3C00b5960411F842d3B6610d5541f098D2b82e35',
     },
     sepolia: {
       chainId: 11155111,
@@ -79,14 +87,14 @@ export class Config {
         'https://ethereum-sepolia-rpc.publicnode.com',
       ],
       etherscanUrl: 'https://sepolia.etherscan.io',
-      sXZK365d: '0x15C591e9b8eBcA87bbc5949485891e1a6080c78F',
-      sXZK180d: '0xF1e2a8d8b816E66A6D44ca1e8a46d7D6878b133a',
-      sXZK90d: '0x8F786F13d26f57B335124ad847a0761532E8A95E',
-      sXZKFlex: '0xD6978Bb5f275bFE911E75F34a892A9070212C25D',
-      svXZK365d: '0x806Cf07c06ccA1526040bb045040E3a343C78312',
-      svXZK180d: '0x321918A7d1c4b0A3145b2186d2450061144f3D1a',
-      svXZK90d: '0x776C1246a5405958C0ACbc5638510c59449F3817',
-      svXZKFlex: '0xCA0B5a635fd4A688b10A4626beD9d24c1949Ad17',
+      sXZK365d: '0x3bf6290d1E91be18B58985b37C8a390EBabA9Eb8',
+      sXZK180d: '0x70D6320e24E2e4A5da123580d430e924ACEfEc3B',
+      sXZK90d: '0x7379860dBf7B5063B8657df9b7563089f22CdD5c',
+      sXZKFlex: '0x71e1c6861c124b9f9198F6C2E4aBB42843E92565',
+      svXZK365d: '0x5fFE828503F9D25d541a0CCc0eD483e2735FB639',
+      svXZK180d: '0x71eD904d4a50E11270Dd7d252DcFca98aBB532fF',
+      svXZK90d: '0xD7F5f390A6Bf5d2c315Fa13a06eaA670881a74C7',
+      svXZKFlex: '0x9fF3C551397d7C8C5251c1FA6faeFd5e90ec04fE',
     },
     dev: {
       chainId: 11155111,
@@ -219,7 +227,7 @@ export class Config {
     if (this.network === 'dev') {
       return Promise.resolve(1753848000);
     } else if (this.network === 'sepolia') {
-      return Promise.resolve(1754352000);
+      return Promise.resolve(1754438400);
     }
     return Promise.resolve(1754438400);
   }
@@ -261,6 +269,17 @@ export class Config {
         return Promise.reject(new Error(`Unsupported staking period for vXZK: ${stakingPeriod}`));
       }
     }
+  }
+}
+
+export function allTotalReward(network: string, tokenName: TokenName): number {
+  if (network === 'dev') {
+    return 50000;
+  }
+  if ((tokenName as string) === 'XZK') {
+    return 50000000 * 0.4;
+  } else {
+    return 50000000 * 0.6;
   }
 }
 

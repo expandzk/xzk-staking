@@ -104,5 +104,5 @@ forge script scripts/deploy/Deploy.${target_network}.s.sol:DeployStaking \
  --rpc-url $RPC_URL \
  --private-key $PRIVATE_KEY \
  --broadcast \
- --priority-gas-price 2000000 \
+ --priority-gas-price 1000000 \
  -vv
