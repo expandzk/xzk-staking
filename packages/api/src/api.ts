@@ -5,7 +5,7 @@ import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise, XZKStakingErrorCode } from './error';
 import BN from 'bn.js';
 import { toDecimals } from '@mystikonetwork/utils';
-import { round } from './config/config';
+import { round, allTotalReward } from './config/config';
 
 // Import types directly to avoid circular dependency
 export type Network = 'ethereum' | 'sepolia' | 'dev';
@@ -33,6 +33,11 @@ export interface ClientOptions {
 export interface InitOptions {
   network?: Network;
   scanApiBaseUrl?: string;
+}
+
+export interface totalRewardSummary {
+  totalReward: number;
+  totalRewardRate: number;
 }
 
 export interface StakingPoolSummary {
@@ -64,6 +69,8 @@ export interface StakingSummary {
   totalStakingTokenAmount: number;
   // total remaining staking token amount (s token) that has not been unstaked
   totalStakingTokenRemaining: number;
+  // total equivalent token amount (xzk or vxzk)
+  totalEquivalentTokenAmount: number;
   // total locked staking token amount (s token) that can not be unstaked
   totalStakingTokenLocked: number;
   // total staking token amount (s token) that can be unstaked
@@ -149,8 +156,8 @@ export interface IStakingClient {
   resetInitStatus(): void;
   totalXzkAmountSummary(): Promise<number>;
   totalVxzkAmountSummary(): Promise<number>;
-  totalRewardXzkAmountSummary(): Promise<number>;
-  totalRewardVxzkAmountSummary(): Promise<number>;
+  totalRewardXzkAmountSummary(): Promise<totalRewardSummary>;
+  totalRewardVxzkAmountSummary(): Promise<totalRewardSummary>;
   getStakingPoolConfig(options: ClientOptions): Promise<StakingPoolConfig>;
   stakingPoolSummary(options: ClientOptions): Promise<StakingPoolSummary>;
   getChainId(options: ClientOptions): Promise<number>;
@@ -164,6 +171,7 @@ export interface IStakingClient {
   isStakeDisabled(options: ClientOptions): Promise<boolean>;
   isStakingPaused(options: ClientOptions): Promise<boolean>;
   isClaimPaused(options: ClientOptions, account: string): Promise<boolean>;
+  isClaimToDaoEnabled(options: ClientOptions): Promise<boolean>;
   poolTokenAmount(options: ClientOptions): Promise<number>;
   stakingTotalSupply(options: ClientOptions): Promise<number>;
   totalStaked(options: ClientOptions): Promise<number>;
@@ -208,6 +216,8 @@ class StakingApiClient implements StakingApiClient {
 
   private initStatus: boolean = false;
 
+  private network: Network = 'ethereum';
+
   constructor() {
     this.clients = new Map<string, ContractClient>();
   }
@@ -223,6 +233,7 @@ class StakingApiClient implements StakingApiClient {
       const keyName = clientOptionToKey(clientOption);
       this.clients.set(keyName, client);
     });
+    this.network = options.network || 'ethereum';
     this.initStatus = true;
   }
 
@@ -239,7 +250,7 @@ class StakingApiClient implements StakingApiClient {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'XZK') {
-        promises.push(this.cumulativeTotalStaked(clientOption));
+        promises.push(this.totalStaked(clientOption));
       }
     });
     return Promise.all(promises).then((results) => {
@@ -251,7 +262,7 @@ class StakingApiClient implements StakingApiClient {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'vXZK') {
-        promises.push(this.cumulativeTotalStaked(clientOption));
+        promises.push(this.totalStaked(clientOption));
       }
     });
     return Promise.all(promises).then((results) => {
@@ -259,27 +270,40 @@ class StakingApiClient implements StakingApiClient {
     });
   }
 
-  public totalRewardXzkAmountSummary(): Promise<number> {
+  public totalRewardXzkAmountSummary(): Promise<totalRewardSummary> {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'XZK') {
         promises.push(this.getClient(clientOption).then((client) => client.totalRewardAt()));
       }
     });
+
+    const allRewardAmount = allTotalReward(this.network, 'XZK');
     return Promise.all(promises).then((results) => {
-      return round(results.reduce((acc, curr) => acc + curr, 0));
+      const totalReward = round(results.reduce((acc, curr) => acc + curr, 0));
+      const totalRewardRate = round(totalReward / allRewardAmount) * 100;
+      return {
+        totalReward,
+        totalRewardRate,
+      };
     });
   }
 
-  public totalRewardVxzkAmountSummary(): Promise<number> {
+  public totalRewardVxzkAmountSummary(): Promise<totalRewardSummary> {
     const promises: Promise<number>[] = [];
     GlobalClientOptions.forEach((clientOption) => {
       if (clientOption.tokenName === 'vXZK') {
         promises.push(this.getClient(clientOption).then((client) => client.totalRewardAt()));
       }
     });
+    const allRewardAmount = allTotalReward(this.network, 'vXZK');
     return Promise.all(promises).then((results) => {
-      return round(results.reduce((acc, curr) => acc + curr, 0));
+      const totalReward = round(results.reduce((acc, curr) => acc + curr, 0));
+      const totalRewardRate = round(totalReward / allRewardAmount) * 100;
+      return {
+        totalReward,
+        totalRewardRate,
+      };
     });
   }
 
@@ -335,12 +359,28 @@ class StakingApiClient implements StakingApiClient {
     return this.getClient(options).then((client) => client.isClaimPaused(account));
   }
 
+  public isClaimToDaoEnabled(options: ClientOptions): Promise<boolean> {
+    return this.getClient(options).then((client) => client.isClaimToDaoEnabled());
+  }
+
   public poolTokenAmount(options: ClientOptions): Promise<number> {
     return this.getClient(options).then((client) => client.poolTokenAmount());
   }
 
   public totalStaked(options: ClientOptions): Promise<number> {
-    return this.cumulativeTotalStaked(options);
+    return this.getClient(options).then((client) =>
+      client
+        .totalStaked()
+        .then((stakedAmount) =>
+          client
+            .totalUnstaked()
+            .then((unstakedAmount) =>
+              client
+                .totalRewardAt()
+                .then((rewardAmount) => Promise.resolve(round(stakedAmount + rewardAmount - unstakedAmount))),
+            ),
+        ),
+    );
   }
 
   public cumulativeTotalStaked(options: ClientOptions): Promise<number> {
@@ -388,7 +428,16 @@ class StakingApiClient implements StakingApiClient {
   }
 
   public stakingSummary(options: ClientOptions, account: string): Promise<StakingSummary> {
-    return this.getClient(options).then((client) => client.stakingSummary(account));
+    return this.getClient(options).then((client) =>
+      client.stakingSummary(account).then((summary) =>
+        client.swapToUnderlyingToken(summary.totalStakingTokenRemaining).then((amount) => {
+          return {
+            ...summary,
+            totalEquivalentTokenAmount: amount,
+          };
+        }),
+      ),
+    );
   }
 
   public unstakingSummary(options: ClientOptions, account: string): Promise<UnstakingSummary> {

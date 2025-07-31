@@ -36,12 +36,17 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     // Whether the staking is paused
     bool public isStakingPaused;
 
+    // Whether the claim to dao is enabled
+    bool public isClaimToDaoEnabled;
+
     event Staked(address indexed account, uint256 amount, uint256 stakingAmount);
     event Unstaked(address indexed account, uint256 stakingAmount, uint256 amount);
     event Claimed(address indexed account, uint256 amount);
     event ClaimedToDao(address indexed account, uint256 amount);
     event StakingPausedByDao();
     event StakingUnpausedByDao();
+    event ClaimToDaoEnabled();
+    event ClaimToDaoDisabled();
 
     constructor(
         address _daoRegistry,
@@ -65,6 +70,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
         totalUnstaked = 0;
         totalClaimed = 0;
         isStakingPaused = false;
+        isClaimToDaoEnabled = false;
     }
 
     function stake(uint256 _amount) external nonReentrant returns (bool) {
@@ -142,6 +148,7 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
 
     function claimToDao(uint256 _amount) external onlyMystikoDAO {
         require(_amount > 0, "XzkStaking: Invalid amount");
+        require(isClaimToDaoEnabled, "XzkStaking: Claim to dao is disabled");
         SafeERC20.safeTransfer(UNDERLYING_TOKEN, _msgSender(), _amount);
         totalClaimed += _amount;
         emit ClaimedToDao(_msgSender(), _amount);
@@ -155,6 +162,16 @@ contract XzkStaking is XzkStakingRecord, XzkStakingToken, MystikoDAOAccessContro
     function unpauseStaking() external onlyMystikoDAO {
         isStakingPaused = false;
         emit StakingUnpausedByDao();
+    }
+
+    function enableClaimToDao() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isClaimToDaoEnabled = true;
+        emit ClaimToDaoEnabled();
+    }
+
+    function disableClaimToDao() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        isClaimToDaoEnabled = false;
+        emit ClaimToDaoDisabled();
     }
 
     function swapToStakingToken(uint256 _amount) public view returns (uint256) {

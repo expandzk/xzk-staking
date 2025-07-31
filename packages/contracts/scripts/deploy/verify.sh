@@ -1,8 +1,8 @@
 #!/bin/bash
 source .env
 
-XZK_RATIO=60
-VXZK_RATIO=40
+XZK_RATIO=40
+VXZK_RATIO=60
 total_factor_365_XZK=$((5500*XZK_RATIO/100))
 total_factor_180_XZK=$((2700*XZK_RATIO/100))
 total_factor_90_XZK=$((1300*XZK_RATIO/100))

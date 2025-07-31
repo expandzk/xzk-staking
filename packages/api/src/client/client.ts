@@ -140,6 +140,13 @@ export class ContractClient {
       .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
   }
 
+  public isClaimToDaoEnabled(): Promise<boolean> {
+    return this.stakingInstance
+      .isClaimToDaoEnabled()
+      .then((enabled: any) => Boolean(enabled))
+      .catch((error: any) => createErrorPromise(XZKStakingErrorCode.PROVIDER_ERROR, error.toString()));
+  }
+
   public poolTokenAmount(): Promise<number> {
     const tokenContract = this.context.tokenContractInstance(this.options);
     return tokenContract
@@ -298,6 +305,7 @@ export class ContractClient {
             totalTokenAmount: round(totalTokenAmount),
             totalStakingTokenAmount: round(totalStakingTokenAmount),
             totalStakingTokenRemaining: round(totalStakingTokenRemaining),
+            totalEquivalentTokenAmount: 0,
             totalStakingTokenLocked: round(totalStakingTokenRemaining) - round(totalCanUnstakeAmount),
             totalCanUnstakeAmount: round(totalCanUnstakeAmount),
             totalCanUnstakeAmountBN,

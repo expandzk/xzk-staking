@@ -87,6 +87,7 @@ contract StakingStake365DayTest is Test {
         mockToken.approve(address(mockVoteToken), 50_000_000 ether);
         mockVoteToken.depositFor(owner, 50_000_000 ether);
         mockVoteToken.transfer(address(staking), 50_000_000 ether);
+        staking.enableClaimToDao();
         vm.stopPrank();
     }
 

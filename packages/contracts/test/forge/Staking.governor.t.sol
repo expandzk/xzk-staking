@@ -23,6 +23,8 @@ contract StakingGovernorTest is Test {
     event ClaimedToDao(address indexed account, uint256 amount);
     event StakingPausedByDao();
     event StakingUnpausedByDao();
+    event ClaimToDaoEnabled();
+    event ClaimToDaoDisabled();
 
     function setUp() public {
         deployer = makeAddr("deployer");
@@ -61,6 +63,7 @@ contract StakingGovernorTest is Test {
         mockToken.transfer(user1, 10000 ether);
         mockToken.transfer(user2, 10000 ether);
         mockToken.transfer(address(staking), 500_000_000 ether); // Transfer half of total supply to staking contract
+        staking.enableClaimToDao();
         vm.stopPrank();
     }
 
@@ -78,6 +81,54 @@ contract StakingGovernorTest is Test {
 
         uint256 daoBalanceAfter = mockToken.balanceOf(dao);
         assertEq(daoBalanceAfter - daoBalanceBefore, claimAmount, "DAO should receive the claimed amount");
+    }
+
+    function test_enable_disable_ClaimToDao_Success() public {
+        vm.expectEmit(address(staking));
+        emit ClaimToDaoDisabled();
+        vm.startPrank(deployer);
+        staking.disableClaimToDao();
+        vm.stopPrank();
+        assertFalse(staking.isClaimToDaoEnabled(), "Claim to dao should be disabled");
+
+        vm.expectRevert("XzkStaking: Claim to dao is disabled");
+        vm.prank(dao);
+        staking.claimToDao(1 ether);
+
+        vm.expectEmit(address(staking));
+        emit ClaimToDaoEnabled();
+        vm.startPrank(deployer);
+        staking.enableClaimToDao();
+        vm.stopPrank();
+        assertTrue(staking.isClaimToDaoEnabled(), "Claim to dao should be enabled");
+
+        uint256 daoBalanceBefore = mockToken.balanceOf(dao);
+        vm.expectEmit(address(staking));
+        emit ClaimedToDao(dao, 1 ether);
+        vm.prank(dao);
+        staking.claimToDao(1 ether);
+        uint256 daoBalanceAfter = mockToken.balanceOf(dao);
+        assertEq(daoBalanceAfter - daoBalanceBefore, 1 ether, "DAO should receive the claimed amount");
+    }
+
+    function test_enable_disable_ClaimToDao_OnlyAdmin() public {
+        vm.expectRevert();
+        vm.prank(dao);
+        staking.disableClaimToDao();
+        assertTrue(staking.isClaimToDaoEnabled(), "Claim to dao should be enabled");
+
+        vm.expectRevert();
+        vm.prank(dao);
+        staking.enableClaimToDao();
+        assertTrue(staking.isClaimToDaoEnabled(), "Claim to dao should be enabled");
+
+        vm.prank(deployer);
+        staking.disableClaimToDao();
+        assertFalse(staking.isClaimToDaoEnabled(), "Claim to dao should be disabled");
+
+        vm.prank(deployer);
+        staking.enableClaimToDao();
+        assertTrue(staking.isClaimToDaoEnabled(), "Claim to dao should be enabled");
     }
 
     function test_claimToDao_OnlyMystikoDAO() public {
