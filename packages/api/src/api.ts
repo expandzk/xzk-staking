@@ -37,6 +37,7 @@ export interface InitOptions {
 
 export interface totalRewardSummary {
   totalReward: number;
+  allRewardAmount: number;
   totalRewardRate: number;
 }
 
@@ -282,10 +283,11 @@ class StakingApiClient implements StakingApiClient {
     return Promise.all(promises).then((results) => {
       const totalReward = round(results.reduce((acc, curr) => acc + curr, 0));
       const totalRewardRate = round(totalReward / allRewardAmount) * 100;
-      return {
+      return Promise.resolve({
         totalReward,
+        allRewardAmount,
         totalRewardRate,
-      };
+      });
     });
   }
 
@@ -300,10 +302,11 @@ class StakingApiClient implements StakingApiClient {
     return Promise.all(promises).then((results) => {
       const totalReward = round(results.reduce((acc, curr) => acc + curr, 0));
       const totalRewardRate = round(totalReward / allRewardAmount) * 100;
-      return {
+      return Promise.resolve({
         totalReward,
+        allRewardAmount,
         totalRewardRate,
-      };
+      });
     });
   }
 
