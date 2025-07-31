@@ -276,7 +276,7 @@ export function allTotalReward(network: string, tokenName: TokenName): number {
   if (network === 'dev') {
     return 50000;
   }
-  if (tokenName === 'XZK') {
+  if ((tokenName as string) === 'XZK') {
     return 50000000 * 0.4;
   } else {
     return 50000000 * 0.6;
