@@ -1,6 +1,6 @@
 {
   "name": "@expandzk/xzk-staking-contracts",
-  "version": "0.1.31",
+  "version": "0.1.32",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -20,6 +20,7 @@
     "build:contract": "hardhat compile",
     "build:typechain": "hardhat compile && hardhat typechain",
     "build:abi": "cd ../abi && yarn generate",
+    "build:abi-rust": "forge bind --out ./rust",
     "clean": "rm -rf artifacts && rm -rf cache && rm -rf foundry",
     "test": "yarn test:forge",
     "test:hardhat": "hardhat test",
