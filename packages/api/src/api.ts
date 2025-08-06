@@ -5,7 +5,7 @@ import { clientOptionToKey, GlobalClientOptions } from './config/config';
 import { createErrorPromise, XZKStakingErrorCode } from './error';
 import BN from 'bn.js';
 import { toDecimals } from '@mystikonetwork/utils';
-import { round, allTotalReward } from './config/config';
+import { round_4, round_2, allTotalReward } from './config/config';
 
 // Import types directly to avoid circular dependency
 export type Network = 'ethereum' | 'sepolia' | 'dev';
@@ -255,7 +255,7 @@ class StakingApiClient implements StakingApiClient {
       }
     });
     return Promise.all(promises).then((results) => {
-      return round(results.reduce((acc, curr) => acc + curr, 0));
+      return round_4(results.reduce((acc, curr) => acc + curr, 0));
     });
   }
 
@@ -267,7 +267,7 @@ class StakingApiClient implements StakingApiClient {
       }
     });
     return Promise.all(promises).then((results) => {
-      return round(results.reduce((acc, curr) => acc + curr, 0));
+      return round_4(results.reduce((acc, curr) => acc + curr, 0));
     });
   }
 
@@ -281,8 +281,8 @@ class StakingApiClient implements StakingApiClient {
 
     const allRewardAmount = allTotalReward(this.network, 'XZK');
     return Promise.all(promises).then((results) => {
-      const totalReward = round(results.reduce((acc, curr) => acc + curr, 0));
-      const totalRewardRate = round(totalReward / allRewardAmount) * 100;
+      const totalReward = round_4(results.reduce((acc, curr) => acc + curr, 0));
+      const totalRewardRate = round_2((totalReward * 100) / allRewardAmount);
       return Promise.resolve({
         totalReward,
         allRewardAmount,
@@ -300,8 +300,8 @@ class StakingApiClient implements StakingApiClient {
     });
     const allRewardAmount = allTotalReward(this.network, 'vXZK');
     return Promise.all(promises).then((results) => {
-      const totalReward = round(results.reduce((acc, curr) => acc + curr, 0));
-      const totalRewardRate = round(totalReward / allRewardAmount) * 100;
+      const totalReward = round_4(results.reduce((acc, curr) => acc + curr, 0));
+      const totalRewardRate = round_2((totalReward * 100) / allRewardAmount);
       return Promise.resolve({
         totalReward,
         allRewardAmount,
@@ -380,7 +380,9 @@ class StakingApiClient implements StakingApiClient {
             .then((unstakedAmount) =>
               client
                 .totalRewardAt()
-                .then((rewardAmount) => Promise.resolve(round(stakedAmount + rewardAmount - unstakedAmount))),
+                .then((rewardAmount) =>
+                  Promise.resolve(round_4(stakedAmount + rewardAmount - unstakedAmount)),
+                ),
             ),
         ),
     );

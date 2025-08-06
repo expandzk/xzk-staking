@@ -21,8 +21,13 @@ export function clientOptionToKey(options: ClientOptions): string {
   return `s${options.tokenName}${options.stakingPeriod}`;
 }
 
-export function round(amount: number): number {
+export function round_4(amount: number): number {
   const precision = 4;
+  return Math.round(amount * 10 ** precision) / 10 ** precision;
+}
+
+export function round_2(amount: number): number {
+  const precision = 2;
   return Math.round(amount * 10 ** precision) / 10 ** precision;
 }
 
