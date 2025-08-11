@@ -15,6 +15,7 @@ import type {
   UnstakeActionSummary,
   StakingPoolConfig,
   StakingPoolSummary,
+  SummaryAll,
 } from '../api';
 import { ClientContext } from './context';
 import { round_4, round_2 } from '../config/config';
@@ -35,6 +36,56 @@ export class ContractClient {
       stakingContractAddress,
       this.context.provider,
     );
+  }
+
+  public health(): Promise<string> {
+    return this.context.backendClient.health();
+  }
+
+  public summary(): Promise<SummaryAll> {
+    return this.context.backendClient.getSummary().then((response: any) => {
+      return {
+        stakedXzk: response.total_xzk_staked,
+        stakedVxzk: response.total_vxzk_staked,
+        rewardXzk: response.total_xzk_reward,
+        rewardVxzk: response.total_vxzk_reward,
+        reward: response.total_reward,
+        allReward: response.all_reward,
+        rewardRate: response.reward_rate,
+        xzk365d: {
+          staked: response.pool_xzk_365d.total_staked,
+          apr: response.pool_xzk_365d.staker_apr,
+        },
+        xzk180d: {
+          staked: response.pool_xzk_180d.total_staked,
+          apr: response.pool_xzk_180d.staker_apr,
+        },
+        xzk90d: {
+          staked: response.pool_xzk_90d.total_staked,
+          apr: response.pool_xzk_90d.staker_apr,
+        },
+        xzkFlex: {
+          staked: response.pool_xzk_flex.total_staked,
+          apr: response.pool_xzk_flex.staker_apr,
+        },
+        vxzk365d: {
+          staked: response.pool_vxzk_365d.total_staked,
+          apr: response.pool_vxzk_365d.staker_apr,
+        },
+        vxzk180d: {
+          staked: response.pool_vxzk_180d.total_staked,
+          apr: response.pool_vxzk_180d.staker_apr,
+        },
+        vxzk90d: {
+          staked: response.pool_vxzk_90d.total_staked,
+          apr: response.pool_vxzk_90d.staker_apr,
+        },
+        vxzkFlex: {
+          staked: response.pool_vxzk_flex.total_staked,
+          apr: response.pool_vxzk_flex.staker_apr,
+        },
+      };
+    });
   }
 
   public getStakingPoolConfig(): Promise<StakingPoolConfig> {
