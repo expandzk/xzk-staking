@@ -158,7 +158,7 @@ yarn format
 
 ```bash
 # Clone the repository
-git clone https://github.com/mystikonetwork/mystiko-staking-rewards.git
+git clone https://github.com/expandzk/xzk-staking.git
 cd mystiko-staking-rewards
 
 # Install dependencies
@@ -349,7 +349,7 @@ MIT License - see LICENSE file for details
 ## Support
 
 For questions and support:
-- GitHub Issues: [Create an issue](https://github.com/mystikonetwork/mystiko-staking-rewards/issues)
+- GitHub Issues: [Create an issue](https://github.com/expandzk/xzk-staking/issues)
 - Documentation: See individual package READMEs
 - Community: Join our Discord/Telegram channels
 

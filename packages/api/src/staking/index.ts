@@ -1,0 +1,1 @@
+export { StakingBackendClient } from './client';

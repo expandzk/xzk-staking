@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, before, after } from 'mocha';
+import { expect } from 'chai';
 import stakingApiClient from '../../src/api';
 import type { ClientOptions, InitOptions } from '../../src/index';
 import { ethers } from 'ethers';
@@ -27,7 +28,7 @@ const testOptions: ClientOptions = {
 
 let wallet: ethers.Wallet;
 describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
-  beforeAll(async () => {
+  before(async () => {
     // Initialize API client
     stakingApiClient.initialize(testInitOptions);
 
@@ -45,7 +46,7 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
     });
   });
 
-  afterAll(() => {
+  after(() => {
     // Clean up resources
     stakingApiClient.resetInitStatus();
   });
@@ -53,23 +54,23 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
   describe('Network Connection Tests', () => {
     it('should connect to Sepolia network successfully', async () => {
       const chainId = await stakingApiClient.getChainId(testOptions);
-      expect(chainId).toBe(SEPOLIA_CHAIN_ID);
+      expect(chainId).to.equal(SEPOLIA_CHAIN_ID);
     });
 
     it('should get contract addresses on Sepolia', async () => {
       const tokenAddress = await stakingApiClient.tokenContractAddress(testOptions);
       const stakingAddress = await stakingApiClient.stakingContractAddress(testOptions);
-      expect(tokenAddress).toBeDefined();
-      expect(stakingAddress).toBeDefined();
-      expect(tokenAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
-      expect(stakingAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
+      expect(tokenAddress).to.not.be.undefined;
+      expect(stakingAddress).to.not.be.undefined;
+      expect(tokenAddress).to.match(/^0x[a-fA-F0-9]{40}$/);
+      expect(stakingAddress).to.match(/^0x[a-fA-F0-9]{40}$/);
     });
   });
 
   describe('Contract State Tests', () => {
     it('should get staking start timestamp', async () => {
       const startTime = await stakingApiClient.stakingStartTimestamp(testOptions);
-      expect(startTime).toBeGreaterThan(0);
+      expect(startTime).to.be.greaterThan(0);
     });
 
     it('should get staking period configuration', async () => {
@@ -77,27 +78,27 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       const stakingPeriod = await stakingApiClient.stakingPeriodSeconds(testOptions);
       const claimDelay = await stakingApiClient.claimDelaySeconds(testOptions);
 
-      expect(totalDuration).toBe(14 * 24 * 60 * 60);
-      expect(stakingPeriod).toBe(3 * 24 * 60 * 60);
-      expect(claimDelay).toBe(10 * 60);
+      expect(totalDuration).to.equal(14 * 24 * 60 * 60);
+      expect(stakingPeriod).to.equal(4 * 60 * 60); // 4 hours = 14400 seconds
+      expect(claimDelay).to.equal(10 * 60);
     });
 
     it('should get staking pause status', async () => {
       const isPaused = await stakingApiClient.isStakingPaused(testOptions);
-      expect(typeof isPaused).toBe('boolean');
-      expect(isPaused).toBe(false);
+      expect(typeof isPaused).to.equal('boolean');
+      expect(isPaused).to.be.false;
     });
   });
 
   describe('Token Balance Tests', () => {
     it('should get token balance for test account', async () => {
       const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
-      expect(balance).toBeGreaterThanOrEqual(0);
+      expect(balance).to.be.at.least(0);
     });
 
     it('should get staking balance for test account', async () => {
       const stakingBalance = await stakingApiClient.stakingBalance(testOptions, TEST_ACCOUNT);
-      expect(stakingBalance).toBeGreaterThanOrEqual(0);
+      expect(stakingBalance).to.be.at.least(0);
     });
   });
 
@@ -105,81 +106,81 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
     it('should get staking summary for test account', async () => {
       const summary = await stakingApiClient.stakingSummary(testOptions, TEST_ACCOUNT);
       console.log(summary);
-      expect(summary).toHaveProperty('totalTokenAmount');
-      expect(summary).toHaveProperty('totalStakingTokenAmount');
-      expect(summary).toHaveProperty('totalStakingTokenRemaining');
-      expect(summary).toHaveProperty('totalCanUnstakeAmount');
-      expect(Array.isArray(summary.records)).toBe(true);
+      expect(summary).to.have.property('totalTokenAmount');
+      expect(summary).to.have.property('totalStakingTokenAmount');
+      expect(summary).to.have.property('totalStakingTokenRemaining');
+      expect(summary).to.have.property('totalCanUnstakeAmount');
+      expect(summary.records).to.be.an('array');
     });
 
     it('should get unstaking summary for test account', async () => {
       const unstakingSummary = await stakingApiClient.unstakingSummary(testOptions, TEST_ACCOUNT);
       console.log(unstakingSummary);
-      expect(unstakingSummary).toHaveProperty('totalTokenAmount');
-      expect(unstakingSummary).toHaveProperty('totalUnstakingTokenAmount');
-      expect(unstakingSummary).toHaveProperty('totalTokenRemaining');
-      expect(unstakingSummary).toHaveProperty('totalCanClaimAmount');
-      expect(Array.isArray(unstakingSummary.records)).toBe(true);
+      expect(unstakingSummary).to.have.property('totalTokenAmount');
+      expect(unstakingSummary).to.have.property('totalUnstakingTokenAmount');
+      expect(unstakingSummary).to.have.property('totalTokenRemaining');
+      expect(unstakingSummary).to.have.property('totalCanClaimAmount');
+      expect(unstakingSummary.records).to.be.an('array');
     });
 
     it('should get claim summary for test account', async () => {
       const claimSummary = await stakingApiClient.claimSummary(testOptions, TEST_ACCOUNT);
       console.log(claimSummary);
-      expect(claimSummary).toHaveProperty('totalClaimedAmount');
-      expect(Array.isArray(claimSummary.records)).toBe(true);
+      expect(claimSummary).to.have.property('totalClaimedAmount');
+      expect(claimSummary.records).to.be.an('array');
     });
   });
 
   describe('Test approve transaction', () => {
     it('should handle insufficient balance for approve transaction', async () => {
       const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
-      expect(balance).toBeDefined();
+      expect(balance).to.not.be.undefined;
 
       try {
         await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, false, balance + 1);
-        expect(true).toBe(false);
+        expect(true).to.be.false;
       } catch (error: any) {
-        expect(error.message).toContain('Insufficient balance error');
+        expect(error.message).to.contain('Insufficient balance error');
       }
 
       const tx = await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, false, balance / 10);
       if (tx) {
         const receipt = await wallet.sendTransaction(tx);
         const receipt2 = await receipt.wait(2);
-        expect(receipt2.status).toBe(1);
+        expect(receipt2.status).to.equal(1);
       }
     });
 
     it('should handle approve transaction with max amount', async () => {
       const tx = await stakingApiClient.tokenApprove(testOptions, TEST_ACCOUNT, true);
-      expect(tx).toBeDefined();
+      expect(tx).to.not.be.undefined;
     });
 
     it('test stake transaction', async () => {
       const balance = await stakingApiClient.tokenBalance(testOptions, TEST_ACCOUNT);
-      expect(balance).toBeDefined();
+      expect(balance).to.not.be.undefined;
 
       try {
         await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance + 1);
-        expect(true).toBe(false);
+        expect(true).to.be.false;
       } catch (error: any) {
-        expect(error.message).toContain('Insufficient balance error');
+        expect(error.message).to.contain('Insufficient balance error');
       }
 
       const tx = await stakingApiClient.stake(testOptions, TEST_ACCOUNT, false, balance / 10);
-      expect(tx).toBeDefined();
+      expect(tx).to.not.be.undefined;
       const receipt = await wallet.sendTransaction(tx);
       console.log(receipt.hash);
       const receipt2 = await receipt.wait(2);
-      expect(receipt2.status).toBe(1);
+      expect(receipt2.status).to.equal(1);
     });
 
     it('should handle approve amount error', async () => {
       try {
         await stakingApiClient.stake(testOptions, TEST_ACCOUNT, true);
-        expect(true).toBe(false);
+        expect(true).to.be.false;
       } catch (error: any) {
-        expect(error.message).toContain('Approve amount error');
+        expect(error.message).to.contain('Approve amount error');
       }
     });
 
@@ -188,27 +189,27 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
 
       try {
         await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, false, unstakeAmount);
-        expect(true).toBe(false);
+        expect(true).to.be.false;
       } catch (error: any) {
-        expect(error.message).toContain('Insufficient balance error');
+        expect(error.message).to.contain('Insufficient balance error');
       }
 
       try {
         await stakingApiClient.unstake(testOptions, TEST_ACCOUNT, true, 0);
-        expect(true).toBe(false);
+        expect(true).to.be.false;
       } catch (error: any) {
-        expect(error.message).toContain('Insufficient balance error');
+        expect(error.message).to.contain('Insufficient balance error');
       }
     });
 
     it('should build claim transaction successfully', async () => {
       try {
         const claimTx = await stakingApiClient.claim(testOptions, TEST_ACCOUNT);
-        expect(claimTx).toHaveProperty('to');
-        expect(claimTx).toHaveProperty('data');
+        expect(claimTx).to.have.property('to');
+        expect(claimTx).to.have.property('data');
       } catch (error: any) {
         // If there's no claimable amount, that's also a valid scenario
-        expect(error.message).toContain('No claimable amount');
+        expect(error.message).to.contain('No claimable amount');
       }
     });
 
@@ -216,13 +217,13 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       it('should calculate swap to staking token', async () => {
         const amount = 1;
         const stakingAmount = await stakingApiClient.swapToStakingToken(testOptions, amount);
-        expect(stakingAmount).toBeGreaterThan(0);
+        expect(stakingAmount).to.be.greaterThan(0);
       });
 
       it('should calculate swap to underlying token', async () => {
         const amount = 0.1;
         const underlyingAmount = await stakingApiClient.swapToUnderlyingToken(testOptions, amount);
-        expect(underlyingAmount).toBeGreaterThan(0);
+        expect(underlyingAmount).to.be.greaterThan(0);
       });
     });
 
@@ -230,19 +231,19 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
       it('should calculate staker APR', async () => {
         const apr = await stakingApiClient.stakerApr(testOptions);
         console.log(apr);
-        expect(apr).toBeGreaterThanOrEqual(0);
+        expect(apr).to.be.at.least(0);
       });
 
       it('should calculate estimated APR', async () => {
         const apr = await stakingApiClient.estimatedApr(testOptions);
         console.log(apr);
-        expect(apr).toBeGreaterThanOrEqual(0);
+        expect(apr).to.be.at.least(0);
       });
 
       it('should calculate estimated APR with amount', async () => {
         const apr = await stakingApiClient.estimatedApr(testOptions, 1000);
         console.log(apr);
-        expect(apr).toBeGreaterThanOrEqual(0);
+        expect(apr).to.be.at.least(0);
       });
     });
 
@@ -253,9 +254,9 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
         try {
           await stakingApiClient.tokenBalance(testOptions, invalidAddress);
           // If we reach here, the test should fail
-          expect(true).toBe(false);
+          expect(true).to.be.false;
         } catch (error) {
-          expect(error).toBeDefined();
+          expect(error).to.not.be.undefined;
         }
       });
 
@@ -268,9 +269,9 @@ describe('Sepolia Dev Integration Tests - 365d Day Staking', () => {
         try {
           await stakingApiClient.getChainId(unsupportedOptions);
           // If we reach here, the test should fail
-          expect(true).toBe(false);
+          expect(true).to.be.false;
         } catch (error: any) {
-          expect(error.message).toContain('Not initialized');
+          expect(error.message).to.contain('Not initialized');
         }
       });
     });

@@ -9,6 +9,7 @@ export enum XZKStakingErrorCode {
   NO_CLAIMABLE_AMOUNT_ERROR = 7,
   INSUFFICIENT_BALANCE_ERROR = 8,
   UNSTAKE_GAS_COST_TOO_LARGE_ERROR = 9,
+  STAKING_API_ERROR = 10,
 }
 
 export class XZKStakingError extends Error {
@@ -49,6 +50,9 @@ export function createErrorPromise(code: XZKStakingErrorCode, message?: string):
     }
     case XZKStakingErrorCode.INSUFFICIENT_BALANCE_ERROR: {
       return createError(message || 'Insufficient balance error', code);
+    }
+    case XZKStakingErrorCode.STAKING_API_ERROR: {
+      return createError(message || 'Staking api error', code);
     }
     default: {
       return createError(message || 'Unknown error', code);

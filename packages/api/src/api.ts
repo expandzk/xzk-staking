@@ -33,6 +33,32 @@ export interface ClientOptions {
 export interface InitOptions {
   network?: Network;
   scanApiBaseUrl?: string;
+  stakingBackendUrl?: string;
+}
+
+export interface SummaryPool {
+  staked: number;
+  apr: number;
+}
+
+export interface SummaryAll {
+  stakedXzk: number;
+  stakedVxzk: number;
+  rewardXzk: number;
+  rewardVxzk: number;
+  reward: number;
+  allReward: number;
+  rewardRate: number;
+  startTime: number;
+  endTime: number;
+  xzk365d: SummaryPool;
+  xzk180d: SummaryPool;
+  xzk90d: SummaryPool;
+  xzkFlex: SummaryPool;
+  vxzk365d: SummaryPool;
+  vxzk180d: SummaryPool;
+  vxzk90d: SummaryPool;
+  vxzkFlex: SummaryPool;
 }
 
 export interface totalRewardSummary {
@@ -42,6 +68,7 @@ export interface totalRewardSummary {
 }
 
 export interface StakingPoolSummary {
+  totalStaked: number;
   currentReward: number;
   totalReward: number;
   rewardRate: number;
@@ -155,6 +182,8 @@ export interface IStakingClient {
   initialize(options: InitOptions): void;
   readonly isInitialized: boolean;
   resetInitStatus(): void;
+  health(): Promise<string>;
+  summary(): Promise<SummaryAll>;
   totalXzkAmountSummary(): Promise<number>;
   totalVxzkAmountSummary(): Promise<number>;
   totalRewardXzkAmountSummary(): Promise<totalRewardSummary>;
@@ -245,6 +274,14 @@ class StakingApiClient implements StakingApiClient {
   public resetInitStatus(): void {
     this.clients.clear();
     this.initStatus = false;
+  }
+
+  public health(): Promise<string> {
+    return this.getClient({ tokenName: 'XZK', stakingPeriod: '365d' }).then((client) => client.health());
+  }
+
+  public summary(): Promise<SummaryAll> {
+    return this.getClient({ tokenName: 'XZK', stakingPeriod: '365d' }).then((client) => client.summary());
   }
 
   public totalXzkAmountSummary(): Promise<number> {
