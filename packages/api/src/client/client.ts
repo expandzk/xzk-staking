@@ -44,6 +44,9 @@ export class ContractClient {
 
   public summary(): Promise<SummaryAll> {
     const currentTimestamp = Math.floor(Date.now() / 1000);
+    const startTime = this.context.config.stakingStartTime();
+    const durationSeconds = this.context.config.totalDurationSeconds();
+    const endTime = startTime + durationSeconds;
     return this.context.backendClient.getSummary(currentTimestamp).then((response: any) => {
       return {
         stakedXzk: response.total_xzk_staked,
@@ -53,6 +56,8 @@ export class ContractClient {
         reward: response.total_reward,
         allReward: response.all_reward,
         rewardRate: response.reward_rate,
+        startTime,
+        endTime,
         xzk365d: {
           staked: response.pool_xzk_365d.total_staked,
           apr: response.pool_xzk_365d.staker_apr,

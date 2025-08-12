@@ -49,6 +49,8 @@ export interface SummaryAll {
   reward: number;
   allReward: number;
   rewardRate: number;
+  startTime: number;
+  endTime: number;
   xzk365d: SummaryPool;
   xzk180d: SummaryPool;
   xzk90d: SummaryPool;
