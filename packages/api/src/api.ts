@@ -66,6 +66,7 @@ export interface totalRewardSummary {
 }
 
 export interface StakingPoolSummary {
+  totalStaked: number;
   currentReward: number;
   totalReward: number;
   rewardRate: number;

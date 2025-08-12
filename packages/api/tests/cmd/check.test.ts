@@ -10,7 +10,7 @@ config();
 // Test configuration
 const testInitOptions: InitOptions = {
   network: 'ethereum',
-  stakingBackendUrl: 'http://0.0.0.0:3000/api',
+  // stakingBackendUrl: 'http://0.0.0.0:3000/api',
 };
 
 let wallet: ethers.Wallet;
@@ -118,5 +118,22 @@ describe('Mainnet Integration Tests - 365d Day Staking', () => {
     stakingApiClient.initialize(testInitOptions);
     const summary = await stakingApiClient.summary();
     console.log(summary);
+
+    const poolSummary = await stakingApiClient.stakingPoolSummary(clientXZK365d);
+    const poolSummary2 = await stakingApiClient.stakingPoolSummary(clientXZK180d);
+    const poolSummary3 = await stakingApiClient.stakingPoolSummary(clientXZK90d);
+    const poolSummary4 = await stakingApiClient.stakingPoolSummary(clientXZKFlex);
+    const poolSummary5 = await stakingApiClient.stakingPoolSummary(clientvXZK365d);
+    const poolSummary6 = await stakingApiClient.stakingPoolSummary(clientvXZK180d);
+    const poolSummary7 = await stakingApiClient.stakingPoolSummary(clientvXZK90d);
+    const poolSummary8 = await stakingApiClient.stakingPoolSummary(clientvXZKFlex);
+    console.log(poolSummary);
+    console.log(poolSummary2);
+    console.log(poolSummary3);
+    console.log(poolSummary4);
+    console.log(poolSummary5);
+    console.log(poolSummary6);
+    console.log(poolSummary7);
+    console.log(poolSummary8);
   });
 });

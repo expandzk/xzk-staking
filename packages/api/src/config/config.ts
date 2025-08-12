@@ -228,50 +228,50 @@ export class Config {
     throw new Error(`Unsupported staking period: ${period}`);
   }
 
-  public stakingStartTime(): Promise<number> {
+  public stakingStartTime(): number {
     if (this.network === 'dev') {
-      return Promise.resolve(1753848000);
+      return 1753848000;
     } else if (this.network === 'sepolia') {
-      return Promise.resolve(1754438400);
+      return 1754438400;
     }
-    return Promise.resolve(1754438400);
+    return 1754438400;
   }
 
-  public totalReward(tokenName: TokenName, stakingPeriod: StakingPeriod): Promise<number> {
+  public totalReward(tokenName: TokenName, stakingPeriod: StakingPeriod): number {
     if (this.network === 'dev') {
       if ((stakingPeriod as string) === '365d') {
-        return Promise.resolve(20000);
+        return 20000;
       } else if ((stakingPeriod as string) === '180d') {
-        return Promise.resolve(15000);
+        return 15000;
       } else if ((stakingPeriod as string) === '90d') {
-        return Promise.resolve(10000);
+        return 10000;
       } else if ((stakingPeriod as string) === 'Flex') {
-        return Promise.resolve(5000);
+        return 5000;
       }
-      return Promise.reject(new Error(`Unsupported staking period for dev network: ${stakingPeriod}`));
+      throw new Error(`Unsupported staking period for dev network: ${stakingPeriod}`);
     } else {
       if ((tokenName as string) === 'XZK') {
         if ((stakingPeriod as string) === '365d') {
-          return Promise.resolve(11000000);
+          return 11000000;
         } else if ((stakingPeriod as string) === '180d') {
-          return Promise.resolve(5400000);
+          return 5400000;
         } else if ((stakingPeriod as string) === '90d') {
-          return Promise.resolve(2600000);
+          return 2600000;
         } else if ((stakingPeriod as string) === 'Flex') {
-          return Promise.resolve(1000000);
+          return 1000000;
         }
-        return Promise.reject(new Error(`Unsupported staking period for XZK: ${stakingPeriod}`));
+        throw new Error(`Unsupported staking period for XZK: ${stakingPeriod}`);
       } else {
         if ((stakingPeriod as string) === '365d') {
-          return Promise.resolve(16500000);
+          return 16500000;
         } else if ((stakingPeriod as string) === '180d') {
-          return Promise.resolve(8100000);
+          return 8100000;
         } else if ((stakingPeriod as string) === '90d') {
-          return Promise.resolve(3900000);
+          return 3900000;
         } else if ((stakingPeriod as string) === 'Flex') {
-          return Promise.resolve(1500000);
+          return 1500000;
         }
-        return Promise.reject(new Error(`Unsupported staking period for vXZK: ${stakingPeriod}`));
+        throw new Error(`Unsupported staking period for vXZK: ${stakingPeriod}`);
       }
     }
   }

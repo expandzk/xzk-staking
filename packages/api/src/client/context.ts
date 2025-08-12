@@ -26,7 +26,7 @@ export class ClientContext {
     this.xzkContract = ERC20ContractFactory.connect('ERC20', this.config.xzkContract, this.provider);
     this.vXzkContract = ERC20ContractFactory.connect('ERC20', this.config.vXZkContract, this.provider);
     this.backendClient = new StakingBackendClient(
-      options.stakingBackendUrl || 'https://api.expandzk.com/api',
+      options.stakingBackendUrl || 'https://staking.expandzk.com/api',
     );
   }
 

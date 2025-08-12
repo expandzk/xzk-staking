@@ -49,15 +49,20 @@ export class StakingBackendClient {
     return this.axiosInstance.get('/health');
   }
 
-  public async getSummary() {
-    return this.axiosInstance.get('/v1/summary');
+  public async getSummary(timestamp?: number) {
+    return this.axiosInstance.get('/v1/summary', {
+      params: {
+        timestamp,
+      },
+    });
   }
 
-  public async getPoolSummary(token: string, period: string) {
+  public async getPoolSummary(token: string, period: string, timestamp?: number) {
     return this.axiosInstance.get('/v1/pool/summary', {
       params: {
         token,
         period,
+        timestamp,
       },
     });
   }
