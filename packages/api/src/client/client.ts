@@ -127,16 +127,20 @@ export class ContractClient {
 
     return this.context.backendClient
       .getPoolSummary(this.options.tokenName, this.options.stakingPeriod, currentTimestamp)
-      .then((response: any) => {
-        return {
-          totalStaked: response.total_staked,
-          currentReward: response.current_total_reward,
-          totalReward: response.all_reward,
-          rewardRate: response.reward_rate,
-          startTime,
-          endTime,
-        };
-      });
+      .then((response: any) =>
+        this.stakingTotalSupply().then((stakingTokenSupply) => {
+          return {
+            totalStaked: response.total_staked,
+            totalStakingToken: stakingTokenSupply,
+            totalClaimed: response.total_claimed,
+            currentReward: response.current_total_reward,
+            totalReward: response.all_reward,
+            rewardRate: response.reward_rate,
+            startTime,
+            endTime,
+          };
+        }),
+      );
   }
 
   private stakingPoolSummaryFromProvider(): Promise<StakingPoolSummary> {
@@ -148,25 +152,29 @@ export class ContractClient {
 
     return this.totalRewardAt(currentTimestamp).then((currentReward) =>
       this.totalStaked().then((totalStaked) =>
-        this.totalUnstaked().then((totalUnstaked) => {
-          {
-            let rewardRate = 0;
-            if (totalReward > 0) {
-              rewardRate = round_2((currentReward * 100) / totalReward);
-            } else {
-              rewardRate = 0;
-            }
-            let staked = round_4(totalStaked + currentReward - totalUnstaked);
-            return {
-              totalStaked: staked,
-              currentReward,
-              totalReward,
-              startTime,
-              endTime,
-              rewardRate,
-            };
-          }
-        }),
+        this.totalUnstaked().then((totalUnstaked) =>
+          this.totalClaimed().then((totalClaimed) =>
+            this.stakingTotalSupply().then((stakingTokenSupply) => {
+              let rewardRate = 0;
+              if (totalReward > 0) {
+                rewardRate = round_2((currentReward * 100) / totalReward);
+              } else {
+                rewardRate = 0;
+              }
+              let staked = round_4(totalStaked + currentReward - totalUnstaked);
+              return {
+                totalStaked: staked,
+                totalStakingToken: stakingTokenSupply,
+                totalClaimed: totalClaimed,
+                currentReward,
+                totalReward,
+                startTime,
+                endTime,
+                rewardRate,
+              };
+            }),
+          ),
+        ),
       ),
     );
   }

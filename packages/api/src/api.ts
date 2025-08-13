@@ -69,6 +69,8 @@ export interface totalRewardSummary {
 
 export interface StakingPoolSummary {
   totalStaked: number;
+  totalStakingToken: number;
+  totalClaimed: number;
   currentReward: number;
   totalReward: number;
   rewardRate: number;
